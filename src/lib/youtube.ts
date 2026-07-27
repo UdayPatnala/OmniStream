@@ -242,21 +242,34 @@ export async function getRelatedVideos(videoId: string): Promise<Video[]> {
 
 export async function fetchSearchSuggestions(query: string): Promise<string[]> {
   if (!query || query.trim().length < 2) return [];
+  
+  // 1. Try local server API endpoint
+  try {
+    const localRes = await fetch(`/api/suggest?q=${encodeURIComponent(query.trim())}`);
+    if (localRes.ok) {
+      const data = await localRes.json();
+      if (Array.isArray(data) && data.length > 0) {
+        return data.slice(0, 8);
+      }
+    }
+  } catch (e) {}
+
+  // 2. Direct client fallback to suggestqueries.google.com
   try {
     const url = `https://suggestqueries.google.com/complete/search?client=firefox&ds=yt&q=${encodeURIComponent(query.trim())}`;
     const res = await fetch(url);
     if (res.ok) {
       const data = await res.json();
       if (Array.isArray(data) && Array.isArray(data[1])) {
-        return data[1].slice(0, 6);
+        return data[1].slice(0, 8);
       }
     }
   } catch (e) {}
-  
-  const matches = FALLBACK_VIDEOS
-    .map(v => v.title)
-    .filter(t => t.toLowerCase().includes(query.toLowerCase()));
-  return matches.slice(0, 5);
+
+  // 3. Fallback to local offline dataset
+  return FALLBACK_VIDEOS.map(v => v.title)
+    .filter(t => t.toLowerCase().includes(query.toLowerCase()))
+    .slice(0, 5);
 }
 
 export async function getVideosByIds(ids: string[]): Promise<Video[]> {

@@ -11,6 +11,24 @@ async function startServer() {
 
   app.use(express.json());
 
+  app.get('/api/suggest', async (req, res) => {
+    const query = (req.query.q as string) || '';
+    if (!query) return res.json([]);
+    try {
+      const url = `https://suggestqueries.google.com/complete/search?client=firefox&ds=yt&q=${encodeURIComponent(query)}`;
+      const response = await fetch(url);
+      if (response.ok) {
+        const data = await response.json();
+        if (Array.isArray(data) && Array.isArray(data[1])) {
+          return res.json(data[1].slice(0, 8));
+        }
+      }
+      return res.json([]);
+    } catch (err) {
+      return res.json([]);
+    }
+  });
+
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
