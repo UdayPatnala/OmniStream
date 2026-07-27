@@ -1,10 +1,61 @@
 import { Video, Channel, HistoryItem, Collection } from '../types';
 
+export interface UserStats {
+  totalWatched: number;
+  totalHours: number;
+  completedCount: number;
+  completionRate: number;
+  subscriptionsCount: number;
+  collectionsCount: number;
+  topChannels: { channelTitle: string; count: number }[];
+}
+
+export function calculateUserStats(
+  history: Record<string, HistoryItem>,
+  subscriptions: Channel[],
+  collections: Collection[]
+): UserStats {
+  const historyItems = Object.values(history);
+  const totalWatched = historyItems.length;
+  
+  let totalSeconds = 0;
+  let completedCount = 0;
+  const channelCounts: Record<string, number> = {};
+
+  historyItems.forEach(item => {
+    totalSeconds += item.progress || 0;
+    const isCompleted = item.duration && item.progress >= item.duration * 0.95;
+    if (isCompleted) completedCount++;
+
+    const chan = item.video.channelTitle || 'Unknown';
+    channelCounts[chan] = (channelCounts[chan] || 0) + 1;
+  });
+
+  const topChannels = Object.entries(channelCounts)
+    .map(([channelTitle, count]) => ({ channelTitle, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 5);
+
+  const totalHours = parseFloat((totalSeconds / 3600).toFixed(1));
+  const completionRate = totalWatched > 0 ? Math.round((completedCount / totalWatched) * 100) : 0;
+
+  return {
+    totalWatched,
+    totalHours,
+    completedCount,
+    completionRate,
+    subscriptionsCount: subscriptions.length,
+    collectionsCount: collections.length,
+    topChannels,
+  };
+}
+
 export function getRecommendedVideos(
   popularVideos: Video[],
   history: Record<string, HistoryItem>,
   subscriptions: Channel[],
-  collections: Collection[]
+  collections: Collection[],
+  searchHistory: string[] = []
 ): Video[] {
   if (popularVideos.length === 0) return [];
 
@@ -12,7 +63,7 @@ export function getRecommendedVideos(
   const subscribedChannelIds = new Set(subscriptions.map(s => s.id));
   const watchedVideoIds = new Set(historyItems.map(h => h.video.id));
   
-  // Extract top keywords from history and collection video titles
+  // Extract keywords from history, collections, and search history
   const keywordMap: Record<string, number> = {};
   const sampleVideos = [
     ...historyItems.map(h => h.video),
@@ -24,6 +75,16 @@ export function getRecommendedVideos(
     words.forEach(w => {
       if (w.length > 3 && !['with', 'from', 'that', 'this', 'have', 'what', 'your', 'video'].includes(w)) {
         keywordMap[w] = (keywordMap[w] || 0) + 1;
+      }
+    });
+  });
+
+  // Include recent search history query terms in keyword map
+  searchHistory.forEach(query => {
+    const words = query.toLowerCase().replace(/[^\w\s]/gi, '').split(/\s+/);
+    words.forEach(w => {
+      if (w.length > 2) {
+        keywordMap[w] = (keywordMap[w] || 0) + 3;
       }
     });
   });
@@ -50,7 +111,7 @@ export function getRecommendedVideos(
       }
     });
 
-    // Slight boost for newer videos
+    // Boost for newer videos
     const publishDate = new Date(video.publishedAt).getTime();
     const daysOld = (Date.now() - publishDate) / (1000 * 60 * 60 * 24);
     if (daysOld < 7) {
@@ -65,3 +126,4 @@ export function getRecommendedVideos(
 
   return scoredVideos.map(item => item.video);
 }
+
