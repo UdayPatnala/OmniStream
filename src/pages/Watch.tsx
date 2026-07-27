@@ -8,12 +8,11 @@ import { ThumbsUp, ThumbsDown, Share2, FolderPlus, Plus, Check } from 'lucide-re
 
 export function Watch() {
   const { id } = useParams<{ id: string }>();
-  const { subscriptions, subscribe, unsubscribe, collections, createCollection, addVideoToCollection, setActiveVideo } = useAppStore();
+  const { activeVideo, setActiveVideo, subscriptions, subscribe, unsubscribe, collections, createCollection, addVideoToCollection } = useAppStore();
   
-  const [video, setVideo] = useState<Video | null>(null);
+  const [video, setVideo] = useState<Video | null>(activeVideo?.id === id ? activeVideo : null);
   const [channel, setChannel] = useState<Channel | null>(null);
   const [related, setRelated] = useState<Video[]>([]);
-  const [loading, setLoading] = useState(true);
   const [showSaveMenu, setShowSaveMenu] = useState(false);
   const [newColName, setNewColName] = useState('');
   const [showCreateCol, setShowCreateCol] = useState(false);
@@ -21,36 +20,50 @@ export function Watch() {
   const [liked, setLiked] = useState(false);
 
   useEffect(() => {
+    if (!id) return;
+    
+    if (!activeVideo || activeVideo.id !== id) {
+      setActiveVideo({
+        id,
+        title: 'Loading video title...',
+        description: '',
+        channelId: '',
+        channelTitle: 'YouTube Creator',
+        publishedAt: new Date().toISOString(),
+        thumbnails: {
+          medium: `https://img.youtube.com/vi/${id}/mqdefault.jpg`,
+          high: `https://img.youtube.com/vi/${id}/hqdefault.jpg`,
+        }
+      });
+    }
+
     async function fetchVideoData() {
-      if (!id) return;
       try {
-        setLoading(true);
-        const videos = await getVideosByIds([id]);
+        const videos = await getVideosByIds([id!]);
         if (videos.length > 0) {
           const v = videos[0];
           setVideo(v);
           setActiveVideo(v);
-          const chan = await getChannelDetails(v.channelId);
-          setChannel(chan);
+          if (v.channelId) {
+            const chan = await getChannelDetails(v.channelId);
+            setChannel(chan);
+          }
         }
       } catch (err: any) {
         // Safe silent fallback
-      } finally {
-        setLoading(false);
       }
     }
 
     async function fetchRelatedData() {
-      if (!id) return;
       try {
-        const rels = await getRelatedVideos(id);
+        const rels = await getRelatedVideos(id!);
         setRelated(rels.filter(r => r.id !== id));
       } catch (e) {}
     }
 
     fetchVideoData();
     fetchRelatedData();
-  }, [id, setActiveVideo]);
+  }, [id]);
 
   const isSubscribed = subscriptions.some(s => s.id === video?.channelId);
 
@@ -76,50 +89,54 @@ export function Watch() {
     <div className="max-w-[1750px] mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6 py-2">
       {/* Left Column: Player & Metadata (70% width) */}
       <div className="lg:col-span-2 space-y-4">
-        {/* Aspect Video Player Spacer - actual video renders in GlobalPlayer */}
-        <div className="aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl relative">
-          {loading && (
-            <div className="absolute inset-0 bg-[#1c1b1f] animate-pulse flex items-center justify-center text-[#aaaaaa]">
-              Loading player...
-            </div>
-          )}
-        </div>
-
         {/* Video Title */}
         <h1 className="text-xl font-bold text-[#f1f1f1] leading-snug">
-          {video?.title || 'Loading video title...'}
+          {video?.title || activeVideo?.title || 'Loading video title...'}
         </h1>
 
         {/* Channel Row & Action Buttons */}
         <div className="flex flex-wrap items-center justify-between gap-4 pt-1 pb-2 border-b border-[#272727]">
           {/* Channel Info */}
           <div className="flex items-center gap-3">
-            <Link to={`/channel/${video?.channelId}`} className="w-10 h-10 rounded-full overflow-hidden bg-[#272727] shrink-0">
-              <img 
-                src={channel?.thumbnails.medium || video?.thumbnails.medium} 
-                alt={video?.channelTitle} 
-                className="w-full h-full object-cover" 
-              />
-            </Link>
-            <div className="flex flex-col">
-              <Link to={`/channel/${video?.channelId}`} className="font-bold text-sm text-[#f1f1f1] hover:underline truncate max-w-[200px]">
-                {video?.channelTitle}
+            {video?.channelId ? (
+              <Link to={`/channel/${video.channelId}`} className="w-10 h-10 rounded-full overflow-hidden bg-[#272727] shrink-0">
+                <img 
+                  src={channel?.thumbnails?.medium || video?.thumbnails?.medium} 
+                  alt={video?.channelTitle} 
+                  className="w-full h-full object-cover" 
+                />
               </Link>
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-[#272727] shrink-0" />
+            )}
+            
+            <div className="flex flex-col">
+              {video?.channelId ? (
+                <Link to={`/channel/${video.channelId}`} className="font-bold text-sm text-[#f1f1f1] hover:underline truncate max-w-[200px]">
+                  {video?.channelTitle}
+                </Link>
+              ) : (
+                <span className="font-bold text-sm text-[#f1f1f1]">
+                  {video?.channelTitle || 'YouTube Creator'}
+                </span>
+              )}
               <span className="text-xs text-[#aaaaaa]">
                 {channel?.subscriberCount ? `${formatViews(channel.subscriberCount)} subscribers` : '1.2M subscribers'}
               </span>
             </div>
 
-            <button 
-              onClick={handleToggleSubscribe}
-              className={`ml-4 px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
-                isSubscribed 
-                  ? 'bg-[#272727] text-white hover:bg-[#3f3f3f]' 
-                  : 'bg-white text-black hover:bg-[#d9d9d9]'
-              }`}
-            >
-              {isSubscribed ? 'Subscribed' : 'Subscribe'}
-            </button>
+            {channel && (
+              <button 
+                onClick={handleToggleSubscribe}
+                className={`ml-4 px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
+                  isSubscribed 
+                    ? 'bg-[#272727] text-white hover:bg-[#3f3f3f]' 
+                    : 'bg-white text-black hover:bg-[#d9d9d9]'
+                }`}
+              >
+                {isSubscribed ? 'Subscribed' : 'Subscribe'}
+              </button>
+            )}
           </div>
 
           {/* Action Pills: Like/Dislike, Share, Save */}
@@ -182,7 +199,7 @@ export function Watch() {
 
                   <div className="space-y-1 max-h-48 overflow-y-auto">
                     {collections.map(col => {
-                      const inCol = col.videos.some(v => v.id === video?.id);
+                      const inCol = video ? col.videos.some(v => v.id === video.id) : false;
                       return (
                         <button
                           key={col.id}

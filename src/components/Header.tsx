@@ -1,15 +1,21 @@
 import { Search, Menu, Clock, X, Mic, Bell, Video as VideoIcon } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { fetchSearchSuggestions } from '../lib/youtube';
 import { useAppStore } from '../store';
 import { AnimatePresence, motion } from 'motion/react';
 
 export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
-  const [query, setQuery] = useState('');
+  const [searchParams] = useSearchParams();
+  const urlQuery = searchParams.get('q') || '';
+  const [query, setQuery] = useState(urlQuery);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    setQuery(urlQuery);
+  }, [urlQuery]);
 
   const searchHistory = useAppStore(state => state.searchHistory);
   const addSearchHistory = useAppStore(state => state.addSearchHistory);
