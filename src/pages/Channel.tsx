@@ -10,7 +10,6 @@ import { formatViews } from '../lib/utils';
 
 export function ChannelPage() {
   const { id } = useParams<{ id: string }>();
-  const apiKey = useAppStore(state => state.apiKey);
   const { subscriptions, subscribe, unsubscribe } = useAppStore();
 
   const [channel, setChannel] = useState<ChannelType | null>(null);
@@ -20,13 +19,13 @@ export function ChannelPage() {
 
   useEffect(() => {
     async function loadChannelData() {
-      if (!id || !apiKey) return;
+      if (!id) return;
       try {
         setLoading(true);
         setError('');
-        const details = await getChannelDetails(id, apiKey);
+        const details = await getChannelDetails(id);
         setChannel(details);
-        const chanVideos = await getChannelVideos(id, apiKey);
+        const chanVideos = await getChannelVideos(id);
         setVideos(chanVideos);
       } catch (err: any) {
         setError(err.message || 'Failed to load channel details');
@@ -36,7 +35,7 @@ export function ChannelPage() {
     }
 
     loadChannelData();
-  }, [id, apiKey]);
+  }, [id]);
 
   const isSubscribed = subscriptions.some(s => s.id === id);
 

@@ -3,9 +3,6 @@ import { persist } from 'zustand/middleware';
 import { Video, Channel, HistoryItem, Collection } from './types';
 
 interface AppState {
-  apiKey: string;
-  setApiKey: (key: string) => void;
-  
   theme: 'dark' | 'light' | 'system';
   setTheme: (theme: 'dark' | 'light' | 'system') => void;
 
@@ -44,9 +41,6 @@ interface AppState {
 export const useAppStore = create<AppState>()(
   persist(
     (set) => ({
-      apiKey: '',
-      setApiKey: (key) => set({ apiKey: key }),
-      
       theme: 'system',
       setTheme: (theme) => set({ theme }),
 

@@ -10,8 +10,7 @@ import { VideoCard } from '../components/VideoCard';
 
 export function Watch() {
   const { id } = useParams<{ id: string }>();
-  const apiKey = useAppStore(state => state.apiKey);
-  const { subscriptions, subscribe, unsubscribe, collections, createCollection, addVideoToCollection, setActiveVideo, activeVideo } = useAppStore();
+  const { subscriptions, subscribe, unsubscribe, collections, createCollection, addVideoToCollection, setActiveVideo } = useAppStore();
   
   const [video, setVideo] = useState<Video | null>(null);
   const [channel, setChannel] = useState<Channel | null>(null);
@@ -25,32 +24,32 @@ export function Watch() {
 
   useEffect(() => {
     async function fetchVideoData() {
-      if (!id || !apiKey) return;
+      if (!id) return;
       try {
         setLoading(true);
         setError('');
-        const videos = await getVideosByIds([id], apiKey);
+        const videos = await getVideosByIds([id]);
         if (videos.length > 0) {
           const v = videos[0];
           setVideo(v);
           setActiveVideo(v);
-          const chan = await getChannelDetails(v.channelId, apiKey);
+          const chan = await getChannelDetails(v.channelId);
           setChannel(chan);
         } else {
           setError('Video not found, region-restricted, or private.');
         }
       } catch (err: any) {
-        setError(err.message);
+        setError(err.message || 'Application configuration is incomplete.');
       } finally {
         setLoading(false);
       }
     }
 
     async function fetchRelatedData() {
-      if (!id || !apiKey) return;
+      if (!id) return;
       try {
         setLoadingRelated(true);
-        const rels = await getRelatedVideos(id, apiKey);
+        const rels = await getRelatedVideos(id);
         setRelated(rels.filter(r => r.id !== id));
       } catch (e) {
         // Silently handle related error
@@ -61,7 +60,7 @@ export function Watch() {
 
     fetchVideoData();
     fetchRelatedData();
-  }, [id, apiKey, setActiveVideo]);
+  }, [id, setActiveVideo]);
 
   const isSubscribed = subscriptions.some(s => s.id === video?.channelId);
 

@@ -8,23 +8,22 @@ import { VideoCardSkeleton } from '../components/Skeleton';
 import { Tv, AlertCircle } from 'lucide-react';
 
 export function Subscriptions() {
-  const { subscriptions, apiKey } = useAppStore();
+  const { subscriptions } = useAppStore();
   const [videos, setVideos] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
     async function fetchLatestVideos() {
-      if (!apiKey || subscriptions.length === 0) return;
+      if (subscriptions.length === 0) return;
       
       try {
         setLoading(true);
         setError('');
         
-        // Fetch channel videos concurrently using Promise.all across subscribed channels
         const sampleSubs = subscriptions.slice(0, 8);
         const results = await Promise.allSettled(
-          sampleSubs.map(sub => getChannelVideos(sub.id, apiKey))
+          sampleSubs.map(sub => getChannelVideos(sub.id))
         );
 
         const allVids: SearchResult[] = [];
@@ -34,19 +33,18 @@ export function Subscriptions() {
           }
         });
         
-        // Sort by publish date descending
         allVids.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
         
         setVideos(allVids);
       } catch (err: any) {
-        setError(err.message);
+        setError(err.message || 'Application configuration is incomplete.');
       } finally {
         setLoading(false);
       }
     }
 
     fetchLatestVideos();
-  }, [subscriptions, apiKey]);
+  }, [subscriptions]);
 
   if (subscriptions.length === 0) {
     return (

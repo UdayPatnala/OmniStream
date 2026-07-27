@@ -2,6 +2,13 @@ import { Video, Channel, SearchResult, SearchFilterType, SearchResponse } from '
 
 const BASE_URL = 'https://www.googleapis.com/youtube/v3';
 
+// Secure developer configuration - loaded at build/runtime from environment
+const getApiKey = (): string => {
+  return (import.meta as any).env?.VITE_YOUTUBE_API_KEY || 
+         (typeof process !== 'undefined' ? process.env.YOUTUBE_API_KEY : '') || 
+         '';
+};
+
 export class YouTubeAPIError extends Error {
   isQuotaError?: boolean;
   constructor(message: string, isQuotaError = false) {
@@ -11,8 +18,11 @@ export class YouTubeAPIError extends Error {
   }
 }
 
-async function fetchAPI(endpoint: string, params: Record<string, string>, apiKey: string) {
-  if (!apiKey) throw new YouTubeAPIError('API key is missing. Please enter your YouTube Data API v3 key in Settings.');
+async function fetchAPI(endpoint: string, params: Record<string, string>) {
+  const apiKey = getApiKey();
+  if (!apiKey) {
+    throw new YouTubeAPIError('Application configuration is incomplete.');
+  }
   
   const query = new URLSearchParams({ ...params, key: apiKey }).toString();
   const res = await fetch(`${BASE_URL}${endpoint}?${query}`);
@@ -22,7 +32,7 @@ async function fetchAPI(endpoint: string, params: Record<string, string>, apiKey
     const message = errorData?.error?.message || 'Failed to fetch data from YouTube API';
     const isQuota = res.status === 403 || message.toLowerCase().includes('quota');
     throw new YouTubeAPIError(
-      isQuota ? 'YouTube API Quota Limit Exceeded. Please try again later or use another API key.' : message,
+      isQuota ? 'YouTube API Quota Limit Exceeded. Please try again later.' : 'Application configuration is incomplete.',
       isQuota
     );
   }
@@ -30,22 +40,8 @@ async function fetchAPI(endpoint: string, params: Record<string, string>, apiKey
   return res.json();
 }
 
-export async function validateApiKey(apiKey: string): Promise<boolean> {
-  try {
-    const data = await fetchAPI('/videos', {
-      part: 'snippet',
-      chart: 'mostPopular',
-      maxResults: '1',
-    }, apiKey);
-    return Array.isArray(data.items);
-  } catch (e) {
-    return false;
-  }
-}
-
 export async function searchVideos(
   query: string, 
-  apiKey: string, 
   filterType: SearchFilterType = 'all',
   pageToken?: string
 ): Promise<SearchResponse> {
@@ -65,7 +61,7 @@ export async function searchVideos(
     params.pageToken = pageToken;
   }
 
-  const data = await fetchAPI('/search', params, apiKey);
+  const data = await fetchAPI('/search', params);
 
   const results: SearchResult[] = (data.items || []).map((item: any) => {
     let itemType: 'video' | 'channel' | 'playlist' = 'video';
@@ -93,21 +89,20 @@ export async function searchVideos(
   };
 }
 
-export async function getRelatedVideos(videoId: string, apiKey: string): Promise<Video[]> {
+export async function getRelatedVideos(videoId: string): Promise<Video[]> {
   try {
     const data = await fetchAPI('/search', {
       part: 'snippet',
       relatedToVideoId: videoId,
       type: 'video',
       maxResults: '12',
-    }, apiKey);
+    });
 
     const videoIds = (data.items || []).map((item: any) => item.id.videoId).filter(Boolean);
     if (videoIds.length === 0) return [];
-    return getVideosByIds(videoIds, apiKey);
+    return getVideosByIds(videoIds);
   } catch (e) {
-    // If relatedToVideoId endpoint fails or quota restricted, fallback to search by popular videos
-    return getPopularVideos(apiKey);
+    return getPopularVideos();
   }
 }
 
@@ -123,17 +118,17 @@ export async function fetchSearchSuggestions(query: string): Promise<string[]> {
       }
     }
   } catch (e) {
-    // Silently handle CORS or fetch errors
+    // Silently handle suggest errors
   }
   return [];
 }
 
-export async function getVideosByIds(ids: string[], apiKey: string): Promise<Video[]> {
+export async function getVideosByIds(ids: string[]): Promise<Video[]> {
   if (ids.length === 0) return [];
   const data = await fetchAPI('/videos', {
     part: 'snippet,contentDetails,statistics',
     id: ids.join(','),
-  }, apiKey);
+  });
 
   return (data.items || []).map((item: any) => ({
     id: item.id,
@@ -151,13 +146,13 @@ export async function getVideosByIds(ids: string[], apiKey: string): Promise<Vid
   }));
 }
 
-export async function getPopularVideos(apiKey: string): Promise<Video[]> {
+export async function getPopularVideos(): Promise<Video[]> {
   const data = await fetchAPI('/videos', {
     part: 'snippet,contentDetails,statistics',
     chart: 'mostPopular',
     maxResults: '24',
     regionCode: 'US',
-  }, apiKey);
+  });
 
   return (data.items || []).map((item: any) => ({
     id: item.id,
@@ -175,11 +170,11 @@ export async function getPopularVideos(apiKey: string): Promise<Video[]> {
   }));
 }
 
-export async function getChannelDetails(channelId: string, apiKey: string): Promise<Channel> {
+export async function getChannelDetails(channelId: string): Promise<Channel> {
   const data = await fetchAPI('/channels', {
     part: 'snippet,statistics,brandingSettings',
     id: channelId,
-  }, apiKey);
+  });
 
   if (!data.items || data.items.length === 0) {
     throw new YouTubeAPIError('Channel not found');
@@ -201,14 +196,14 @@ export async function getChannelDetails(channelId: string, apiKey: string): Prom
   };
 }
 
-export async function getChannelVideos(channelId: string, apiKey: string): Promise<SearchResult[]> {
+export async function getChannelVideos(channelId: string): Promise<SearchResult[]> {
   const data = await fetchAPI('/search', {
     part: 'snippet',
     channelId: channelId,
     maxResults: '24',
     order: 'date',
     type: 'video',
-  }, apiKey);
+  });
 
   return (data.items || []).map((item: any) => ({
     id: item.id.videoId,
@@ -223,4 +218,5 @@ export async function getChannelVideos(channelId: string, apiKey: string): Promi
     }
   }));
 }
+
 

@@ -17,7 +17,6 @@ const filterTabs: { type: SearchFilterType; label: string }[] = [
 export function Search() {
   const [searchParams] = useSearchParams();
   const query = searchParams.get('q') || '';
-  const apiKey = useAppStore(state => state.apiKey);
   
   const [activeFilter, setActiveFilter] = useState<SearchFilterType>('all');
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -28,33 +27,33 @@ export function Search() {
 
   useEffect(() => {
     async function fetchResults() {
-      if (!query || !apiKey) return;
+      if (!query) return;
       
       try {
         setLoading(true);
         setError('');
-        const res = await searchVideos(query, apiKey, activeFilter);
+        const res = await searchVideos(query, activeFilter);
         setResults(res.results);
         setNextPageToken(res.nextPageToken);
       } catch (err: any) {
-        setError(err.message);
+        setError(err.message || 'Application configuration is incomplete.');
       } finally {
         setLoading(false);
       }
     }
 
     fetchResults();
-  }, [query, apiKey, activeFilter]);
+  }, [query, activeFilter]);
 
   const loadMore = async () => {
-    if (!nextPageToken || !query || !apiKey || loadingMore) return;
+    if (!nextPageToken || !query || loadingMore) return;
     try {
       setLoadingMore(true);
-      const res = await searchVideos(query, apiKey, activeFilter, nextPageToken);
+      const res = await searchVideos(query, activeFilter, nextPageToken);
       setResults(prev => [...prev, ...res.results]);
       setNextPageToken(res.nextPageToken);
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || 'Application configuration is incomplete.');
     } finally {
       setLoadingMore(false);
     }

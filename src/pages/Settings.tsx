@@ -1,85 +1,19 @@
-import { useState } from 'react';
 import { useAppStore } from '../store';
-import { validateApiKey } from '../lib/youtube';
-import { Save, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
+import { Info, ShieldCheck, Heart } from 'lucide-react';
 
 export function SettingsPage() {
   const { 
-    apiKey, setApiKey, 
     theme, setTheme, 
     clearHistory, clearSearchHistory,
     autoplay, setAutoplay,
     playbackSpeed, setPlaybackSpeed
   } = useAppStore();
 
-  const [tempKey, setTempKey] = useState(apiKey);
-  const [validating, setValidating] = useState(false);
-  const [isValid, setIsValid] = useState<boolean | null>(apiKey ? true : null);
-  const [saved, setSaved] = useState(false);
-
-  const handleSave = async () => {
-    const trimmed = tempKey.trim();
-    if (!trimmed) {
-      setApiKey('');
-      setIsValid(null);
-      return;
-    }
-    setValidating(true);
-    const valid = await validateApiKey(trimmed);
-    setValidating(false);
-    setIsValid(valid);
-    setApiKey(trimmed);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
-  };
-
   return (
     <div className="max-w-2xl mx-auto space-y-8 py-4 pb-12">
       <div>
         <h1 className="text-2xl font-semibold mb-2 text-[#E6E1E5]">Settings</h1>
-        <p className="text-[#938F99]">Manage your U Tube preferences and configuration.</p>
-      </div>
-
-      {/* API Configuration */}
-      <div className="bg-[#1C1B1F] p-6 rounded-[32px] border border-white/5 space-y-6 shadow-xl">
-        <div className="flex items-center justify-between border-b border-white/5 pb-4">
-          <h2 className="text-sm font-medium uppercase tracking-[0.2em] text-[#938F99]">API Configuration</h2>
-          {isValid !== null && (
-            <div className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full ${isValid ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>
-              {isValid ? <CheckCircle2 className="w-3.5 h-3.5" /> : <XCircle className="w-3.5 h-3.5" />}
-              {isValid ? 'API Key Connected' : 'Invalid API Key'}
-            </div>
-          )}
-        </div>
-        
-        <div className="space-y-3">
-          <label className="block text-sm font-medium text-[#E6E1E5]">YouTube Data API v3 Key</label>
-          <p className="text-xs text-[#938F99]">
-            Stored locally in your browser and used exclusively to communicate with official YouTube APIs.
-          </p>
-          <div className="flex gap-3">
-            <input 
-              type="password"
-              value={tempKey}
-              onChange={(e) => setTempKey(e.target.value)}
-              className="flex-1 h-12 px-4 rounded-xl border border-white/5 bg-[#2B2930] focus:outline-none focus:border-[#D0BCFF] text-[#E6E1E5]"
-              placeholder="AIzaSy..."
-            />
-            <button 
-              onClick={handleSave}
-              disabled={validating}
-              className="h-12 px-6 bg-[#D0BCFF] text-[#381E72] rounded-xl font-semibold hover:bg-[#EADDFF] transition-colors flex items-center gap-2 shrink-0"
-            >
-              {validating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              {validating ? 'Verifying...' : 'Save'}
-            </button>
-          </div>
-          {saved && (
-            <p className={`text-sm ${isValid ? 'text-emerald-400' : 'text-amber-400'}`}>
-              {isValid ? 'Key verified & saved successfully!' : 'Key saved but validation failed. Please check key permissions.'}
-            </p>
-          )}
-        </div>
+        <p className="text-[#938F99]">Manage your U Tube preferences and personal application configuration.</p>
       </div>
 
       {/* Playback & Appearance Preferences */}
@@ -125,15 +59,16 @@ export function SettingsPage() {
           <button
             onClick={() => setAutoplay(!autoplay)}
             className={`w-12 h-6 rounded-full transition-colors relative p-1 ${autoplay ? 'bg-[#D0BCFF]' : 'bg-[#2B2930]'}`}
+            aria-label="Toggle Autoplay"
           >
             <div className={`w-4 h-4 rounded-full transition-transform ${autoplay ? 'translate-x-6 bg-[#381E72]' : 'translate-x-0 bg-[#938F99]'}`} />
           </button>
         </div>
       </div>
 
-      {/* Danger Zone / Data Wipe */}
-      <div className="bg-[#1C1B1F] p-6 rounded-[32px] border border-red-500/20 space-y-6 shadow-xl">
-        <h2 className="text-sm font-medium uppercase tracking-[0.2em] text-red-400 border-b border-red-500/20 pb-4">Data & History</h2>
+      {/* Data & History Controls */}
+      <div className="bg-[#1C1B1F] p-6 rounded-[32px] border border-white/5 space-y-6 shadow-xl">
+        <h2 className="text-sm font-medium uppercase tracking-[0.2em] text-[#938F99] border-b border-white/5 pb-4">Data & Local Storage</h2>
         
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
@@ -169,7 +104,39 @@ export function SettingsPage() {
           </button>
         </div>
       </div>
+
+      {/* About Application */}
+      <div className="bg-[#1C1B1F] p-6 rounded-[32px] border border-white/5 space-y-4 shadow-xl">
+        <div className="flex items-center gap-2 border-b border-white/5 pb-4">
+          <Info className="w-4 h-4 text-[#D0BCFF]" />
+          <h2 className="text-sm font-medium uppercase tracking-[0.2em] text-[#938F99]">About Application</h2>
+        </div>
+
+        <div className="space-y-3 text-sm text-[#CAC4D0]">
+          <div className="flex justify-between items-center py-1">
+            <span className="text-[#938F99]">Application Name</span>
+            <span className="font-semibold text-[#E6E1E5]">U Tube</span>
+          </div>
+          <div className="flex justify-between items-center py-1 border-t border-white/5">
+            <span className="text-[#938F99]">Version</span>
+            <span className="font-mono text-xs text-[#D0BCFF]">v1.0.0</span>
+          </div>
+          <div className="flex justify-between items-center py-1 border-t border-white/5">
+            <span className="text-[#938F99]">Developer & Author</span>
+            <span className="font-semibold text-[#E6E1E5]">Patnala Uday Kumar</span>
+          </div>
+          <div className="flex justify-between items-center py-1 border-t border-white/5">
+            <span className="text-[#938F99]">Copyright</span>
+            <span className="text-xs">© Patnala Uday Kumar</span>
+          </div>
+          <div className="pt-2 border-t border-white/5 text-xs text-[#938F99] flex items-center justify-between">
+            <span className="flex items-center gap-1.5"><ShieldCheck className="w-4 h-4 text-emerald-400" /> Internal Developer Configuration</span>
+            <span className="flex items-center gap-1.5"><Heart className="w-3.5 h-3.5 text-red-400" /> Personal Use</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
+
 
