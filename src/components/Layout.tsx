@@ -1,4 +1,4 @@
-import { ReactNode, useEffect } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { useAppStore } from '../store';
@@ -7,6 +7,7 @@ import { GlobalPlayer } from './GlobalPlayer';
 
 export function Layout({ children }: { children: ReactNode }) {
   const theme = useAppStore(state => state.theme);
+  const [collapsed, setCollapsed] = useState(false);
   
   useEffect(() => {
     const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
@@ -18,16 +19,17 @@ export function Layout({ children }: { children: ReactNode }) {
   }, [theme]);
 
   return (
-    <div className="flex h-screen bg-[#0F0D13] text-[#E6E1E5] font-sans overflow-hidden transition-colors duration-300 select-none relative">
-      <Sidebar />
-      <main className="flex-1 flex flex-col p-4 md:p-8 gap-4 overflow-hidden relative">
-        <Header />
+    <div className="flex h-screen bg-[#0f0f0f] text-[#f1f1f1] font-sans overflow-hidden transition-colors duration-300 select-none relative">
+      <Sidebar collapsed={collapsed} />
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+        <Header toggleSidebar={() => setCollapsed(!collapsed)} />
         <GlobalPlayer />
-        <div className="flex-1 overflow-y-auto scroll-smooth pb-20 md:pb-8" id="scroll-container">
+        <main className="flex-1 overflow-y-auto scroll-smooth pb-20 md:pb-8 px-4 md:px-8 py-4" id="scroll-container">
           {children}
-        </div>
+        </main>
         <BottomNav />
-      </main>
+      </div>
     </div>
   );
 }
+

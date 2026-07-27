@@ -13,38 +13,45 @@ export function VideoCard({ video, progress }: VideoCardProps) {
   const views = 'viewCount' in video ? video.viewCount : undefined;
   
   return (
-    <Link to={isVideo ? `/watch/${video.id}` : `/channel/${video.id}`} className="flex flex-col gap-3 group cursor-pointer">
-      <div className="aspect-video bg-[#2B2930] rounded-3xl border border-white/5 relative overflow-hidden">
+    <Link to={isVideo ? `/watch/${video.id}` : `/channel/${video.id}`} className="flex flex-col gap-2.5 group cursor-pointer">
+      {/* Thumbnail Container */}
+      <div className="aspect-video bg-[#272727] rounded-xl relative overflow-hidden">
         <img 
           src={video.thumbnails.high || video.thumbnails.medium} 
           alt={video.title} 
-          className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
+          className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-200"
           loading="lazy"
         />
         {duration && (
-          <div className="absolute bottom-3 right-3 bg-black/70 px-2 py-1 rounded-md text-[10px] font-bold text-white">
+          <div className="absolute bottom-1.5 right-1.5 bg-black/80 px-1.5 py-0.5 rounded text-[12px] font-semibold text-white tracking-wide">
             {formatDuration(duration)}
           </div>
         )}
         {progress && duration && (
-          <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/10">
-            <div className="h-full bg-[#D0BCFF]" style={{ width: `${Math.min(100, (progress / (parseInt(duration) || 1)) * 100)}%` }} />
+          <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
+            <div className="h-full bg-[#ff0000]" style={{ width: `${Math.min(100, (progress / (parseInt(duration) || 1)) * 100)}%` }} />
           </div>
         )}
       </div>
-      <div className="flex gap-3 items-start">
-        <div className="w-10 h-10 rounded-full bg-[#2B2930] flex-shrink-0 overflow-hidden border border-white/5">
-          <img src={video.thumbnails.medium} alt="channel" className="w-full h-full object-cover" />
+
+      {/* Info Container */}
+      <div className="flex gap-3 items-start px-0.5">
+        <div className="w-9 h-9 rounded-full bg-[#272727] flex-shrink-0 overflow-hidden mt-0.5">
+          <img src={video.thumbnails.medium} alt={video.channelTitle} className="w-full h-full object-cover" />
         </div>
-        <div className="flex flex-col">
-          <h3 className="text-sm font-semibold line-clamp-2 text-[#E6E1E5] group-hover:text-[#D0BCFF] transition-colors">
+        <div className="flex flex-col min-w-0 flex-1">
+          <h3 className="text-sm font-semibold line-clamp-2 text-[#f1f1f1] leading-snug group-hover:text-white transition-colors">
             {video.title}
           </h3>
-          <span className="text-xs text-[#938F99] mt-1">
-            {video.channelTitle} • {views ? `${formatViews(views)} • ` : ''}{formatTimeAgo(video.publishedAt)}
+          <span className="text-xs text-[#aaaaaa] hover:text-white mt-1 truncate transition-colors">
+            {video.channelTitle}
+          </span>
+          <span className="text-xs text-[#aaaaaa] mt-0.5">
+            {views ? `${formatViews(views)} views • ` : ''}{formatTimeAgo(video.publishedAt)}
           </span>
         </div>
       </div>
     </Link>
   );
 }
+
