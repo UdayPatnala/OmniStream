@@ -108,19 +108,21 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
                       setQuery(suggestion);
                       handleSearch(undefined, suggestion);
                     }}
-                    className="w-full flex items-center gap-3 px-4 py-2 hover:bg-[#383838] text-left text-sm text-[#f1f1f1]"
+                    className="w-full flex items-center justify-between px-4 py-2 hover:bg-[#383838] text-left text-sm text-[#f1f1f1]"
                   >
-                    <Search className="w-4 h-4 text-[#aaa]" />
-                    <span>{suggestion}</span>
+                    <div className="flex items-center gap-3">
+                      <Search className="w-4 h-4 text-[#aaa]" />
+                      <span>{suggestion}</span>
+                    </div>
                   </button>
                 ))}
 
                 {query.length === 0 && searchHistory.length > 0 && (
                   <div>
                     <div className="px-4 py-1.5 text-[11px] font-semibold text-[#aaa] uppercase tracking-wider border-t border-[#383838] mt-1">
-                      Recent Searches
+                      Recent & Frequent Searches
                     </div>
-                    {searchHistory.slice(0, 5).map((item, idx) => (
+                    {searchHistory.slice(0, 6).map((item, idx) => (
                       <div
                         key={`hist-${idx}`}
                         className="w-full flex items-center justify-between px-4 py-2 hover:bg-[#383838] text-left text-sm text-[#f1f1f1]"

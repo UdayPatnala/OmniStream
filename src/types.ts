@@ -11,6 +11,7 @@ export interface Video {
   };
   duration?: string;
   viewCount?: string;
+  category?: string;
 }
 
 export interface Channel {
@@ -25,6 +26,10 @@ export interface Channel {
   subscriberCount?: string;
   videoCount?: string;
   bannerUrl?: string;
+  pinned?: boolean;
+  isFavorite?: boolean;
+  unreadCount?: number;
+  lastWatchedAt?: number;
 }
 
 export interface Playlist {
@@ -65,11 +70,43 @@ export interface HistoryItem {
   watchedAt: number;
   progress: number; // seconds
   duration: number; // seconds
+  openCount?: number;
+  completedCount?: number;
+  completionRatio?: number; // 0 to 1
+  category?: string;
+  lastSpeed?: number;
 }
 
 export interface Collection {
   id: string;
   name: string;
   videos: Video[];
+  pinned?: boolean;
+  updatedAt?: number;
+  description?: string;
 }
+
+export interface SearchHistoryMetaData {
+  query: string;
+  frequency: number;
+  lastUsed: number;
+  firstUsed: number;
+  searchScore: number;
+  pinned?: boolean;
+}
+
+export interface BehaviorEvent {
+  id: string;
+  type: 'search' | 'open' | 'complete' | 'skip' | 'favorite' | 'subscribe';
+  videoId?: string;
+  query?: string;
+  timestamp: number;
+  durationSpent?: number;
+}
+
+export interface QueueItem {
+  video: Video;
+  addedAt: number;
+}
+
 

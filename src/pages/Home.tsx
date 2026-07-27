@@ -5,6 +5,7 @@ import { getRecommendedVideos } from '../lib/recommendations';
 import { Video } from '../types';
 import { VideoCard } from '../components/VideoCard';
 import { VideoCardSkeleton } from '../components/Skeleton';
+import { Flame, PlayCircle, Sparkles, History as HistoryIcon, Layers } from 'lucide-react';
 
 const CATEGORIES = [
   'All', 'Music', 'Gaming', 'Podcasts', 'React.js', 'Live', 
@@ -16,6 +17,7 @@ export function Home() {
   const history = useAppStore(state => state.history);
   const subscriptions = useAppStore(state => state.subscriptions);
   const collections = useAppStore(state => state.collections);
+  const searchHistory = useAppStore(state => state.searchHistory);
   
   const [activeCategory, setActiveCategory] = useState('All');
   const [popular, setPopular] = useState<Video[]>([]);
@@ -29,8 +31,8 @@ export function Home() {
         if (activeCategory === 'All') {
           const vids = await getPopularVideos();
           setPopular(vids);
-          const recs = getRecommendedVideos(vids, history, subscriptions, collections);
-          setRecommended(recs.slice(0, 8));
+          const recs = getRecommendedVideos(vids, history, subscriptions, collections, searchHistory);
+          setRecommended(recs.slice(0, 10));
         } else {
           const res = await searchVideos(activeCategory);
           const vids: Video[] = res.results.map(r => ({
@@ -54,21 +56,35 @@ export function Home() {
       }
     }
     fetchHome();
-  }, [activeCategory, history, subscriptions, collections]);
+  }, [activeCategory, history, subscriptions, collections, searchHistory]);
 
-  const historyItems = Object.values(history).sort((a, b) => b.watchedAt - a.watchedAt).slice(0, 4);
+  // Continue Watching: Progress between 5% and 95%
+  const continueWatchingItems = Object.values(history)
+    .filter(item => {
+      if (!item.duration || item.duration === 0) return false;
+      const ratio = item.progress / item.duration;
+      return ratio >= 0.05 && ratio < 0.95;
+    })
+    .sort((a, b) => b.watchedAt - a.watchedAt)
+    .slice(0, 5);
+
+  // Most Watched / Frequently Opened
+  const mostWatchedItems = Object.values(history)
+    .filter(item => (item.openCount || 1) > 1)
+    .sort((a, b) => (b.openCount || 1) - (a.openCount || 1))
+    .slice(0, 5);
 
   return (
-    <div className="space-y-6 max-w-[1800px] mx-auto">
+    <div className="space-y-6 max-w-[1800px] mx-auto pb-6">
       {/* YouTube Category Filter Chips Bar */}
-      <div className="flex items-center gap-3 overflow-x-auto hide-scrollbar py-1 pb-2 sticky top-14 bg-[#0f0f0f] z-30">
+      <div className="flex items-center gap-2.5 overflow-x-auto hide-scrollbar py-1 pb-2 sticky top-14 bg-[#0f0f0f] z-30">
         {CATEGORIES.map(category => (
           <button
             key={category}
             onClick={() => setActiveCategory(category)}
-            className={`px-3.5 py-1.5 rounded-lg text-sm font-medium transition-colors shrink-0 ${
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors shrink-0 ${
               activeCategory === category
-                ? 'bg-white text-black font-semibold'
+                ? 'bg-white text-black font-bold'
                 : 'bg-[#272727] text-[#f1f1f1] hover:bg-[#3f3f3f]'
             }`}
           >
@@ -77,22 +93,28 @@ export function Home() {
         ))}
       </div>
 
-      {/* Continue Watching */}
-      {historyItems.length > 0 && activeCategory === 'All' && (
-        <section className="pt-2">
-          <h2 className="text-base font-bold text-[#f1f1f1] mb-3">Continue Watching</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 gap-y-8">
-            {historyItems.map(item => (
-              <VideoCard key={item.video.id} video={item.video} progress={item.progress} />
+      {/* 1. Continue Watching Section */}
+      {continueWatchingItems.length > 0 && activeCategory === 'All' && (
+        <section className="pt-1">
+          <div className="flex items-center gap-2 mb-3">
+            <PlayCircle className="w-5 h-5 text-red-500" />
+            <h2 className="text-base font-bold text-[#f1f1f1]">Continue Watching</h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 gap-y-8">
+            {continueWatchingItems.map(item => (
+              <VideoCard key={`cw-${item.video.id}`} video={item.video} progress={item.progress} />
             ))}
           </div>
         </section>
       )}
 
-      {/* Recommended For You */}
+      {/* 2. Recommended For You Section */}
       {recommended.length > 0 && activeCategory === 'All' && (
-        <section className="pt-2">
-          <h2 className="text-base font-bold text-[#f1f1f1] mb-3">Recommended For You</h2>
+        <section className="pt-1">
+          <div className="flex items-center gap-2 mb-3">
+            <Sparkles className="w-5 h-5 text-amber-400" />
+            <h2 className="text-base font-bold text-[#f1f1f1]">Recommended For You</h2>
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 gap-y-8">
             {recommended.map(video => (
               <VideoCard key={`rec-${video.id}`} video={video} />
@@ -101,17 +123,42 @@ export function Home() {
         </section>
       )}
 
-      {/* Main Video Feed Grid */}
-      <section className="pt-2">
-        {activeCategory === 'All' && (
-          <h2 className="text-base font-bold text-[#f1f1f1] mb-3">Trending Videos</h2>
-        )}
+      {/* 3. Most Watched Section */}
+      {mostWatchedItems.length > 0 && activeCategory === 'All' && (
+        <section className="pt-1">
+          <div className="flex items-center gap-2 mb-3">
+            <HistoryIcon className="w-5 h-5 text-blue-400" />
+            <h2 className="text-base font-bold text-[#f1f1f1]">Most Rewatched</h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 gap-y-8">
+            {mostWatchedItems.map(item => (
+              <VideoCard key={`mw-${item.video.id}`} video={item.video} progress={item.progress} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* 4. Trending & Category Main Grid */}
+      <section className="pt-1">
+        <div className="flex items-center gap-2 mb-3">
+          {activeCategory === 'All' ? (
+            <>
+              <Flame className="w-5 h-5 text-orange-500" />
+              <h2 className="text-base font-bold text-[#f1f1f1]">Trending Videos</h2>
+            </>
+          ) : (
+            <>
+              <Layers className="w-5 h-5 text-purple-400" />
+              <h2 className="text-base font-bold text-[#f1f1f1]">{activeCategory} Videos</h2>
+            </>
+          )}
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 gap-y-8">
           {loading ? (
             Array.from({ length: 15 }).map((_, i) => <VideoCardSkeleton key={i} />)
           ) : (
             popular.map(video => (
-              <VideoCard key={video.id} video={video} />
+              <VideoCard key={`pop-${video.id}`} video={video} />
             ))
           )}
         </div>
@@ -119,6 +166,7 @@ export function Home() {
     </div>
   );
 }
+
 
 
 
