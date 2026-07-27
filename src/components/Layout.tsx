@@ -19,17 +19,22 @@ export function Layout({ children }: { children: ReactNode }) {
   }, [theme]);
 
   return (
-    <div className="flex h-screen bg-[#0f0f0f] text-[#f1f1f1] font-sans overflow-hidden transition-colors duration-300 select-none relative">
-      <Sidebar collapsed={collapsed} />
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
-        <Header toggleSidebar={() => setCollapsed(!collapsed)} />
-        <GlobalPlayer />
-        <main className="flex-1 overflow-y-auto scroll-smooth pb-20 md:pb-8 px-4 md:px-8 py-4" id="scroll-container">
-          {children}
-        </main>
-        <BottomNav />
+    <div className="flex flex-col h-screen w-screen bg-[#0f0f0f] text-[#f1f1f1] font-sans overflow-hidden select-none relative">
+      <Header toggleSidebar={() => setCollapsed(!collapsed)} />
+      
+      <div className="flex flex-1 min-h-0 overflow-hidden relative">
+        <Sidebar collapsed={collapsed} />
+        
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+          <GlobalPlayer />
+          <main className="flex-1 overflow-y-auto scroll-smooth pb-20 md:pb-8 px-4 md:px-8 py-4" id="scroll-container">
+            {children}
+          </main>
+          <BottomNav />
+        </div>
       </div>
     </div>
   );
 }
+
 

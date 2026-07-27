@@ -77,7 +77,7 @@ export function Home() {
   return (
     <div className="space-y-6 max-w-[1800px] mx-auto pb-6">
       {/* YouTube Category Filter Chips Bar */}
-      <div className="flex items-center gap-2.5 overflow-x-auto hide-scrollbar py-1 pb-2 sticky top-14 bg-[#0f0f0f] z-30">
+      <div className="flex items-center gap-2.5 overflow-x-auto hide-scrollbar py-2.5 mb-2 sticky top-0 bg-[#0f0f0f] z-30 border-b border-[#272727]/30">
         {CATEGORIES.map(category => (
           <button
             key={category}
