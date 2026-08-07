@@ -8,7 +8,7 @@ import { cn } from '../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 
 export function GlobalPlayer() {
-  const { activeVideo, setActiveVideo, history, addToHistory, playbackSpeed, ambientGlow, cinemaMode } = useAppStore();
+  const { activeVideo, setActiveVideo, history, addToHistory, playbackSpeed } = useAppStore();
   const location = useLocation();
   const navigate = useNavigate();
   const playerRef = useRef<any>(null);
@@ -61,32 +61,18 @@ export function GlobalPlayer() {
   if (!activeVideo) return null;
 
   return (
-    <div className="relative w-full">
-      {/* Cinema Mode Global Backdrop */}
-      {isWatchPage && cinemaMode && (
-        <div className="fixed inset-0 bg-black/90 z-40 backdrop-blur-md pointer-events-none transition-opacity duration-500" />
+    <div 
+      className={cn(
+        "z-50 shadow-2xl transition-all duration-300 overflow-hidden shrink-0 bg-black",
+        isMiniPlayer 
+          ? "fixed bottom-16 right-4 md:bottom-6 md:right-6 w-[320px] aspect-video rounded-xl cursor-pointer hover:ring-2 hover:ring-white border border-[#383838]"
+          : isWatchPage 
+            ? "w-full aspect-video rounded-2xl mb-4 border border-[#272727]" 
+            : "hidden"
       )}
-
-      <div 
-        className={cn(
-          "z-50 transition-all duration-300 overflow-hidden shrink-0 bg-black relative",
-          isMiniPlayer 
-            ? "fixed bottom-16 right-4 md:bottom-6 md:right-6 w-[320px] aspect-video rounded-xl cursor-pointer hover:ring-2 hover:ring-indigo-400 border border-white/20 shadow-2xl"
-            : isWatchPage 
-              ? "w-full aspect-video rounded-2xl mb-4 border border-white/10 shadow-2xl" 
-              : "hidden"
-        )}
-        onClick={isMiniPlayer ? expandToFull : undefined}
-      >
-        {/* Ambient Backlight Glow Canvas */}
-        {isWatchPage && ambientGlow && (
-          <div 
-            className="absolute -inset-4 bg-gradient-to-tr from-indigo-600/30 via-purple-600/20 to-cyan-500/30 blur-2xl opacity-80 pointer-events-none animate-pulse"
-            style={{ animationDuration: '4s' }}
-          />
-        )}
-
-        <div className="relative w-full h-full aspect-video pointer-events-auto z-10">
+      onClick={isMiniPlayer ? expandToFull : undefined}
+    >
+      <div className="relative w-full h-full aspect-video pointer-events-auto">
         <Player
           ref={playerRef}
           url={`https://www.youtube.com/watch?v=${activeVideo.id}`}
@@ -147,6 +133,5 @@ export function GlobalPlayer() {
         </AnimatePresence>
       </div>
     </div>
-  </div>
   );
 }

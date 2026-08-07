@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Video, Channel, HistoryItem, Collection, QueueItem, SearchHistoryMetaData, BehaviorEvent, CineMorphTheme, VideoClip } from './types';
+import { Video, Channel, HistoryItem, Collection, QueueItem, SearchHistoryMetaData, BehaviorEvent } from './types';
 
 interface AppState {
   theme: 'dark' | 'light' | 'system';
@@ -46,22 +46,6 @@ interface AppState {
   setActiveVideo: (video: Video | null) => void;
   miniPlayerMode: boolean;
   setMiniPlayerMode: (mode: boolean) => void;
-
-  versionMode: 'v2' | 'v1';
-  setVersionMode: (mode: 'v2' | 'v1') => void;
-
-  cinemorphTheme: CineMorphTheme;
-  setCinemorphTheme: (theme: CineMorphTheme) => void;
-
-  ambientGlow: boolean;
-  toggleAmbientGlow: () => void;
-
-  cinemaMode: boolean;
-  setCinemaMode: (val: boolean) => void;
-
-  savedClips: VideoClip[];
-  saveClip: (clip: VideoClip) => void;
-  removeClip: (id: string) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -217,30 +201,9 @@ export const useAppStore = create<AppState>()(
       setActiveVideo: (video) => set({ activeVideo: video }),
       miniPlayerMode: false,
       setMiniPlayerMode: (mode) => set({ miniPlayerMode: mode }),
-
-      // CineMorphAI Engine State
-      versionMode: 'v2',
-      setVersionMode: (mode) => set({ versionMode: mode }),
-
-      cinemorphTheme: 'cinematic-dark',
-      setCinemorphTheme: (cinemorphTheme) => set({ cinemorphTheme }),
-
-      ambientGlow: true,
-      toggleAmbientGlow: () => set((state) => ({ ambientGlow: !state.ambientGlow })),
-
-      cinemaMode: false,
-      setCinemaMode: (cinemaMode) => set({ cinemaMode }),
-
-      savedClips: [],
-      saveClip: (clip) => set((state) => ({
-        savedClips: [clip, ...state.savedClips.filter(c => c.id !== clip.id)]
-      })),
-      removeClip: (id) => set((state) => ({
-        savedClips: state.savedClips.filter(c => c.id !== id)
-      })),
     }),
     {
-      name: 'cinemorph-utube-storage',
+      name: 'utube-storage',
     }
   )
 );

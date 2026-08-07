@@ -109,48 +109,4 @@ export interface QueueItem {
   addedAt: number;
 }
 
-// CineMorphAI Engine Types
-export type CineMorphTheme = 'cinematic-dark' | 'cyberpunk-oled' | 'glassmorphic-neon' | 'ambient-minimal';
-
-export interface AISummary {
-  executiveSummary: string;
-  keyTakeaways: string[];
-  sentiment: 'inspiring' | 'technical' | 'educational' | 'dramatic' | 'entertaining';
-  readingTimeMinutes: number;
-  tags: string[];
-  aiScore: number;
-}
-
-export interface VideoScriptChunk {
-  id: string;
-  timestamp: number; // in seconds
-  timestampFormatted: string;
-  speaker: string;
-  text: string;
-  topic?: string;
-  highlighted?: boolean;
-}
-
-export interface VideoClip {
-  id: string;
-  videoId: string;
-  videoTitle: string;
-  channelTitle: string;
-  thumbnail: string;
-  startTime: number;
-  endTime: number;
-  startTimeFormatted: string;
-  endTimeFormatted: string;
-  note: string;
-  createdAt: number;
-}
-
-export interface AIChatMessage {
-  id: string;
-  sender: 'user' | 'assistant';
-  text: string;
-  timestamp: number;
-}
-
-
 
