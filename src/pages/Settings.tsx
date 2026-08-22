@@ -165,6 +165,7 @@ export function SettingsPage() {
               <option value="21:9">21:9 UltraWide Cinema</option>
               <option value="4:3">4:3 Classic IMAX</option>
               <option value="1:1">1:1 Square</option>
+              <option value="4.3:1">4.3:1 IMAX Aspect Ratio</option>
             </select>
           </div>
 

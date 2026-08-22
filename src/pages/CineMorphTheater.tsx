@@ -426,11 +426,11 @@ export function CineMorphTheater() {
   };
 
   const cycleAspectRatio = () => {
-    const ratios: FrameAspectRatio[] = ['16:9', '21:9', '4:3', '1:1'];
+    const ratios: FrameAspectRatio[] = ['16:9', '21:9', '4:3', '1:1', '4.3:1'];
     const currentIdx = ratios.indexOf(frameAspectRatio);
     const nextRatio = ratios[(currentIdx + 1) % ratios.length];
     setFrameAspectRatio(nextRatio);
-    showToast(`🎬 Viewport Reframe: ${nextRatio === '21:9' ? '21:9 UltraWide Cinema' : nextRatio}`);
+    showToast(`🎬 Viewport Reframe: ${nextRatio === '21:9' ? '21:9 UltraWide Cinema' : nextRatio === '4.3:1' ? '4.3:1 IMAX Aspect Ratio' : nextRatio}`);
   };
 
   const cycleTheme = () => {
@@ -598,9 +598,14 @@ export function CineMorphTheater() {
           isFullscreen
             ? 'h-full w-full'
             : `max-w-[94vw] max-h-[80vh] ${frameStyle.containerAspectClass}`
-        } flex items-center justify-center z-10 overflow-hidden rounded-lg shadow-2xl border border-white/10 bg-black`}
+        } flex items-center justify-center z-10 overflow-hidden shadow-2xl border border-white/10 bg-black`}
         style={{
           filter: presentationMode === 'cinema' ? 'brightness(1.03) contrast(1.02)' : 'none',
+          borderRadius: presentationMode === 'cinema' ? '6px 6px 36px 36px / 6px 6px 12px 12px' : '8px',
+          transform: presentationMode === 'cinema' ? 'perspective(1200px) rotateX(1deg)' : 'none',
+          boxShadow: presentationMode === 'cinema' 
+            ? '0 0 80px rgba(0,0,0,0.9), inset 0 0 40px rgba(0,0,0,0.9)' 
+            : '0 20px 25px -5px rgba(0,0,0,0.1)'
         }}
       >
         <div

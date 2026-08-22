@@ -47,6 +47,11 @@ export function calculateFrameStyle(
       cropOverlay = true;
       break;
 
+    case '4.3:1':
+      paddingTop = '23.255%';
+      videoScaleTransform = 'scale(1.0) translateY(0%)';
+      break;
+
     case '16:9':
     default:
       paddingTop = '56.25%';
@@ -59,7 +64,11 @@ export function calculateFrameStyle(
   }
 
   return {
-    containerAspectClass: aspectRatio === '21:9' ? 'aspect-[21/9]' : aspectRatio === '4:3' ? 'aspect-[4/3]' : aspectRatio === '1:1' ? 'aspect-square' : 'aspect-video',
+    containerAspectClass: 
+      aspectRatio === '21:9' ? 'aspect-[21/9]' : 
+      aspectRatio === '4:3' ? 'aspect-[4/3]' : 
+      aspectRatio === '1:1' ? 'aspect-square' : 
+      aspectRatio === '4.3:1' ? 'aspect-[43/10]' : 'aspect-video',
     videoScaleTransform,
     cropOverlay,
     paddingTop,

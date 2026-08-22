@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Video, Channel, HistoryItem, Collection, QueueItem, SearchHistoryMetaData, BehaviorEvent, CineMorphTheme, VideoClip, RankingProfile, LocalMediaItem } from './types';
+import { Video, Channel, HistoryItem, Collection, QueueItem, SearchHistoryMetaData, BehaviorEvent, CineMorphTheme, VideoClip, RankingProfile, LocalMediaItem, FrameAspectRatio } from './types';
 
 interface AppState {
   theme: 'dark' | 'light' | 'system';
@@ -71,8 +71,8 @@ interface AppState {
   glowIntensity: 'off' | 'low' | 'medium' | 'ultra';
   setGlowIntensity: (intensity: 'off' | 'low' | 'medium' | 'ultra') => void;
 
-  frameAspectRatio: '16:9' | '21:9' | '4:3' | '1:1';
-  setFrameAspectRatio: (ratio: '16:9' | '21:9' | '4:3' | '1:1') => void;
+  frameAspectRatio: FrameAspectRatio;
+  setFrameAspectRatio: (ratio: FrameAspectRatio) => void;
 
   reframeMode: 'center' | 'face-priority' | 'smart-pan-zoom';
   setReframeMode: (mode: 'center' | 'face-priority' | 'smart-pan-zoom') => void;
