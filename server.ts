@@ -11,6 +11,27 @@ async function startServer() {
 
   app.use(express.json());
 
+  // CORS middleware allowing cross-origin requests (e.g. from Vercel frontend)
+  app.use((req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+    if (req.method === "OPTIONS") {
+      return res.sendStatus(200);
+    }
+    next();
+  });
+
+  // Service Healthcheck endpoint for Render / monitoring
+  app.get(['/health', '/api/health'], (req, res) => {
+    res.json({
+      status: 'healthy',
+      service: 'CineMorph AI / U-Tube Backend',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+    });
+  });
+
   app.get('/api/suggest', async (req, res) => {
     const query = (req.query.q as string) || '';
     if (!query) return res.json([]);

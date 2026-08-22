@@ -2,6 +2,7 @@ import { Video, Channel, SearchResult, SearchFilterType, SearchResponse } from '
 import { extractYouTubeId } from './utils';
 
 const BASE_URL = 'https://www.googleapis.com/youtube/v3';
+const BACKEND_URL = (import.meta as any).env?.VITE_BACKEND_URL || '';
 
 // High quality dataset of verified, playable YouTube videos
 const FALLBACK_VIDEOS: Video[] = [
@@ -157,8 +158,8 @@ async function fetchAPI(endpoint: string, params: Record<string, string>) {
 export async function fetchOEmbed(videoId: string): Promise<Video | null> {
   if (!videoId) return null;
   try {
-    // 1. Try local server endpoint
-    const localRes = await fetch(`/api/oembed?id=${encodeURIComponent(videoId)}`);
+    // 1. Try backend server endpoint (local or Render URL)
+    const localRes = await fetch(`${BACKEND_URL}/api/oembed?id=${encodeURIComponent(videoId)}`);
     if (localRes.ok) {
       const contentType = localRes.headers.get('content-type') || '';
       if (contentType.includes('application/json')) {
@@ -312,9 +313,9 @@ export async function getRelatedVideos(videoId: string): Promise<Video[]> {
 export async function fetchSearchSuggestions(query: string): Promise<string[]> {
   if (!query || query.trim().length < 2) return [];
   
-  // 1. Try local server API endpoint
+  // 1. Try backend server endpoint (local or Render URL)
   try {
-    const localRes = await fetch(`/api/suggest?q=${encodeURIComponent(query.trim())}`);
+    const localRes = await fetch(`${BACKEND_URL}/api/suggest?q=${encodeURIComponent(query.trim())}`);
     if (localRes.ok) {
       const data = await localRes.json();
       if (Array.isArray(data) && data.length > 0) {
