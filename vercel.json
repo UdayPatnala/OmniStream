@@ -1,0 +1,17 @@
+{
+  "framework": "vite",
+  "rewrites": [
+    {
+      "source": "/api/suggest",
+      "destination": "/api/suggest"
+    },
+    {
+      "source": "/api/oembed",
+      "destination": "/api/oembed"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
