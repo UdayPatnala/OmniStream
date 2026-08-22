@@ -280,6 +280,16 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
 
       {/* Right: Theme Selector & User Controls */}
       <div className="flex items-center gap-2">
+        {/* Experience Gateway Switcher */}
+        <Link 
+          to="/landing"
+          className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 text-xs font-bold transition-all"
+          title="Switch between U-Tube V1 and CineMorph V2"
+        >
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>Gateway</span>
+        </Link>
+
         {/* Theme Selector */}
         <div className="relative">
           <button 

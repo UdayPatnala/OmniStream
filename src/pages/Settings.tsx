@@ -12,7 +12,10 @@ export function SettingsPage() {
     cinemorphTheme, setCinemorphTheme,
     glowIntensity, setGlowIntensity,
     frameAspectRatio, setFrameAspectRatio,
-    reframeMode, setReframeMode
+    reframeMode, setReframeMode,
+    rootLandingPreference, setRootLandingPreference,
+    theaterSeatingEnabled, setTheaterSeatingEnabled,
+    curtainAnimationEnabled, setCurtainAnimationEnabled
   } = useAppStore();
 
   return (
@@ -175,6 +178,43 @@ export function SettingsPage() {
               <option value="center">Center Lock</option>
               <option value="face-priority">Face Priority Tracking</option>
               <option value="smart-pan-zoom">Smart Pan & Zoom</option>
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <label className="block font-medium text-[#E6E1E5]">Root Gateway Start Preference</label>
+            <select
+              value={rootLandingPreference}
+              onChange={(e) => setRootLandingPreference(e.target.value as any)}
+              className="w-full h-12 px-4 rounded-xl border border-purple-500/30 bg-[#0F0D17] text-white focus:outline-none focus:border-purple-400"
+            >
+              <option value="ask">Always Ask (Experience Selector)</option>
+              <option value="v1">Default to U-Tube V1</option>
+              <option value="v2">Default to CineMorph V2</option>
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <label className="block font-medium text-[#E6E1E5]">2.5D Virtual Theater Seating</label>
+            <select
+              value={theaterSeatingEnabled ? 'true' : 'false'}
+              onChange={(e) => setTheaterSeatingEnabled(e.target.value === 'true')}
+              className="w-full h-12 px-4 rounded-xl border border-purple-500/30 bg-[#0F0D17] text-white focus:outline-none focus:border-purple-400"
+            >
+              <option value="true">Enabled (Center Cinema View)</option>
+              <option value="false">Disabled (Screen Only)</option>
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <label className="block font-medium text-[#E6E1E5]">Velvet Curtain Animation Sequence</label>
+            <select
+              value={curtainAnimationEnabled ? 'true' : 'false'}
+              onChange={(e) => setCurtainAnimationEnabled(e.target.value === 'true')}
+              className="w-full h-12 px-4 rounded-xl border border-purple-500/30 bg-[#0F0D17] text-white focus:outline-none focus:border-purple-400"
+            >
+              <option value="true">Full Velvet Curtain Sequence</option>
+              <option value="false">Quick Start (Curtains Always Open)</option>
             </select>
           </div>
         </div>

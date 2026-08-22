@@ -1,8 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, ArrowRight, Play, Film, Clock, Volume2, Maximize2, Zap } from 'lucide-react';
+import { 
+  Sparkles, ArrowRight, Play, Film, Clock, Volume2, 
+  Maximize2, Zap, HardDrive, UploadCloud, Search, 
+  Compass, ShieldCheck, FileVideo, RefreshCw, X, FolderHeart
+} from 'lucide-react';
 import { useAppStore } from '../store';
 import { playbackService } from '../lib/services/playbackService';
+import { LocalMediaItem } from '../types';
 
 const CURATED_SHOWCASE = [
   { id: 'dQw4w9WgXcQ', title: 'Cinematic 4K Showcase', tag: 'IMAX 4K HDR', query: 'cinematic 4k hdr landscape movie demo' },
@@ -12,10 +17,21 @@ const CURATED_SHOWCASE = [
 ];
 
 export function CineMorphLanding() {
+  const [activeSourceTab, setActiveSourceTab] = useState<'youtube' | 'local'>('youtube');
   const [inputUrl, setInputUrl] = useState('');
   const [loading, setLoading] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
+  const [localFileError, setLocalFileError] = useState<string | null>(null);
+
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const navigate = useNavigate();
-  const { history, setVersionMode } = useAppStore();
+  const { 
+    history, 
+    localMediaHistory, 
+    addLocalMediaToHistory, 
+    setActiveLocalMedia, 
+    setVersionMode 
+  } = useAppStore();
 
   const handleEnterCinema = async (e?: React.FormEvent, directInput?: string) => {
     if (e) e.preventDefault();
@@ -34,155 +50,301 @@ export function CineMorphLanding() {
     }
   };
 
-  const recentHistory = Object.values(history)
-    .sort((a, b) => b.watchedAt - a.watchedAt)
+  const handleLocalFileSelect = (file: File) => {
+    setLocalFileError(null);
+    if (!file) return;
+
+    // Validate video mime or extension
+    const validExtensions = ['mp4', 'webm', 'mkv', 'mov', 'm4v', 'ogv'];
+    const ext = file.name.split('.').pop()?.toLowerCase() || '';
+    const isVideoMime = file.type.startsWith('video/');
+
+    if (!isVideoMime && !validExtensions.includes(ext)) {
+      setLocalFileError(`Unsupported format (.${ext}). Please select a standard browser-playable video (MP4, WebM, MKV, MOV).`);
+      return;
+    }
+
+    try {
+      const blobUrl = URL.createObjectURL(file);
+      const fileId = `local-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+      const mediaItem: LocalMediaItem = {
+        id: fileId,
+        name: file.name.replace(/\.[^/.]+$/, ''),
+        size: file.size,
+        type: file.type || `video/${ext}`,
+        url: blobUrl,
+        duration: 0,
+        progress: 0,
+        lastWatchedAt: Date.now(),
+      };
+
+      addLocalMediaToHistory(mediaItem);
+      setActiveLocalMedia(mediaItem);
+
+      // Navigate to theater with local mode identifier
+      navigate(`/watch/${fileId}`);
+    } catch (err) {
+      setLocalFileError('Failed to read local file. Please try again.');
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handleLocalFileSelect(e.dataTransfer.files[0]);
+    }
+  };
+
+  const recentLocalList = Object.values(localMediaHistory)
+    .sort((a, b) => b.lastWatchedAt - a.lastWatchedAt)
     .slice(0, 4);
 
   return (
-    <div className="min-h-screen w-full bg-[#030206] text-white flex flex-col items-center justify-between p-6 relative overflow-hidden select-none font-sans">
+    <div className="min-h-screen w-full bg-[#030206] text-white flex flex-col items-center justify-between p-4 sm:p-8 relative overflow-hidden select-none font-sans">
       {/* Dynamic Ambient Cinema Spotlights */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] bg-gradient-to-tr from-cyan-900/25 via-indigo-900/35 to-purple-900/20 rounded-full blur-[150px] pointer-events-none" />
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-gradient-to-tr from-cyan-900/25 via-indigo-900/35 to-purple-900/20 rounded-full blur-[160px] pointer-events-none" />
       <div className="absolute bottom-10 left-10 w-[400px] h-[300px] bg-cyan-600/10 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute top-10 right-10 w-[400px] h-[300px] bg-purple-600/10 rounded-full blur-[120px] pointer-events-none" />
 
       {/* Top Header */}
       <div className="w-full max-w-6xl flex justify-between items-center z-10 py-2">
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-3">
           <div className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_12px_rgba(34,211,238,0.8)]" />
-          <span className="text-xs font-bold tracking-widest uppercase text-gray-300">CineMorph AI <span className="text-cyan-400">Theater v2</span></span>
+          <span className="text-xs font-bold tracking-widest uppercase text-gray-300">
+            CineMorph AI <span className="text-cyan-400">Theater V2</span>
+          </span>
         </div>
 
-        <button
-          onClick={() => setVersionMode('v1')}
-          className="px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-gray-300 hover:text-white transition-all shadow-sm"
-        >
-          ← Exit to OmniStream Workspace
-        </button>
+        <div className="flex items-center gap-2 sm:gap-3">
+          <button
+            onClick={() => navigate('/')}
+            className="px-3.5 py-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-gray-400 hover:text-white transition-all shadow-sm"
+          >
+            ← Experience Selector
+          </button>
+          <button
+            onClick={() => { setVersionMode('v1'); navigate('/home'); }}
+            className="px-3.5 py-1.5 rounded-full bg-red-500/15 hover:bg-red-500/25 border border-red-500/30 text-xs font-semibold text-red-300 hover:text-white transition-all shadow-sm"
+          >
+            Enter U-Tube V1
+          </button>
+        </div>
       </div>
 
       {/* Main Center Stage */}
-      <div className="w-full max-w-3xl text-center space-y-8 z-10 my-auto py-8">
-        <div className="space-y-4">
+      <div className="w-full max-w-3xl text-center space-y-6 z-10 my-auto py-6">
+        <div className="space-y-3">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-bold tracking-widest uppercase shadow-lg shadow-cyan-950/40">
             <Sparkles className="w-4 h-4 text-cyan-400" />
-            Virtual Movie Theater Experience
+            Neural Virtual Cinema Hall
           </div>
 
           <h1 className="text-4xl sm:text-6xl md:text-7xl font-black tracking-tight text-white bg-gradient-to-b from-white via-[#f1f5f9] to-cyan-300 bg-clip-text text-transparent drop-shadow-sm">
             CineMorph<span className="text-cyan-400">AI</span>
           </h1>
 
-          <p className="text-sm md:text-base text-gray-400 font-medium tracking-wide max-w-lg mx-auto">
-            Transform any YouTube stream into an ultra-immersive private cinema with adaptive ambient lighting and Web Audio DSP.
+          <p className="text-xs sm:text-sm md:text-base text-gray-400 font-medium tracking-wide max-w-lg mx-auto">
+            Experience ultra-immersive cinematic playback with 2.5D visual theater room, opening curtains, adaptive Ambilight bloom, and spatial Web Audio DSP.
           </p>
 
-          {/* Feature Highlight Badges */}
-          <div className="flex flex-wrap items-center justify-center gap-2.5 pt-2">
+          {/* Feature Badges */}
+          <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] font-semibold text-gray-300">
-              <Volume2 className="w-3 h-3 text-cyan-400" /> Web Audio DSP
+              <Film className="w-3 h-3 text-cyan-400" /> 2.5D Theater Seating
             </span>
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] font-semibold text-gray-300">
-              <Maximize2 className="w-3 h-3 text-purple-400" /> 21:9 Cinemascope
+              <Volume2 className="w-3 h-3 text-purple-400" /> Spatial Audio DSP
             </span>
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] font-semibold text-gray-300">
-              <Zap className="w-3 h-3 text-amber-400" /> Ambilight Room Glow
+              <Zap className="w-3 h-3 text-amber-400" /> Dynamic Ambilight Bloom
             </span>
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] font-semibold text-gray-300">
-              <Film className="w-3 h-3 text-emerald-400" /> Zero Distractions
+              <HardDrive className="w-3 h-3 text-emerald-400" /> 100% Private Local Media
             </span>
           </div>
         </div>
 
-        {/* Input Bar */}
-        <form onSubmit={handleEnterCinema} className="relative w-full max-w-xl mx-auto">
-          <div className="relative flex items-center bg-[#0a0812]/90 border border-cyan-500/35 rounded-2xl p-1.5 shadow-[0_15px_40px_rgba(0,0,0,0.8)] backdrop-blur-2xl focus-within:border-cyan-400 focus-within:shadow-[0_0_30px_rgba(34,211,238,0.25)] transition-all">
-            <input
-              type="text"
-              placeholder="Search topic or paste YouTube link..."
-              value={inputUrl}
-              onChange={(e) => setInputUrl(e.target.value)}
-              className="flex-1 bg-transparent px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none"
-            />
+        {/* Source Switcher Tabs */}
+        <div className="flex items-center justify-center gap-2 p-1.5 rounded-2xl bg-black/60 border border-white/10 w-fit mx-auto shadow-xl">
+          <button
+            onClick={() => setActiveSourceTab('youtube')}
+            className={`flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-bold transition-all ${
+              activeSourceTab === 'youtube'
+                ? 'bg-gradient-to-r from-cyan-600 to-indigo-600 text-white shadow-lg shadow-cyan-500/25'
+                : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            <Play className="w-3.5 h-3.5 fill-current" />
+            <span>YouTube Stream Cinema</span>
+          </button>
 
-            <button
-              type="submit"
-              disabled={!inputUrl.trim() || loading}
-              className="px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 disabled:opacity-50 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-lg flex items-center gap-2 shrink-0 cursor-pointer"
-            >
-              {loading ? (
-                <Sparkles className="w-4 h-4 animate-spin text-white" />
-              ) : (
-                <>
-                  <span>Enter Cinema</span>
-                  <ArrowRight className="w-4 h-4" />
-                </>
-              )}
-            </button>
-          </div>
-        </form>
-
-        {/* Curated 1-Click Showcase */}
-        <div className="space-y-3 pt-2">
-          <div className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.25em] flex items-center justify-center gap-1.5">
-            <Film className="w-3 h-3 text-cyan-400" />
-            Quick Experience Showcase
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 max-w-2xl mx-auto">
-            {CURATED_SHOWCASE.map((item) => (
-              <button
-                key={item.title}
-                onClick={() => handleEnterCinema(undefined, item.query)}
-                className="p-3 bg-[#0d0a17]/80 hover:bg-[#161226] border border-white/5 hover:border-cyan-500/40 rounded-2xl text-left transition-all group flex flex-col justify-between"
-              >
-                <div className="text-xs font-bold text-gray-200 group-hover:text-cyan-300 truncate">
-                  {item.title}
-                </div>
-                <div className="flex items-center justify-between mt-2">
-                  <span className="text-[10px] font-semibold text-cyan-400/90 px-2 py-0.5 rounded-full bg-cyan-950/60 border border-cyan-500/20">
-                    {item.tag}
-                  </span>
-                  <Play className="w-3.5 h-3.5 text-gray-500 group-hover:text-white group-hover:scale-110 transition-all fill-current" />
-                </div>
-              </button>
-            ))}
-          </div>
+          <button
+            onClick={() => setActiveSourceTab('local')}
+            className={`flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-bold transition-all ${
+              activeSourceTab === 'local'
+                ? 'bg-gradient-to-r from-cyan-600 to-indigo-600 text-white shadow-lg shadow-cyan-500/25'
+                : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            <HardDrive className="w-3.5 h-3.5 text-cyan-300" />
+            <span>Personal Local Media</span>
+          </button>
         </div>
 
-        {/* Recent Cinema History */}
-        {recentHistory.length > 0 && (
-          <div className="space-y-3 pt-2">
-            <div className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.25em] flex items-center justify-center gap-1.5">
-              <Clock className="w-3 h-3 text-gray-500" />
-              Resume Presentation
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 max-w-2xl mx-auto">
-              {recentHistory.map((item) => (
+        {/* TAB 1: YOUTUBE CINEMA GATE */}
+        {activeSourceTab === 'youtube' && (
+          <div className="space-y-6 animate-in fade-in zoom-in-95 duration-200">
+            <form onSubmit={handleEnterCinema} className="relative w-full max-w-xl mx-auto">
+              <div className="relative flex items-center bg-[#0a0812]/90 border border-cyan-500/35 rounded-2xl p-1.5 shadow-[0_15px_40px_rgba(0,0,0,0.8)] backdrop-blur-2xl focus-within:border-cyan-400 focus-within:shadow-[0_0_30px_rgba(34,211,238,0.25)] transition-all">
+                <input
+                  type="text"
+                  value={inputUrl}
+                  onChange={(e) => setInputUrl(e.target.value)}
+                  placeholder="Paste YouTube Link or Search (e.g. Interstellar 4K, Cyberpunk City)..."
+                  className="w-full bg-transparent px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none"
+                  autoFocus
+                />
                 <button
-                  key={item.video.id}
-                  onClick={() => handleEnterCinema(undefined, item.video.id)}
-                  className="p-2 bg-[#0c0a14] hover:bg-[#151224] border border-white/5 hover:border-cyan-500/40 rounded-xl text-left transition-all group overflow-hidden"
+                  type="submit"
+                  disabled={loading || !inputUrl.trim()}
+                  className="px-5 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 disabled:opacity-40 disabled:pointer-events-none text-white font-bold text-xs tracking-wider uppercase transition-all flex items-center gap-2 shadow-lg shadow-cyan-500/20 shrink-0"
                 >
-                  <div className="aspect-video w-full bg-black rounded-lg overflow-hidden relative mb-1.5 border border-white/5">
-                    <img src={item.video.thumbnails.medium} alt={item.video.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Play className="w-4 h-4 text-white fill-current" />
-                    </div>
-                  </div>
-                  <div className="text-[11px] font-semibold text-gray-300 truncate group-hover:text-cyan-300">
-                    {item.video.title}
-                  </div>
+                  {loading ? (
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      <span>Enter Cinema</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
                 </button>
-              ))}
+              </div>
+            </form>
+
+            {/* Curated Showcase Grid */}
+            <div className="space-y-3 pt-2">
+              <div className="flex items-center justify-between text-xs text-gray-400 px-1 font-semibold uppercase tracking-wider">
+                <span>Featured Cinematic Showcases</span>
+                <span className="text-[10px] text-cyan-400">1-Click Instant Play</span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                {CURATED_SHOWCASE.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => handleEnterCinema(undefined, item.id)}
+                    className="p-3 rounded-2xl bg-[#0e0d16]/80 hover:bg-[#151322] border border-white/5 hover:border-cyan-500/40 text-left transition-all duration-200 group flex flex-col justify-between h-24 hover:scale-[1.02] shadow-md"
+                  >
+                    <div className="text-[10px] font-bold tracking-wider text-cyan-400 uppercase bg-cyan-950/60 px-2 py-0.5 rounded-full border border-cyan-500/20 w-fit">
+                      {item.tag}
+                    </div>
+                    <div className="text-xs font-semibold text-gray-300 group-hover:text-white line-clamp-2 leading-tight">
+                      {item.title}
+                    </div>
+                  </button>
+                ))}
+              </div>
             </div>
+          </div>
+        )}
+
+        {/* TAB 2: LOCAL MEDIA GATE */}
+        {activeSourceTab === 'local' && (
+          <div className="space-y-6 animate-in fade-in zoom-in-95 duration-200">
+            {/* Drag and Drop Zone */}
+            <div
+              onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+              onDragLeave={() => setDragOver(false)}
+              onDrop={handleDrop}
+              onClick={() => fileInputRef.current?.click()}
+              className={`w-full max-w-xl mx-auto p-8 rounded-3xl border-2 border-dashed transition-all cursor-pointer flex flex-col items-center justify-center gap-3 bg-[#0a0812]/90 backdrop-blur-2xl ${
+                dragOver 
+                  ? 'border-cyan-400 bg-cyan-950/20 scale-[1.02] shadow-[0_0_40px_rgba(34,211,238,0.25)]' 
+                  : 'border-white/15 hover:border-cyan-500/40 hover:bg-[#0e0d18]'
+              }`}
+            >
+              <input 
+                ref={fileInputRef}
+                type="file" 
+                accept="video/*,.mp4,.webm,.mkv,.mov,.m4v,.ogv"
+                onChange={(e) => e.target.files?.[0] && handleLocalFileSelect(e.target.files[0])}
+                className="hidden"
+              />
+              <div className="w-16 h-16 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shadow-lg shadow-cyan-500/15">
+                <UploadCloud className="w-8 h-8" />
+              </div>
+              <div className="space-y-1 text-center">
+                <div className="text-sm font-bold text-white">
+                  Drop your local video file here, or <span className="text-cyan-400 underline underline-offset-2">Browse</span>
+                </div>
+                <div className="text-xs text-gray-400">
+                  Supports MP4, WebM, MKV, MOV • Stays 100% private in browser memory
+                </div>
+              </div>
+            </div>
+
+            {/* Error Message */}
+            {localFileError && (
+              <div className="max-w-xl mx-auto p-3 rounded-xl bg-red-500/15 border border-red-500/30 text-red-300 text-xs font-semibold flex items-center justify-between">
+                <span>{localFileError}</span>
+                <button onClick={() => setLocalFileError(null)}><X className="w-4 h-4" /></button>
+              </div>
+            )}
+
+            {/* Recent Local Media */}
+            {recentLocalList.length > 0 && (
+              <div className="space-y-3 pt-2 max-w-xl mx-auto text-left">
+                <div className="flex items-center justify-between text-xs text-gray-400 px-1 font-semibold uppercase tracking-wider">
+                  <span>Recent Local Media Sessions</span>
+                  <span className="text-[10px] text-gray-500">Select file to resume</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {recentLocalList.map((item) => (
+                    <div
+                      key={item.id}
+                      onClick={() => {
+                        if (item.url) {
+                          setActiveLocalMedia(item);
+                          navigate(`/watch/${item.id}`);
+                        } else {
+                          fileInputRef.current?.click();
+                        }
+                      }}
+                      className="p-3 rounded-2xl bg-[#0e0d16]/80 hover:bg-[#151322] border border-white/5 hover:border-cyan-500/40 cursor-pointer transition-all flex items-center gap-3 group"
+                    >
+                      <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-cyan-400 shrink-0 group-hover:scale-105 transition-transform">
+                        <FileVideo className="w-5 h-5" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs font-bold text-gray-200 group-hover:text-white truncate">
+                          {item.name}
+                        </div>
+                        <div className="text-[10px] text-gray-400 flex items-center gap-2 pt-0.5">
+                          <span>{(item.size / (1024 * 1024)).toFixed(1)} MB</span>
+                          <span>•</span>
+                          <span className="text-cyan-400">Play in Theater</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
 
-      {/* Footer */}
-      <div className="text-[11px] text-gray-500 font-medium z-10 py-2">
-        CineMorph AI Virtual Movie Theater Engine • © Patnala Uday Kumar
+      {/* Footer System Diagnostics */}
+      <div className="w-full max-w-6xl flex flex-col sm:flex-row items-center justify-between gap-3 z-10 pt-4 border-t border-white/5 text-xs text-gray-500">
+        <div className="flex items-center gap-2">
+          <span>CineMorph Virtual Theater Architecture</span>
+          <span>•</span>
+          <span>Zero-Latency Media Pipeline</span>
+        </div>
+        <div className="flex items-center gap-2 text-emerald-400">
+          <ShieldCheck className="w-4 h-4" />
+          <span>Private Client-Side Execution</span>
+        </div>
       </div>
     </div>
   );

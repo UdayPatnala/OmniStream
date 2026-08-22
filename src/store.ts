@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Video, Channel, HistoryItem, Collection, QueueItem, SearchHistoryMetaData, BehaviorEvent, CineMorphTheme, VideoClip, RankingProfile } from './types';
+import { Video, Channel, HistoryItem, Collection, QueueItem, SearchHistoryMetaData, BehaviorEvent, CineMorphTheme, VideoClip, RankingProfile, LocalMediaItem } from './types';
 
 interface AppState {
   theme: 'dark' | 'light' | 'system';
@@ -20,6 +20,21 @@ interface AppState {
   addToHistory: (video: Video, progress: number, duration: number) => void;
   clearHistory: () => void;
   removeFromHistory: (videoId: string) => void;
+
+  localMediaHistory: Record<string, LocalMediaItem>;
+  activeLocalMedia: LocalMediaItem | null;
+  addLocalMediaToHistory: (item: LocalMediaItem) => void;
+  removeLocalMediaFromHistory: (id: string) => void;
+  setActiveLocalMedia: (item: LocalMediaItem | null) => void;
+
+  theaterSeatingEnabled: boolean;
+  setTheaterSeatingEnabled: (enabled: boolean) => void;
+
+  curtainAnimationEnabled: boolean;
+  setCurtainAnimationEnabled: (enabled: boolean) => void;
+
+  rootLandingPreference: 'ask' | 'v1' | 'v2';
+  setRootLandingPreference: (pref: 'ask' | 'v1' | 'v2') => void;
 
   searchHistory: string[];
   searchMetadata: Record<string, SearchHistoryMetaData>;
@@ -107,6 +122,33 @@ interface AppState {
 export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
+      localMediaHistory: {},
+      activeLocalMedia: null,
+      addLocalMediaToHistory: (item) => set((state) => ({
+        localMediaHistory: {
+          ...state.localMediaHistory,
+          [item.id]: {
+            ...item,
+            lastWatchedAt: Date.now(),
+          }
+        }
+      })),
+      removeLocalMediaFromHistory: (id) => set((state) => {
+        const copy = { ...state.localMediaHistory };
+        delete copy[id];
+        return { localMediaHistory: copy };
+      }),
+      setActiveLocalMedia: (item) => set({ activeLocalMedia: item }),
+
+      theaterSeatingEnabled: true,
+      setTheaterSeatingEnabled: (theaterSeatingEnabled) => set({ theaterSeatingEnabled }),
+
+      curtainAnimationEnabled: true,
+      setCurtainAnimationEnabled: (curtainAnimationEnabled) => set({ curtainAnimationEnabled }),
+
+      rootLandingPreference: 'ask',
+      setRootLandingPreference: (rootLandingPreference) => set({ rootLandingPreference }),
+
       rankingProfile: 'balanced',
       setRankingProfile: (rankingProfile) => set({ rankingProfile }),
 

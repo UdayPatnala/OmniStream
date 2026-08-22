@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { getVideosByIds, getChannelDetails, getRelatedVideos } from '../lib/youtube';
 import { generateAISummary, extractVideoScript, askCineMorphAI } from '../lib/cinemorph';
 import { Video, Channel, AISummary, VideoScriptChunk, AIChatMessage } from '../types';
@@ -12,6 +12,7 @@ import { CineMorphAIStudio } from '../components/CineMorphAIStudio';
 
 export function Watch() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const { 
     activeVideo, 
     setActiveVideo, 
@@ -26,7 +27,8 @@ export function Watch() {
     cinemaMode,
     setCinemaMode,
     playbackSpeed,
-    setPlaybackSpeed
+    setPlaybackSpeed,
+    setVersionMode
   } = useAppStore();
   
   const [video, setVideo] = useState<Video | null>(activeVideo?.id === id ? activeVideo : null);
@@ -239,6 +241,19 @@ export function Watch() {
 
             {/* Action Pills */}
             <div className="flex items-center gap-2 flex-wrap">
+              {/* Open in CineMorph Cinema (V2) */}
+              <button 
+                onClick={() => {
+                  setVersionMode('v2');
+                  navigate(`/theater/${id}`);
+                }}
+                className="flex items-center gap-1.5 px-4 py-1.5 bg-gradient-to-r from-cyan-600 via-indigo-600 to-purple-600 hover:from-cyan-500 hover:to-purple-500 text-white rounded-full text-xs font-bold transition-all shadow-md shadow-cyan-500/20"
+                title="Transfer stream to 2.5D Virtual Movie Theater"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-cyan-300" />
+                <span>Open in CineMorph V2</span>
+              </button>
+
               {/* Playback Speed Selector */}
               <div className="flex items-center bg-white/5 border border-white/10 rounded-full px-3 py-1.5 text-xs text-indigo-300 gap-1">
                 <Gauge className="w-3.5 h-3.5" />

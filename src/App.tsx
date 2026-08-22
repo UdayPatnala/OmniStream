@@ -10,6 +10,8 @@ import { useAppStore } from './store';
 import { Skeleton } from './components/Skeleton';
 
 // Code-split route bundles for optimal first-paint performance
+const RootLanding = lazy(() => import('./pages/RootLanding').then(m => ({ default: m.RootLanding })));
+const CineMorphLanding = lazy(() => import('./pages/CineMorphLanding').then(m => ({ default: m.CineMorphLanding })));
 const Home = lazy(() => import('./pages/Home').then(m => ({ default: m.Home })));
 const Search = lazy(() => import('./pages/Search').then(m => ({ default: m.Search })));
 const Watch = lazy(() => import('./pages/Watch').then(m => ({ default: m.Watch })));
@@ -29,6 +31,14 @@ function RouteFallback() {
   );
 }
 
+// Routes root based on user preference or launches experience selector
+function RootRouter() {
+  const { rootLandingPreference, versionMode } = useAppStore();
+  if (rootLandingPreference === 'v1' || versionMode === 'v1') return <Home />;
+  if (rootLandingPreference === 'v2') return <CineMorphLanding />;
+  return <RootLanding />;
+}
+
 // Picks V1 Watch page or V2 Theater based on active version mode.
 function WatchRouter() {
   const versionMode = useAppStore(s => s.versionMode);
@@ -40,7 +50,13 @@ export default function App() {
     <Layout>
       <Suspense fallback={<RouteFallback />}>
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<RootRouter />} />
+          <Route path="/landing" element={<RootLanding />} />
+          <Route path="/gateway" element={<RootLanding />} />
+          <Route path="/home" element={<Home />} />
+          <Route path="/feed" element={<Home />} />
+          <Route path="/cinemorph" element={<CineMorphLanding />} />
+          <Route path="/theater/:id" element={<CineMorphTheater />} />
           <Route path="/search" element={<Search />} />
           <Route path="/watch/:id" element={<WatchRouter />} />
           <Route path="/subscriptions" element={<Subscriptions />} />

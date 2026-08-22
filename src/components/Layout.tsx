@@ -8,7 +8,7 @@ import { GlobalPlayer } from './GlobalPlayer';
 import { CineMorphLanding } from '../pages/CineMorphLanding';
 
 export function Layout({ children }: { children: ReactNode }) {
-  const { theme, versionMode } = useAppStore();
+  const { theme, versionMode, rootLandingPreference } = useAppStore();
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
   
@@ -21,14 +21,16 @@ export function Layout({ children }: { children: ReactNode }) {
     }
   }, [theme]);
 
-  // V2 Dedicated CineMorph Landing Screen
-  if (versionMode === 'v2' && location.pathname === '/') {
-    return <CineMorphLanding />;
-  }
+  // Root Landing, CineMorph Landing, and Theater full-viewport passthroughs
+  const isFullViewport = 
+    location.pathname === '/landing' ||
+    location.pathname === '/gateway' ||
+    location.pathname === '/cinemorph' ||
+    location.pathname.startsWith('/theater/') ||
+    (location.pathname === '/' && rootLandingPreference === 'ask') ||
+    (versionMode === 'v2' && (location.pathname === '/' || location.pathname.startsWith('/watch/')));
 
-  // V2 Dedicated Cinema Theater Mode — pure full-viewport passthrough.
-  // CineMorphTheater owns its own player, controls, and atmosphere.
-  if (versionMode === 'v2' && location.pathname.startsWith('/watch/')) {
+  if (isFullViewport) {
     return (
       <div className="w-screen h-screen bg-[#030208] overflow-hidden">
         {children}

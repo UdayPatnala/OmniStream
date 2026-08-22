@@ -208,8 +208,26 @@ export interface PlayerRecoveryState {
 
 export type RankingProfile = 'balanced' | 'recency' | 'tutorials' | 'authority';
 
+export interface LocalMediaItem {
+  id: string;
+  name: string;
+  size: number;
+  type: string;
+  url?: string;
+  duration: number;
+  progress: number;
+  lastWatchedAt: number;
+  thumbnail?: string;
+  aspectRatio?: string;
+  dominantColor?: string;
+}
 
-
-
-
-
+export interface LocalVideoAnalysis {
+  avgBrightness: number;
+  dominantColor: string;
+  secondaryColor: string;
+  sceneChangeDetected: boolean;
+  saliencyCenterX: number;
+  contrastScore: number;
+  timestamp: number;
+}

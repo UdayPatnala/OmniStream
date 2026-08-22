@@ -4,25 +4,19 @@
  *
  * P1 Vision: The application becomes the walls, lights, screen, and atmosphere.
  * The video is the movie. The AI is the invisible cinematographer.
- *
- * Rules:
- * - NO sidebar, NO feed, NO top navigation during playback
- * - Theater lighting responds to actual player state (PLAYING → dark room, PAUSED → soft ambient)
- * - Controls auto-hide, remain keyboard-accessible
- * - No fake AI claims, no fake processing
- * - Fallback is always honest Original Mode
  */
 
-import { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppStore } from '../store';
 import { getVideosByIds } from '../lib/youtube';
-import { Video, AudioPreset, FrameAspectRatio, CineMorphTheme, GlowIntensity } from '../types';
+import { Video, AudioPreset, FrameAspectRatio, CineMorphTheme, GlowIntensity, LocalMediaItem } from '../types';
 import {
   Play, Pause, Volume2, VolumeX, Maximize, Minimize,
   Film, Monitor, ArrowLeft, RotateCcw, ChevronRight,
   Sparkles, HelpCircle, X, Keyboard, Sliders, Maximize2,
-  Sun, FileText, Check, ListFilter
+  Sun, FileText, Check, ListFilter, HardDrive, Armchair,
+  Eye, RefreshCw, Layers
 } from 'lucide-react';
 import { 
   audioEngine, 
@@ -30,10 +24,10 @@ import {
   calculateFrameStyle, 
   generateAISummary, 
   extractVideoScript, 
-  generateSceneHighlights 
+  generateSceneHighlights,
+  localVideoAnalyzer
 } from '../lib/cinemorph';
 
-// Playback state that drives lighting
 type TheaterState = 'pre-show' | 'loading' | 'playing' | 'paused' | 'ended' | 'error';
 
 export function CineMorphTheater() {
@@ -45,15 +39,26 @@ export function CineMorphTheater() {
     frameAspectRatio, setFrameAspectRatio,
     reframeMode,
     cinemorphTheme, setCinemorphTheme,
-    glowIntensity, setGlowIntensity
+    glowIntensity, setGlowIntensity,
+    activeLocalMedia, localMediaHistory, addLocalMediaToHistory,
+    theaterSeatingEnabled, setTheaterSeatingEnabled,
+    curtainAnimationEnabled, setCurtainAnimationEnabled
   } = useAppStore();
 
-  // ── Player ref & state ──────────────────────────────────────────────────────
+  const isLocalMedia = id?.startsWith('local-') || !!activeLocalMedia;
+  const localItem: LocalMediaItem | undefined = isLocalMedia
+    ? (activeLocalMedia?.id === id ? activeLocalMedia : localMediaHistory[id || ''])
+    : undefined;
+
+  // ── Refs ────────────────────────────────────────────────────────────────────
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
+  const localVideoRef = useRef<HTMLVideoElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const controlsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const frameAnalysisTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // ── States ──────────────────────────────────────────────────────────────────
   const [video, setVideo] = useState<Video | null>(
     activeVideo?.id === id ? activeVideo : null
   );
@@ -70,9 +75,11 @@ export function CineMorphTheater() {
     cinemaMode ? 'cinema' : 'original'
   );
   const [entryComplete, setEntryComplete] = useState(false);
+  const [curtainsOpen, setCurtainsOpen] = useState(!curtainAnimationEnabled);
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [showStudioDrawer, setShowStudioDrawer] = useState(false);
   const [hudToast, setHudToast] = useState<string | null>(null);
+  const [dynamicBloomColor, setDynamicBloomColor] = useState<string | null>(null);
 
   // Scrubber Hover Tooltip state
   const [hoverTime, setHoverTime] = useState<number | null>(null);
@@ -96,23 +103,56 @@ export function CineMorphTheater() {
     } catch (e) {}
   }, []);
 
-  // ── Load video metadata ─────────────────────────────────────────────────────
+  // ── Curtain Sequence ────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (curtainAnimationEnabled) {
+      const timer = setTimeout(() => {
+        setCurtainsOpen(true);
+      }, 700);
+      return () => clearTimeout(timer);
+    } else {
+      setCurtainsOpen(true);
+    }
+  }, [curtainAnimationEnabled]);
+
+  // ── Load Video / Media Metadata ─────────────────────────────────────────────
   useEffect(() => {
     if (!id) return;
+
+    if (isLocalMedia && localItem) {
+      const localVideoObj: Video = {
+        id: localItem.id,
+        title: localItem.name,
+        description: `Local file playback (${(localItem.size / (1024 * 1024)).toFixed(1)} MB). 100% private in browser memory.`,
+        channelId: 'local_storage',
+        channelTitle: 'Personal Media Library',
+        publishedAt: new Date(localItem.lastWatchedAt).toISOString(),
+        thumbnails: {
+          medium: localItem.thumbnail || 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=400',
+          high: localItem.thumbnail || 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=800',
+        }
+      };
+      setVideo(localVideoObj);
+      setActiveVideo(localVideoObj);
+      setTheaterState('playing');
+      setPlaying(true);
+      setEntryComplete(true);
+      return;
+    }
 
     const historyEntry = history[id];
     const startPos = historyEntry?.progress && historyEntry.progress > 10 ? historyEntry.progress : 0;
 
     const fallback: Video = {
       id,
-      title: activeVideo?.id === id ? activeVideo.title : 'Loading…',
+      title: activeVideo?.id === id ? activeVideo.title : 'Loading stream…',
       description: '',
       channelId: activeVideo?.channelId || '',
       channelTitle: activeVideo?.channelTitle || '',
       publishedAt: activeVideo?.publishedAt || new Date().toISOString(),
       thumbnails: {
         medium: `https://i.ytimg.com/vi/${id}/mqdefault.jpg`,
-        high:   `https://i.ytimg.com/vi/${id}/hqdefault.jpg`,
+        high: `https://i.ytimg.com/vi/${id}/hqdefault.jpg`,
       },
     };
 
@@ -138,10 +178,12 @@ export function CineMorphTheater() {
     }
 
     return () => clearTimeout(entryTimer);
-  }, [id, sendIframeCommand]);
+  }, [id, isLocalMedia, localItem, sendIframeCommand, setActiveVideo, history, activeVideo]);
 
-  // Listen for YouTube IFrame postMessage events (play, pause, progress)
+  // ── YouTube Message Listener ────────────────────────────────────────────────
   useEffect(() => {
+    if (isLocalMedia) return;
+
     const handleMessage = (e: MessageEvent) => {
       try {
         let data = e.data;
@@ -158,6 +200,7 @@ export function CineMorphTheater() {
           } else if (data.info === 0) { // ENDED
             setTheaterState('ended');
             setPlaying(false);
+            if (curtainAnimationEnabled) setCurtainsOpen(false);
           }
         }
         if (data && data.info) {
@@ -179,9 +222,27 @@ export function CineMorphTheater() {
 
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [duration, seeking, video]);
+  }, [curtainAnimationEnabled, duration, isLocalMedia, seeking, video]);
 
-  // ── Auto-hide controls ──────────────────────────────────────────────────────
+  // ── Local Media Canvas Frame Analysis ───────────────────────────────────────
+  useEffect(() => {
+    if (!isLocalMedia) return;
+
+    frameAnalysisTimerRef.current = setInterval(() => {
+      if (localVideoRef.current && !localVideoRef.current.paused) {
+        const analysis = localVideoAnalyzer.analyzeVideoFrame(localVideoRef.current);
+        if (analysis) {
+          setDynamicBloomColor(analysis.dominantColor);
+        }
+      }
+    }, 1200);
+
+    return () => {
+      if (frameAnalysisTimerRef.current) clearInterval(frameAnalysisTimerRef.current);
+    };
+  }, [isLocalMedia]);
+
+  // ── Auto-hide Controls ──────────────────────────────────────────────────────
   const resetControlsTimer = useCallback(() => {
     setControlsVisible(true);
     if (controlsTimerRef.current) clearTimeout(controlsTimerRef.current);
@@ -199,7 +260,21 @@ export function CineMorphTheater() {
     return () => { if (controlsTimerRef.current) clearTimeout(controlsTimerRef.current); };
   }, [theaterState, showShortcuts, showStudioDrawer, resetControlsTimer]);
 
+  // ── Controls Handlers ───────────────────────────────────────────────────────
   const togglePlay = useCallback(() => {
+    if (isLocalMedia && localVideoRef.current) {
+      if (localVideoRef.current.paused) {
+        localVideoRef.current.play();
+        setPlaying(true);
+        setTheaterState('playing');
+      } else {
+        localVideoRef.current.pause();
+        setPlaying(false);
+        setTheaterState('paused');
+      }
+      return;
+    }
+
     if (playing) {
       sendIframeCommand('pauseVideo');
       setPlaying(false);
@@ -209,9 +284,9 @@ export function CineMorphTheater() {
       setPlaying(true);
       setTheaterState('playing');
     }
-  }, [playing, sendIframeCommand]);
+  }, [isLocalMedia, playing, sendIframeCommand]);
 
-  // ── Keyboard shortcuts ──────────────────────────────────────────────────────
+  // ── Keyboard Shortcuts ──────────────────────────────────────────────────────
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if ((e.target as HTMLElement).tagName === 'INPUT') return;
@@ -226,7 +301,11 @@ export function CineMorphTheater() {
           if (duration > 0) {
             const target = Math.max(0, (played * duration) - 10);
             setPlayed(target / duration);
-            sendIframeCommand('seekTo', [target, true]);
+            if (isLocalMedia && localVideoRef.current) {
+              localVideoRef.current.currentTime = target;
+            } else {
+              sendIframeCommand('seekTo', [target, true]);
+            }
           }
           break;
         case 'ArrowRight':
@@ -234,14 +313,19 @@ export function CineMorphTheater() {
           if (duration > 0) {
             const target = Math.min(duration, (played * duration) + 10);
             setPlayed(target / duration);
-            sendIframeCommand('seekTo', [target, true]);
+            if (isLocalMedia && localVideoRef.current) {
+              localVideoRef.current.currentTime = target;
+            } else {
+              sendIframeCommand('seekTo', [target, true]);
+            }
           }
           break;
         case 'ArrowUp':
           e.preventDefault();
           setVolume(v => {
             const nv = Math.min(1, v + 0.1);
-            sendIframeCommand('setVolume', [Math.round(nv * 100)]);
+            if (isLocalMedia && localVideoRef.current) localVideoRef.current.volume = nv;
+            else sendIframeCommand('setVolume', [Math.round(nv * 100)]);
             return nv;
           });
           break;
@@ -249,14 +333,16 @@ export function CineMorphTheater() {
           e.preventDefault();
           setVolume(v => {
             const nv = Math.max(0, v - 0.1);
-            sendIframeCommand('setVolume', [Math.round(nv * 100)]);
+            if (isLocalMedia && localVideoRef.current) localVideoRef.current.volume = nv;
+            else sendIframeCommand('setVolume', [Math.round(nv * 100)]);
             return nv;
           });
           break;
         case 'KeyM':
           setMuted(m => {
             const nm = !m;
-            sendIframeCommand(nm ? 'mute' : 'unMute');
+            if (isLocalMedia && localVideoRef.current) localVideoRef.current.muted = nm;
+            else sendIframeCommand(nm ? 'mute' : 'unMute');
             return nm;
           });
           break;
@@ -281,7 +367,7 @@ export function CineMorphTheater() {
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [duration, isFullscreen, played, resetControlsTimer, sendIframeCommand, showShortcuts, showStudioDrawer, togglePlay]);
+  }, [duration, isFullscreen, isLocalMedia, played, resetControlsTimer, sendIframeCommand, showShortcuts, showStudioDrawer, togglePlay]);
 
   // ── Fullscreen ──────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -307,7 +393,12 @@ export function CineMorphTheater() {
     setSeeking(false);
     const fraction = parseFloat((e.target as HTMLInputElement).value);
     if (duration > 0) {
-      sendIframeCommand('seekTo', [fraction * duration, true]);
+      const targetSecs = fraction * duration;
+      if (isLocalMedia && localVideoRef.current) {
+        localVideoRef.current.currentTime = targetSecs;
+      } else {
+        sendIframeCommand('seekTo', [targetSecs, true]);
+      }
     }
   };
 
@@ -323,7 +414,7 @@ export function CineMorphTheater() {
     setHoverTime(null);
   };
 
-  // ── Quick Action Cyclers ──────────────────────────────────────────────────
+  // ── Quick Cyclers ───────────────────────────────────────────────────────────
   const cycleAudioPreset = () => {
     const presets: AudioPreset[] = ['dialogue-boost', 'spatial-3d', 'bass-heavy', 'night-compression', 'original'];
     const currentIdx = presets.indexOf(audioEQ.preset as AudioPreset);
@@ -358,7 +449,6 @@ export function CineMorphTheater() {
     showToast(`💡 Ambient Dimmer: ${nextLevel.toUpperCase()}`);
   };
 
-  // ── Presentation Mode ───────────────────────────────────────────────────────
   const togglePresentationMode = () => {
     const next = presentationMode === 'cinema' ? 'original' : 'cinema';
     setPresentationMode(next);
@@ -366,10 +456,14 @@ export function CineMorphTheater() {
     showToast(next === 'cinema' ? '🎬 Cinema Presentation Activated' : '📺 Standard Mode Activated');
   };
 
-  // ── Exit theater ────────────────────────────────────────────────────────────
   const exitTheater = () => {
-    if (versionMode === 'v2') navigate('/');
-    else navigate(-1);
+    if (isLocalMedia) {
+      navigate('/cinemorph');
+    } else if (versionMode === 'v2') {
+      navigate('/cinemorph');
+    } else {
+      navigate(-1);
+    }
   };
 
   const formatTime = (secs: number) => {
@@ -390,39 +484,74 @@ export function CineMorphTheater() {
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-screen flex flex-col items-center justify-center overflow-hidden transition-colors duration-1000 select-none font-sans"
-      style={{
-        backgroundColor: theaterState === 'playing' ? '#030206' : currentThemeConfig.background,
-      }}
+      className="relative w-full h-screen flex flex-col items-center justify-center overflow-hidden transition-colors duration-1000 select-none font-sans bg-[#020205]"
       onMouseMove={resetControlsTimer}
       onTouchStart={resetControlsTimer}
     >
       {/* ── Dynamic Ambient Bloom (Ambilight) ── */}
       {presentationMode === 'cinema' && glowIntensity !== 'off' && (
         <div
-          className="absolute inset-0 pointer-events-none transition-opacity duration-1000 z-0"
+          className="absolute inset-0 pointer-events-none transition-all duration-1000 z-0"
           style={{
-            background: currentThemeConfig.glowGradient,
+            background: dynamicBloomColor 
+              ? `radial-gradient(ellipse at center, ${dynamicBloomColor} 0%, rgba(3,2,6,0.85) 75%)`
+              : currentThemeConfig.glowGradient,
             filter: currentThemeConfig.glowBlur,
             opacity: theaterState === 'playing' ? (glowIntensity === 'ultra' ? 0.9 : 0.6) : 0.35,
             transform: 'translate3d(0, 0, 0)',
-            willChange: 'opacity, filter',
           }}
         />
       )}
 
-      {/* ── Subtle Theater Vignette ── */}
-      <div
-        className="absolute inset-0 pointer-events-none z-1"
-        style={{
-          background: 'radial-gradient(ellipse 90% 90% at 50% 50%, transparent 65%, rgba(0,0,0,0.85) 100%)',
-        }}
-      />
+      {/* ── Grand IMAX Cinema Hall Architectural Layers ── */}
+      {presentationMode === 'cinema' && !isFullscreen && (
+        <>
+          {/* Ceiling Arch Downlights (Scalloped Light Cones matching Reference Photo) */}
+          <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-b from-black via-black/80 to-transparent pointer-events-none z-1 flex justify-center items-start pt-1 overflow-hidden opacity-90">
+            <div className="w-full max-w-5xl flex justify-between px-8">
+              {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((idx) => (
+                <div key={idx} className="flex flex-col items-center">
+                  <div className="w-2.5 h-1.5 rounded-full bg-amber-100 shadow-[0_0_15px_rgba(254,243,199,0.9)]" />
+                  <div 
+                    className="w-16 h-28 opacity-40 blur-sm pointer-events-none"
+                    style={{
+                      background: 'radial-gradient(ellipse at center top, rgba(254, 243, 199, 0.6) 0%, rgba(245, 158, 11, 0.15) 45%, transparent 80%)',
+                      clipPath: 'polygon(45% 0%, 55% 0%, 100% 100%, 0% 100%)'
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
 
-      {/* ── Cinema Entry Fade ── */}
-      <div
-        className={`absolute inset-0 bg-black pointer-events-none transition-opacity duration-700 z-30 ${entryComplete ? 'opacity-0' : 'opacity-100'}`}
-      />
+          {/* Left Mahogany Wall Column & Ornate Glowing Amber Sconce */}
+          <div className="absolute left-0 top-0 bottom-0 w-16 sm:w-28 bg-gradient-to-r from-[#120a06] via-[#1a0f0a] to-transparent pointer-events-none z-1 flex flex-col justify-around py-20 pl-3 sm:pl-5 border-r border-amber-900/20 shadow-2xl opacity-95">
+            <div className="flex items-center gap-2">
+              <div className="w-2.5 h-6 rounded-t-full bg-amber-200 shadow-[0_0_25px_rgba(245,158,11,0.95)]" />
+              <div className="w-1 h-12 bg-amber-900/60 rounded-full" />
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2.5 h-6 rounded-t-full bg-amber-200 shadow-[0_0_25px_rgba(245,158,11,0.95)]" />
+              <div className="w-1 h-12 bg-amber-900/60 rounded-full" />
+            </div>
+          </div>
+
+          {/* Right Mahogany Wall Column & Ornate Glowing Amber Sconce */}
+          <div className="absolute right-0 top-0 bottom-0 w-16 sm:w-28 bg-gradient-to-l from-[#120a06] via-[#1a0f0a] to-transparent pointer-events-none z-1 flex flex-col justify-around py-20 pr-3 sm:pr-5 items-end border-l border-amber-900/20 shadow-2xl opacity-95">
+            <div className="flex items-center gap-2">
+              <div className="w-1 h-12 bg-amber-900/60 rounded-full" />
+              <div className="w-2.5 h-6 rounded-t-full bg-amber-200 shadow-[0_0_25px_rgba(245,158,11,0.95)]" />
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-1 h-12 bg-amber-900/60 rounded-full" />
+              <div className="w-2.5 h-6 rounded-t-full bg-amber-200 shadow-[0_0_25px_rgba(245,158,11,0.95)]" />
+            </div>
+          </div>
+
+          {/* Floor Carpet Reflection Aisle with Center Red Velvet Stanchion Rope Accent */}
+          <div className="absolute bottom-0 inset-x-0 h-40 bg-gradient-to-t from-[#050406] via-[#0b0810]/95 to-transparent pointer-events-none z-1 opacity-90" />
+        </>
+      )}
 
       {/* ── HUD Toast Banner Alert ── */}
       {hudToast && (
@@ -431,62 +560,165 @@ export function CineMorphTheater() {
         </div>
       )}
 
-      {/* ── Pre-show / Loading state ── */}
-      {theaterState === 'pre-show' && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center z-20 gap-4">
-          <div className="flex items-center gap-3 text-cyan-400">
-            <Sparkles className="w-6 h-6 animate-pulse" />
-            <span className="text-sm font-bold tracking-[0.2em] uppercase text-gray-400">Now Entering Cinema</span>
-          </div>
-          <div className="text-white text-xl font-semibold opacity-60">{video?.title || '…'}</div>
-        </div>
-      )}
-
       {/* ── The Cinema Screen Container ── */}
       <div
         className={`relative w-full transition-all duration-700 ${
           isFullscreen
             ? 'h-full w-full'
-            : `max-w-[94vw] max-h-[82vh] ${frameStyle.containerAspectClass}`
-        } flex items-center justify-center z-10 overflow-hidden rounded-md shadow-2xl`}
+            : `max-w-[94vw] max-h-[80vh] ${frameStyle.containerAspectClass}`
+        } flex items-center justify-center z-10 overflow-hidden rounded-lg shadow-2xl border border-white/10 bg-black`}
         style={{
           filter: presentationMode === 'cinema' ? 'brightness(1.03) contrast(1.02)' : 'none',
         }}
       >
         <div
-          className="w-full h-full transition-transform duration-500"
+          className="w-full h-full transition-transform duration-500 relative"
           style={{
             transform: presentationMode === 'cinema' ? frameStyle.videoScaleTransform : 'none',
           }}
         >
-          <iframe
-            ref={iframeRef}
-            id="cinemorph-theater-iframe"
-            src={`https://www.youtube-nocookie.com/embed/${id}?autoplay=1&enablejsapi=1&origin=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : '')}&rel=0&playsinline=1`}
-            title={video?.title || 'OmniStream CineMorph Cinema'}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowFullScreen
-            className="w-full h-full border-0"
-            onLoad={() => {
-              setTheaterState('playing');
-              setPlaying(true);
-              try {
-                audioEngine.init();
-                audioEngine.applyConfig(audioEQ);
-              } catch (e) {}
-            }}
-          />
+          {/* Dual Source Playback Element */}
+          {isLocalMedia && localItem?.url ? (
+            <video
+              ref={localVideoRef}
+              src={localItem.url}
+              autoPlay
+              playsInline
+              className="w-full h-full object-contain"
+              onTimeUpdate={() => {
+                if (localVideoRef.current && !seeking) {
+                  const cur = localVideoRef.current.currentTime;
+                  const dur = localVideoRef.current.duration || 0;
+                  setPlayed(dur > 0 ? cur / dur : 0);
+                  setDuration(dur);
+                  if (localItem && dur > 0 && Math.round(cur) % 10 === 0) {
+                    addLocalMediaToHistory({
+                      ...localItem,
+                      progress: Math.floor(cur),
+                      duration: Math.floor(dur),
+                      lastWatchedAt: Date.now(),
+                    });
+                  }
+                }
+              }}
+              onLoadedMetadata={() => {
+                if (localVideoRef.current) {
+                  setDuration(localVideoRef.current.duration || 0);
+                  setTheaterState('playing');
+                  setPlaying(true);
+                }
+              }}
+              onEnded={() => {
+                setTheaterState('ended');
+                setPlaying(false);
+                if (curtainAnimationEnabled) setCurtainsOpen(false);
+              }}
+            />
+          ) : (
+            <iframe
+              ref={iframeRef}
+              id="cinemorph-theater-iframe"
+              src={`https://www.youtube-nocookie.com/embed/${id}?autoplay=1&enablejsapi=1&origin=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : '')}&rel=0&playsinline=1`}
+              title={video?.title || 'OmniStream CineMorph Cinema'}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+              className="w-full h-full border-0"
+              onLoad={() => {
+                setTheaterState('playing');
+                setPlaying(true);
+                try {
+                  audioEngine.init();
+                  audioEngine.applyConfig(audioEQ);
+                } catch (e) {}
+              }}
+            />
+          )}
+
+          {/* ── Velvet Curtains Opening Sequence ── */}
+          {curtainAnimationEnabled && (
+            <div className="absolute inset-0 pointer-events-none overflow-hidden z-20 flex">
+              {/* Left Velvet Curtain */}
+              <div 
+                className={`w-1/2 h-full bg-gradient-to-r from-[#3a060e] via-[#660918] to-[#260307] shadow-2xl transition-transform duration-1000 ease-out border-r-2 border-amber-600/30 ${
+                  curtainsOpen ? '-translate-x-full' : 'translate-x-0'
+                }`}
+                style={{
+                  backgroundImage: 'repeating-linear-gradient(90deg, rgba(0,0,0,0.3) 0px, transparent 15px, rgba(0,0,0,0.3) 30px)',
+                }}
+              />
+              {/* Right Velvet Curtain */}
+              <div 
+                className={`w-1/2 h-full bg-gradient-to-l from-[#3a060e] via-[#660918] to-[#260307] shadow-2xl transition-transform duration-1000 ease-out border-l-2 border-amber-600/30 ${
+                  curtainsOpen ? 'translate-x-full' : 'translate-x-0'
+                }`}
+                style={{
+                  backgroundImage: 'repeating-linear-gradient(90deg, rgba(0,0,0,0.3) 0px, transparent 15px, rgba(0,0,0,0.3) 30px)',
+                }}
+              />
+            </div>
+          )}
         </div>
       </div>
 
+      {/* ── 2.5D Tiered Theater Seating with Center Aisle (matching reference) ── */}
+      {theaterSeatingEnabled && !isFullscreen && (
+        <div className="absolute bottom-0 inset-x-0 h-24 sm:h-36 pointer-events-none z-15 flex flex-col justify-end items-center px-2 sm:px-6 overflow-hidden opacity-95">
+          {/* Back Tier Row */}
+          <div className="w-full max-w-5xl flex justify-between items-end gap-1 mb-1 opacity-50 scale-95">
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((s) => (
+              <div 
+                key={`b-${s}`}
+                className="flex-1 h-8 sm:h-12 rounded-t-xl bg-gradient-to-b from-[#2a1318] via-[#150a0d] to-[#080305] border-t border-red-900/30"
+              />
+            ))}
+          </div>
+
+          {/* Front Tier Row with Center Aisle */}
+          <div className="w-full max-w-6xl flex justify-between items-end gap-2 sm:gap-4">
+            {/* Left Bank of Seats */}
+            <div className="flex-1 flex gap-1 sm:gap-2">
+              {[1, 2, 3, 4].map((s) => (
+                <div 
+                  key={`fl-${s}`}
+                  className="flex-1 h-14 sm:h-22 rounded-t-2xl sm:rounded-t-3xl bg-gradient-to-b from-[#3b1219] via-[#1c080d] to-[#080204] border-t border-rose-500/20 shadow-[0_-8px_20px_rgba(0,0,0,0.9)] relative flex flex-col items-center justify-start pt-1.5"
+                >
+                  <div className="w-[80%] h-5 sm:h-8 rounded-t-xl bg-gradient-to-b from-[#4d1621] to-[#240a0f] border-t border-rose-400/20 shadow-inner" />
+                  {/* Armrest / Cup Holder */}
+                  <div className="absolute -right-1 bottom-0 w-2 h-8 bg-[#180609] rounded-t-sm border-t border-white/10" />
+                </div>
+              ))}
+            </div>
+
+            {/* Center Aisle with Soft Low Floor Step Light */}
+            <div className="w-8 sm:w-16 h-10 flex flex-col items-center justify-end pb-2">
+              <div className="w-2.5 h-1 rounded-full bg-cyan-400/40 shadow-[0_0_12px_rgba(34,211,238,0.8)]" />
+            </div>
+
+            {/* Right Bank of Seats */}
+            <div className="flex-1 flex gap-1 sm:gap-2">
+              {[1, 2, 3, 4].map((s) => (
+                <div 
+                  key={`fr-${s}`}
+                  className="flex-1 h-14 sm:h-22 rounded-t-2xl sm:rounded-t-3xl bg-gradient-to-b from-[#3b1219] via-[#1c080d] to-[#080204] border-t border-rose-500/20 shadow-[0_-8px_20px_rgba(0,0,0,0.9)] relative flex flex-col items-center justify-start pt-1.5"
+                >
+                  <div className="w-[80%] h-5 sm:h-8 rounded-t-xl bg-gradient-to-b from-[#4d1621] to-[#240a0f] border-t border-rose-400/20 shadow-inner" />
+                  {/* Armrest / Cup Holder */}
+                  <div className="absolute -left-1 bottom-0 w-2 h-8 bg-[#180609] rounded-t-sm border-t border-white/10" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Floating Controls Deck (Vanishing Interface) ── */}
       <div
-        className={`absolute bottom-6 left-1/2 -translate-x-1/2 z-20 w-[92%] max-w-4xl transition-all duration-500 ${
+        className={`absolute bottom-6 left-1/2 -translate-x-1/2 z-30 w-[92%] max-w-4xl transition-all duration-500 ${
           controlsVisible || theaterState !== 'playing' ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6 pointer-events-none'
         }`}
         aria-hidden={!controlsVisible && theaterState === 'playing'}
       >
-        <div className="bg-[#090712]/85 backdrop-blur-2xl border border-white/10 rounded-2xl p-3 sm:p-4 shadow-[0_20px_50px_rgba(0,0,0,0.9)] space-y-3">
+        <div className="bg-[#090712]/90 backdrop-blur-2xl border border-white/10 rounded-2xl p-3 sm:p-4 shadow-[0_20px_50px_rgba(0,0,0,0.9)] space-y-3">
           {/* Interactive Seekbar with Hover Tooltip */}
           <div 
             className="relative group cursor-pointer"
@@ -543,7 +775,8 @@ export function CineMorphTheater() {
                 onClick={() => {
                   const nm = !muted;
                   setMuted(nm);
-                  sendIframeCommand(nm ? 'mute' : 'unMute');
+                  if (isLocalMedia && localVideoRef.current) localVideoRef.current.muted = nm;
+                  else sendIframeCommand(nm ? 'mute' : 'unMute');
                 }}
                 className="p-1.5 text-gray-400 hover:text-white transition-colors"
                 aria-label={muted ? 'Unmute' : 'Mute'}
@@ -561,8 +794,13 @@ export function CineMorphTheater() {
                   const nv = parseFloat(e.target.value);
                   setVolume(nv);
                   setMuted(false);
-                  sendIframeCommand('unMute');
-                  sendIframeCommand('setVolume', [Math.round(nv * 100)]);
+                  if (isLocalMedia && localVideoRef.current) {
+                    localVideoRef.current.volume = nv;
+                    localVideoRef.current.muted = false;
+                  } else {
+                    sendIframeCommand('unMute');
+                    sendIframeCommand('setVolume', [Math.round(nv * 100)]);
+                  }
                 }}
                 className="w-16 sm:w-20 h-1 appearance-none bg-white/20 rounded-full cursor-pointer hidden sm:block"
                 aria-label="Volume"
@@ -575,48 +813,67 @@ export function CineMorphTheater() {
 
             {/* Right Tools & Quick Cyclers */}
             <div className="flex items-center gap-1.5 sm:gap-2">
+              {/* Theater Seating Toggle */}
+              <button
+                onClick={() => {
+                  const next = !theaterSeatingEnabled;
+                  setTheaterSeatingEnabled(next);
+                  showToast(next ? '💺 Cinema Seating: Visible' : '💺 Cinema Seating: Hidden');
+                }}
+                className={`p-2 rounded-xl transition-all ${
+                  theaterSeatingEnabled 
+                    ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30' 
+                    : 'text-gray-400 hover:text-white hover:bg-white/10'
+                }`}
+                title="Toggle Theater Seating"
+              >
+                <Armchair className="w-4 h-4" />
+              </button>
+
               {/* Audio EQ Preset Cycle */}
               <button
                 onClick={cycleAudioPreset}
-                className="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/15 border border-white/10 text-xs font-semibold text-gray-300 hover:text-cyan-300 transition-all flex items-center gap-1.5"
+                className="hidden sm:flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-gray-300 hover:text-white transition-all"
                 title="Cycle Audio Preset"
               >
                 <Sliders className="w-3.5 h-3.5 text-cyan-400" />
-                <span className="hidden md:inline text-[11px] capitalize">{audioEQ.preset.replace('-', ' ')}</span>
+                <span className="capitalize">{audioEQ.preset.replace('-', ' ')}</span>
               </button>
 
-              {/* Aspect Ratio Cycle */}
+              {/* Aspect Ratio Cycler */}
               <button
                 onClick={cycleAspectRatio}
-                className="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/15 border border-white/10 text-xs font-semibold text-gray-300 hover:text-purple-300 transition-all flex items-center gap-1.5"
-                title="Cycle Viewport Ratio"
+                className="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-gray-300 hover:text-white transition-all flex items-center gap-1"
+                title="Cycle Aspect Ratio"
               >
                 <Maximize2 className="w-3.5 h-3.5 text-purple-400" />
-                <span className="hidden md:inline text-[11px]">{frameAspectRatio}</span>
+                <span>{frameAspectRatio}</span>
               </button>
 
-              {/* Ambient Glow Dimmer Cycle */}
+              {/* Dimmer Cycler */}
               <button
                 onClick={cycleDimmer}
-                className="p-1.5 text-gray-400 hover:text-amber-300 transition-colors rounded-lg hover:bg-white/10"
-                title={`Ambient Dimmer (${glowIntensity})`}
+                className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+                title="Ambient Dimmer"
               >
-                <Sun className="w-4 h-4" />
+                <Sun className="w-4 h-4 text-amber-400" />
               </button>
 
-              {/* Cinema Studio Drawer Button */}
+              {/* Studio Insights Drawer Toggle */}
               <button
                 onClick={() => setShowStudioDrawer(s => !s)}
-                className={`p-1.5 rounded-lg transition-colors ${showStudioDrawer ? 'bg-cyan-500/20 text-cyan-300' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
-                title="Scene Highlights & Cinema Intelligence"
+                className={`p-2 rounded-xl transition-all ${
+                  showStudioDrawer ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' : 'text-gray-400 hover:text-white hover:bg-white/10'
+                }`}
+                title="AI Cinema Studio & Highlights"
               >
                 <FileText className="w-4 h-4" />
               </button>
 
-              {/* Shortcuts HUD Button */}
+              {/* Shortcuts HUD */}
               <button
                 onClick={() => setShowShortcuts(s => !s)}
-                className="p-1.5 text-gray-400 hover:text-white transition-colors rounded-lg hover:bg-white/10"
+                className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
                 title="Keyboard Shortcuts (?)"
               >
                 <HelpCircle className="w-4 h-4" />
@@ -625,8 +882,8 @@ export function CineMorphTheater() {
               {/* Fullscreen */}
               <button
                 onClick={toggleFullscreen}
-                className="p-1.5 text-gray-400 hover:text-white transition-colors rounded-lg hover:bg-white/10"
-                title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+                className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+                title="Fullscreen (F)"
               >
                 {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
               </button>
@@ -635,68 +892,64 @@ export function CineMorphTheater() {
         </div>
       </div>
 
-      {/* ── Cinema Intelligence Slide-Over Drawer ── */}
+      {/* ── Studio Drawer Overlay ── */}
       {showStudioDrawer && (
-        <div 
-          className="fixed inset-y-0 right-0 z-50 w-full max-w-sm bg-[#0a0814]/95 border-l border-cyan-500/30 p-5 shadow-2xl backdrop-blur-2xl flex flex-col justify-between overflow-y-auto animate-in slide-in-from-right duration-300"
-        >
-          <div className="space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-white/10">
-              <div className="flex items-center gap-2 text-sm font-bold text-white">
-                <Sparkles className="w-4 h-4 text-cyan-400" />
-                <span>Cinema Intelligence Studio</span>
-              </div>
-              <button 
-                onClick={() => setShowStudioDrawer(false)}
-                className="p-1 text-gray-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
+        <div className="absolute top-0 right-0 bottom-0 w-80 sm:w-96 bg-[#0c0a14]/95 backdrop-blur-2xl border-l border-white/10 p-6 z-40 overflow-y-auto space-y-6 animate-in slide-in-from-right duration-300">
+          <div className="flex items-center justify-between pb-4 border-b border-white/10">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-cyan-400" />
+              <span className="text-sm font-bold text-white tracking-wide">CineMorph AI Insights</span>
             </div>
+            <button 
+              onClick={() => setShowStudioDrawer(false)}
+              className="p-1 text-gray-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
 
-            {/* Scene Highlights */}
-            <div className="space-y-2">
-              <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
-                <ListFilter className="w-3.5 h-3.5 text-cyan-400" />
-                Synchronized Scene Highlights
-              </div>
-              <div className="space-y-1.5">
-                {highlights.map(h => (
-                  <button
-                    key={h.id}
-                    onClick={() => {
+          {/* Scene Highlights */}
+          <div className="space-y-2">
+            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+              <ListFilter className="w-3.5 h-3.5 text-cyan-400" />
+              Synchronized Scene Highlights
+            </div>
+            <div className="space-y-1.5">
+              {highlights.map(h => (
+                <button
+                  key={h.id}
+                  onClick={() => {
+                    if (isLocalMedia && localVideoRef.current) {
+                      localVideoRef.current.currentTime = h.timestamp;
+                    } else {
                       sendIframeCommand('seekTo', [h.timestamp, true]);
-                      showToast(`⏱️ Jumped to: ${h.title}`);
-                    }}
-                    className="w-full p-2.5 rounded-xl bg-white/5 hover:bg-cyan-500/15 border border-white/5 hover:border-cyan-500/30 text-left transition-all flex items-center justify-between group"
-                  >
-                    <div className="text-xs font-semibold text-gray-300 group-hover:text-white truncate max-w-[200px]">
-                      {h.title}
-                    </div>
-                    <span className="text-[10px] font-mono font-bold text-cyan-400 bg-cyan-950/60 px-2 py-0.5 rounded-full border border-cyan-500/20">
-                      {formatTime(h.timestamp)}
-                    </span>
-                  </button>
-                ))}
-              </div>
+                    }
+                    showToast(`⏱️ Jumped to: ${h.title}`);
+                  }}
+                  className="w-full p-2.5 rounded-xl bg-white/5 hover:bg-cyan-500/15 border border-white/5 hover:border-cyan-500/30 text-left transition-all flex items-center justify-between group"
+                >
+                  <div className="text-xs font-semibold text-gray-300 group-hover:text-white truncate max-w-[200px]">
+                    {h.title}
+                  </div>
+                  <span className="text-[10px] font-mono font-bold text-cyan-400 bg-cyan-950/60 px-2 py-0.5 rounded-full border border-cyan-500/20">
+                    {formatTime(h.timestamp)}
+                  </span>
+                </button>
+              ))}
             </div>
+          </div>
 
-            {/* AI Summary Breakdown */}
-            {aiSummary && (
-              <div className="space-y-2 pt-2 border-t border-white/10">
-                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                  Executive Breakdown
-                </div>
-                <p className="text-xs text-gray-300 leading-relaxed bg-white/5 p-3 rounded-xl border border-white/5">
-                  {aiSummary.executiveSummary}
-                </p>
+          {/* AI Summary Breakdown */}
+          {aiSummary && (
+            <div className="space-y-2 pt-2 border-t border-white/10">
+              <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                Executive Breakdown
               </div>
-            )}
-          </div>
-
-          <div className="text-[10px] text-gray-500 text-center pt-4 border-t border-white/5">
-            CineMorph Neural Media Studio
-          </div>
+              <p className="text-xs text-gray-300 leading-relaxed bg-white/5 p-3 rounded-xl border border-white/5">
+                {aiSummary.executiveSummary}
+              </p>
+            </div>
+          )}
         </div>
       )}
 
@@ -763,4 +1016,3 @@ export function CineMorphTheater() {
     </div>
   );
 }
-
