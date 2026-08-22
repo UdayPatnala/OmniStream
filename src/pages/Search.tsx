@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { searchVideos } from '../lib/youtube';
 import { SearchResult, SearchFilterType } from '../types';
 import { VideoCard } from '../components/VideoCard';
 import { VideoCardSkeleton } from '../components/Skeleton';
-import { Search as SearchIcon, Loader2 } from 'lucide-react';
+import { Search as SearchIcon, Loader2, Zap, Play } from 'lucide-react';
+import { playbackService } from '../lib/services/playbackService';
 
 const filterTabs: { type: SearchFilterType; label: string }[] = [
   { type: 'all', label: 'All' },
@@ -16,6 +17,7 @@ const filterTabs: { type: SearchFilterType; label: string }[] = [
 export function Search() {
   const [searchParams] = useSearchParams();
   const query = searchParams.get('q') || '';
+  const navigate = useNavigate();
   
   const [activeFilter, setActiveFilter] = useState<SearchFilterType>('all');
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -56,6 +58,12 @@ export function Search() {
     }
   };
 
+  const handleInstantAutoPlayHero = async () => {
+    if (query) {
+      await playbackService.executePipeline(query, navigate);
+    }
+  };
+
   if (!query) {
     return (
       <div className="flex flex-col items-center justify-center h-[50vh] text-[#aaaaaa]">
@@ -65,8 +73,39 @@ export function Search() {
     );
   }
 
+  const topMatch = results.length > 0 ? results[0] : null;
+
   return (
     <div className="space-y-6 py-2 max-w-[1700px] mx-auto">
+      {/* Instant Play Best Match Banner */}
+      {topMatch && !loading && (
+        <div className="bg-gradient-to-r from-purple-900/60 via-indigo-900/60 to-cyan-900/40 border border-purple-500/30 rounded-3xl p-5 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-28 aspect-video rounded-xl overflow-hidden bg-black shrink-0 relative border border-white/10 shadow-lg">
+              <img src={topMatch.thumbnails.medium} alt={topMatch.title} className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                <Play className="w-6 h-6 text-white fill-current drop-shadow" />
+              </div>
+            </div>
+            <div>
+              <div className="flex items-center gap-2 text-amber-300 text-xs font-bold uppercase tracking-wider mb-1">
+                <Zap className="w-4 h-4 text-amber-400" />
+                Top Relevant Match Identified
+              </div>
+              <h3 className="text-sm md:text-base font-bold text-white leading-snug line-clamp-1">{topMatch.title}</h3>
+              <p className="text-xs text-gray-400">{topMatch.channelTitle}</p>
+            </div>
+          </div>
+
+          <button
+            onClick={handleInstantAutoPlayHero}
+            className="w-full md:w-auto px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-purple-600 hover:from-amber-400 hover:to-purple-500 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-xl shadow-purple-950/50 flex items-center justify-center gap-2 shrink-0"
+          >
+            <Play className="w-4 h-4 fill-current" /> Instant In-App Playback
+          </button>
+        </div>
+      )}
+
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#272727] pb-3">
         <h1 className="text-lg font-bold text-[#f1f1f1]">Results for "{query}"</h1>
         

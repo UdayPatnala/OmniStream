@@ -39,3 +39,20 @@ export function formatTimeAgo(dateString?: string) {
     return dateString;
   }
 }
+
+export function extractYouTubeId(input: string): string | null {
+  if (!input) return null;
+  const str = input.trim();
+  
+  if (/^[a-zA-Z0-9_-]{11}$/.test(str)) {
+    return str;
+  }
+  
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const match = str.match(regExp);
+  if (match && match[2] && match[2].length === 11) {
+    return match[2];
+  }
+  
+  return null;
+}

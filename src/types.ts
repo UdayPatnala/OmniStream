@@ -110,7 +110,46 @@ export interface QueueItem {
 }
 
 // CineMorphAI Engine Types
-export type CineMorphTheme = 'cinematic-dark' | 'cyberpunk-oled' | 'glassmorphic-neon' | 'ambient-minimal';
+export type CineMorphTheme = 
+  | 'cinematic-dark' 
+  | 'cyberpunk-oled' 
+  | 'glassmorphic-neon' 
+  | 'ambient-minimal' 
+  | 'imax-ultra' 
+  | 'golden-hour';
+
+export type GlowIntensity = 'off' | 'low' | 'medium' | 'ultra';
+
+export type FrameAspectRatio = '16:9' | '21:9' | '4:3' | '1:1';
+
+export type FrameReframeMode = 'center' | 'face-priority' | 'smart-pan-zoom';
+
+export type AudioPreset = 'original' | 'dialogue-boost' | 'bass-heavy' | 'spatial-3d' | 'night-compression';
+
+export interface AudioEQConfig {
+  preset: AudioPreset;
+  bassBoost: number; // 0-12 dB
+  dialogueClarity: number; // 0-12 dB
+  trebleShine: number; // 0-12 dB
+  surround3D: boolean;
+  drcLoudness: boolean;
+}
+
+export interface SceneHighlight {
+  id: string;
+  timestamp: number;
+  title: string;
+  importanceScore: number;
+  category: 'intro' | 'key-point' | 'demo' | 'climax' | 'summary';
+}
+
+export interface TelemetryStats {
+  fps: number;
+  cpuLoadPercent: number;
+  memoryMb: number;
+  webglActive: boolean;
+  audioDspLatencyMs: number;
+}
 
 export interface AISummary {
   executiveSummary: string;
@@ -151,6 +190,26 @@ export interface AIChatMessage {
   text: string;
   timestamp: number;
 }
+
+export interface SearchPipelineCandidate {
+  video: Video;
+  relevanceScore: number;
+  embeddable: boolean;
+  validated: boolean;
+}
+
+export interface PlayerRecoveryState {
+  isRecovering: boolean;
+  currentCandidateIndex: number;
+  candidates: Video[];
+  lastError?: string;
+  recoveryToastMessage?: string;
+}
+
+export type RankingProfile = 'balanced' | 'recency' | 'tutorials' | 'authority';
+
+
+
 
 
 

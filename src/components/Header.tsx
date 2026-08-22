@@ -1,10 +1,15 @@
-import { Search, Menu, Clock, X, Mic, Bell, Video as VideoIcon, Sparkles, Layers, Palette } from 'lucide-react';
+import { Search, Menu, Clock, X, Mic, Bell, Video as VideoIcon, Sparkles, Layers, Palette, Zap } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { fetchSearchSuggestions } from '../lib/youtube';
 import { useAppStore } from '../store';
 import { CineMorphTheme } from '../types';
 import { AnimatePresence, motion } from 'motion/react';
+import { extractYouTubeId } from '../lib/utils';
+import { playbackService } from '../lib/services/playbackService';
+import { IntentRouter } from '../lib/services/intentRouter';
+
+import { playbackStateMachine, PlaybackState } from '../lib/services/playbackStateMachine';
 
 export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
   const [searchParams] = useSearchParams();
@@ -13,9 +18,23 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showThemeMenu, setShowThemeMenu] = useState(false);
+  const [pipelineState, setPipelineState] = useState<PlaybackState>('IDLE');
   const navigate = useNavigate();
 
-  const { versionMode, setVersionMode, cinemorphTheme, setCinemorphTheme } = useAppStore();
+  const { 
+    versionMode, 
+    setVersionMode, 
+    cinemorphTheme, 
+    setCinemorphTheme,
+    instantAutoPlay,
+    setInstantAutoPlay,
+  } = useAppStore();
+
+  useEffect(() => {
+    return playbackStateMachine.subscribe((state) => {
+      setPipelineState(state);
+    });
+  }, []);
 
   useEffect(() => {
     setQuery(urlQuery);
@@ -46,13 +65,35 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
     };
   }, [query]);
 
-  const handleSearch = (e?: React.FormEvent, explicitQuery?: string) => {
+  const handleSearch = async (e?: React.FormEvent, explicitQuery?: string) => {
     if (e) e.preventDefault();
-    const finalQuery = explicitQuery || query;
-    if (finalQuery.trim()) {
-      addSearchHistory(finalQuery.trim());
+    const finalQuery = (explicitQuery || query).trim();
+    if (finalQuery) {
+      addSearchHistory(finalQuery);
       setShowSuggestions(false);
-      navigate(`/search?q=${encodeURIComponent(finalQuery.trim())}`);
+
+      const classified = IntentRouter.classifyIntent(finalQuery);
+      if (classified.type === 'FIND_UNFINISHED') {
+        navigate('/history');
+        return;
+      }
+      if (classified.type === 'CREATE_COLLECTION') {
+        const res = await IntentRouter.executeIntent(finalQuery);
+        navigate('/collections');
+        return;
+      }
+
+      if (instantAutoPlay) {
+        // Execute fully automated Search -> Rank -> Validate -> Auto-Play Pipeline
+        await playbackService.executePipeline(finalQuery, navigate);
+      } else {
+        const directVideoId = extractYouTubeId(finalQuery);
+        if (directVideoId) {
+          navigate(`/watch/${directVideoId}`);
+          return;
+        }
+        navigate(`/search?q=${encodeURIComponent(finalQuery)}`);
+      }
     }
   };
 
@@ -61,6 +102,8 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
     { id: 'cyberpunk-oled', name: 'Cyberpunk OLED', color: 'bg-cyan-500' },
     { id: 'glassmorphic-neon', name: 'Glassmorphic Neon', color: 'bg-purple-500' },
     { id: 'ambient-minimal', name: 'Ambient Minimalist', color: 'bg-emerald-500' },
+    { id: 'imax-ultra', name: 'IMAX Ultra', color: 'bg-sky-500' },
+    { id: 'golden-hour', name: 'Golden Hour', color: 'bg-amber-500' },
   ];
 
   return (
@@ -76,41 +119,78 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
         </button>
 
         <Link to="/" className="flex items-center gap-2 group">
-          <div className="bg-gradient-to-tr from-violet-600 via-indigo-500 to-cyan-400 text-white p-1.5 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition-transform">
-            <Sparkles className="w-4 h-4 text-white animate-pulse" />
-          </div>
-          <div className="flex flex-col">
-            <div className="flex items-center gap-1.5">
-              <span className="text-lg font-black tracking-tight text-white font-sans bg-gradient-to-r from-white via-[#f1f1f1] to-indigo-300 bg-clip-text text-transparent">
-                CineMorph<span className="text-indigo-400">AI</span>
-              </span>
-            </div>
-          </div>
+          {versionMode === 'v1' ? (
+            <>
+              <div className="bg-red-600 text-white p-1.5 rounded-xl flex items-center justify-center shadow-lg shadow-red-600/30 group-hover:scale-105 transition-transform">
+                <VideoIcon className="w-4 h-4 text-white" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-lg font-black tracking-tight text-white font-sans">
+                  U<span className="text-red-500">-Tube</span>
+                </span>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="bg-gradient-to-tr from-cyan-600 via-indigo-500 to-purple-600 text-white p-1.5 rounded-xl flex items-center justify-center shadow-lg shadow-cyan-500/20 group-hover:scale-105 transition-transform">
+                <Sparkles className="w-4 h-4 text-white animate-pulse" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-lg font-black tracking-tight text-white font-sans bg-gradient-to-r from-white via-[#f1f1f1] to-cyan-300 bg-clip-text text-transparent">
+                  CineMorph<span className="text-cyan-400">AI</span>
+                </span>
+              </div>
+            </>
+          )}
         </Link>
 
-        {/* Version Switcher Badge */}
-        <div className="hidden md:flex items-center bg-black/40 border border-white/10 rounded-full p-0.5 text-xs font-semibold ml-2 shadow-inner">
+        {/* Version Switcher & Instant Auto-Play Badge */}
+        <div className="hidden md:flex items-center gap-2 ml-2">
+          <div className="flex items-center bg-black/40 border border-white/10 rounded-full p-0.5 text-xs font-semibold shadow-inner">
+            <button
+              onClick={() => setVersionMode('v2')}
+              className={`px-2.5 py-0.5 rounded-full transition-all ${
+                versionMode === 'v2' 
+                  ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md' 
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              v2 AI
+            </button>
+            <button
+              onClick={() => setVersionMode('v1')}
+              className={`px-2.5 py-0.5 rounded-full transition-all ${
+                versionMode === 'v1' 
+                  ? 'bg-white/20 text-white shadow-md' 
+                  : 'text-gray-400 hover:text-white'
+              }`}
+              title="Archived U-Tube v1 mode"
+            >
+              v1
+            </button>
+          </div>
+
+          {/* Instant Auto-Play Mode Toggle */}
           <button
-            onClick={() => setVersionMode('v2')}
-            className={`px-2.5 py-0.5 rounded-full transition-all ${
-              versionMode === 'v2' 
-                ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md' 
-                : 'text-gray-400 hover:text-white'
+            onClick={() => setInstantAutoPlay(!instantAutoPlay)}
+            className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold transition-all border shadow-md ${
+              instantAutoPlay
+                ? 'bg-gradient-to-r from-amber-500/20 to-purple-500/20 border-amber-500/40 text-amber-300'
+                : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
             }`}
+            title="Instant Search -> Playback Automation"
           >
-            v2 AI
+            <Zap className={`w-3.5 h-3.5 ${instantAutoPlay ? 'text-amber-400 animate-bounce' : ''}`} />
+            <span>Instant Play {instantAutoPlay ? 'ON' : 'OFF'}</span>
           </button>
-          <button
-            onClick={() => setVersionMode('v1')}
-            className={`px-2.5 py-0.5 rounded-full transition-all ${
-              versionMode === 'v1' 
-                ? 'bg-white/20 text-white shadow-md' 
-                : 'text-gray-400 hover:text-white'
-            }`}
-            title="Archived U-Tube v1 mode"
-          >
-            v1
-          </button>
+
+          {/* Live Pipeline State Machine Badge */}
+          {pipelineState !== 'IDLE' && pipelineState !== 'PLAYING' && (
+            <div className="flex items-center gap-1.5 px-3 py-1 bg-purple-950/80 border border-purple-500/40 text-purple-300 rounded-full text-xs font-bold animate-pulse">
+              <Sparkles className="w-3.5 h-3.5 text-purple-400 animate-spin" />
+              <span>{pipelineState}...</span>
+            </div>
+          )}
         </div>
       </div>
 

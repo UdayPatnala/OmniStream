@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Video, Channel, HistoryItem, Collection, QueueItem, SearchHistoryMetaData, BehaviorEvent, CineMorphTheme, VideoClip } from './types';
+import { Video, Channel, HistoryItem, Collection, QueueItem, SearchHistoryMetaData, BehaviorEvent, CineMorphTheme, VideoClip, RankingProfile } from './types';
 
 interface AppState {
   theme: 'dark' | 'light' | 'system';
@@ -53,11 +53,51 @@ interface AppState {
   cinemorphTheme: CineMorphTheme;
   setCinemorphTheme: (theme: CineMorphTheme) => void;
 
+  glowIntensity: 'off' | 'low' | 'medium' | 'ultra';
+  setGlowIntensity: (intensity: 'off' | 'low' | 'medium' | 'ultra') => void;
+
+  frameAspectRatio: '16:9' | '21:9' | '4:3' | '1:1';
+  setFrameAspectRatio: (ratio: '16:9' | '21:9' | '4:3' | '1:1') => void;
+
+  reframeMode: 'center' | 'face-priority' | 'smart-pan-zoom';
+  setReframeMode: (mode: 'center' | 'face-priority' | 'smart-pan-zoom') => void;
+
+  audioEQ: {
+    preset: 'original' | 'dialogue-boost' | 'bass-heavy' | 'spatial-3d' | 'night-compression';
+    bassBoost: number;
+    dialogueClarity: number;
+    trebleShine: number;
+    surround3D: boolean;
+    drcLoudness: boolean;
+  };
+  setAudioEQ: (config: Partial<AppState['audioEQ']>) => void;
+  resetAudioEQ: () => void;
+
+  audioStudioOpen: boolean;
+  setAudioStudioOpen: (open: boolean) => void;
+
+  telemetryOpen: boolean;
+  setTelemetryOpen: (open: boolean) => void;
+
   ambientGlow: boolean;
   toggleAmbientGlow: () => void;
 
   cinemaMode: boolean;
   setCinemaMode: (val: boolean) => void;
+
+  instantAutoPlay: boolean;
+  setInstantAutoPlay: (enabled: boolean) => void;
+
+  pipelineCandidates: Video[];
+  currentCandidateIndex: number;
+  setPipelineCandidates: (candidates: Video[], index?: number) => void;
+  switchToNextCandidate: () => Video | null;
+
+  recoveryMessage: string | null;
+  setRecoveryMessage: (msg: string | null) => void;
+
+  rankingProfile: RankingProfile;
+  setRankingProfile: (profile: RankingProfile) => void;
 
   savedClips: VideoClip[];
   saveClip: (clip: VideoClip) => void;
@@ -67,6 +107,9 @@ interface AppState {
 export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
+      rankingProfile: 'balanced',
+      setRankingProfile: (rankingProfile) => set({ rankingProfile }),
+
       theme: 'system',
       setTheme: (theme) => set({ theme }),
 
@@ -225,11 +268,74 @@ export const useAppStore = create<AppState>()(
       cinemorphTheme: 'cinematic-dark',
       setCinemorphTheme: (cinemorphTheme) => set({ cinemorphTheme }),
 
+      glowIntensity: 'ultra',
+      setGlowIntensity: (glowIntensity) => set({ glowIntensity }),
+
+      frameAspectRatio: '16:9',
+      setFrameAspectRatio: (frameAspectRatio) => set({ frameAspectRatio }),
+
+      reframeMode: 'center',
+      setReframeMode: (reframeMode) => set({ reframeMode }),
+
+      audioEQ: {
+        preset: 'dialogue-boost',
+        bassBoost: 4,
+        dialogueClarity: 8,
+        trebleShine: 3,
+        surround3D: true,
+        drcLoudness: true,
+      },
+      setAudioEQ: (config) => set((state) => ({ audioEQ: { ...state.audioEQ, ...config } })),
+      resetAudioEQ: () => set({
+        audioEQ: {
+          preset: 'original',
+          bassBoost: 0,
+          dialogueClarity: 0,
+          trebleShine: 0,
+          surround3D: false,
+          drcLoudness: false,
+        }
+      }),
+
+      audioStudioOpen: false,
+      setAudioStudioOpen: (audioStudioOpen) => set({ audioStudioOpen }),
+
+      telemetryOpen: false,
+      setTelemetryOpen: (telemetryOpen) => set({ telemetryOpen }),
+
       ambientGlow: true,
       toggleAmbientGlow: () => set((state) => ({ ambientGlow: !state.ambientGlow })),
 
       cinemaMode: false,
       setCinemaMode: (cinemaMode) => set({ cinemaMode }),
+
+      instantAutoPlay: true,
+      setInstantAutoPlay: (instantAutoPlay) => set({ instantAutoPlay }),
+
+      pipelineCandidates: [],
+      currentCandidateIndex: 0,
+      setPipelineCandidates: (candidates, index = 0) => set({
+        pipelineCandidates: candidates,
+        currentCandidateIndex: index,
+        activeVideo: candidates[index] || null,
+      }),
+      switchToNextCandidate: () => {
+        const { pipelineCandidates, currentCandidateIndex, setActiveVideo } = get();
+        const nextIndex = currentCandidateIndex + 1;
+        if (nextIndex < pipelineCandidates.length) {
+          const nextVideo = pipelineCandidates[nextIndex];
+          set({
+            currentCandidateIndex: nextIndex,
+            activeVideo: nextVideo,
+            recoveryMessage: `Auto-switched to candidate #${nextIndex + 1}: ${nextVideo.title.slice(0, 45)}...`
+          });
+          return nextVideo;
+        }
+        return null;
+      },
+
+      recoveryMessage: null,
+      setRecoveryMessage: (recoveryMessage) => set({ recoveryMessage }),
 
       savedClips: [],
       saveClip: (clip) => set((state) => ({
@@ -241,8 +347,29 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: 'cinemorph-utube-storage',
+      version: 2,
+      merge: (persistedState: any, currentState) => ({
+        ...currentState,
+        ...(persistedState || {}),
+        glowIntensity: persistedState?.glowIntensity || 'ultra',
+        frameAspectRatio: persistedState?.frameAspectRatio || '16:9',
+        reframeMode: persistedState?.reframeMode || 'center',
+        cinemorphTheme: persistedState?.cinemorphTheme || 'cinematic-dark',
+        versionMode: persistedState?.versionMode || 'v2',
+        instantAutoPlay: persistedState?.instantAutoPlay ?? true,
+        audioEQ: {
+          preset: 'dialogue-boost',
+          bassBoost: 4,
+          dialogueClarity: 8,
+          trebleShine: 3,
+          surround3D: true,
+          drcLoudness: true,
+          ...(persistedState?.audioEQ || {}),
+        },
+      }),
     }
   )
 );
+
 
 
