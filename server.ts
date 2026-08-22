@@ -79,8 +79,24 @@ async function startServer() {
     return res.status(404).json({ error: 'Video oEmbed not found' });
   });
 
+  // Explicit Root API Status / Frontend Handler
+  app.get('/', (req, res) => {
+    const distPath = path.join(process.cwd(), 'dist');
+    const indexPath = path.join(distPath, 'index.html');
+    if (fs.existsSync(indexPath)) {
+      return res.sendFile(indexPath);
+    }
+    return res.json({
+      service: 'OmniStream / CineMorph AI Backend API',
+      status: 'online',
+      endpoints: ['/api/suggest?q=...', '/api/oembed?id=...', '/health'],
+      frontend: 'https://0mn1stream.vercel.app',
+      timestamp: new Date().toISOString(),
+    });
+  });
+
   // Vite middleware for development
-  if (process.env.NODE_ENV !== "production") {
+  if (process.env.NODE_ENV !== "production" && process.env.VITE_DEV === "true") {
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
@@ -101,6 +117,7 @@ async function startServer() {
         status: 'online',
         endpoints: ['/api/suggest?q=...', '/api/oembed?id=...', '/health'],
         frontend: 'https://0mn1stream.vercel.app',
+        timestamp: new Date().toISOString(),
       });
     });
   }
