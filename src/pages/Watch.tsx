@@ -170,6 +170,23 @@ export function Watch() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column: Player Metadata & Details (70% width) */}
         <div className="lg:col-span-2 space-y-4">
+          {/* Main Video Player Container */}
+          <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-black border border-white/10 shadow-2xl group">
+            {ambientGlow && (
+              <div 
+                className="absolute -inset-4 bg-gradient-to-tr from-cyan-500/20 via-purple-500/20 to-pink-500/20 rounded-3xl blur-2xl pointer-events-none -z-10 opacity-70 group-hover:opacity-100 transition-opacity duration-500" 
+              />
+            )}
+            <iframe
+              id="watch-youtube-player"
+              src={`https://www.youtube-nocookie.com/embed/${id}?autoplay=1&enablejsapi=1&origin=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : '')}&rel=0&playsinline=1`}
+              title={video?.title || 'YouTube Video Player'}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+              className="w-full h-full border-0"
+            />
+          </div>
+
           {/* Video Title */}
           <h1 className="text-xl md:text-2xl font-black text-[#f1f1f1] leading-snug tracking-tight">
             {video?.title || activeVideo?.title || 'Loading video title...'}

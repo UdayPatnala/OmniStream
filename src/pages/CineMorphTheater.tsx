@@ -15,8 +15,6 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import ReactPlayer from 'react-player';
-const Player = ReactPlayer as any;
 import { useAppStore } from '../store';
 import { getVideosByIds } from '../lib/youtube';
 import { Video, AudioPreset, FrameAspectRatio, CineMorphTheme, GlowIntensity } from '../types';
@@ -51,7 +49,7 @@ export function CineMorphTheater() {
   } = useAppStore();
 
   // ── Player ref & state ──────────────────────────────────────────────────────
-  const playerRef = useRef<any>(null);
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const controlsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -59,8 +57,8 @@ export function CineMorphTheater() {
   const [video, setVideo] = useState<Video | null>(
     activeVideo?.id === id ? activeVideo : null
   );
-  const [theaterState, setTheaterState] = useState<TheaterState>('pre-show');
-  const [playing, setPlaying] = useState(false);
+  const [theaterState, setTheaterState] = useState<TheaterState>('playing');
+  const [playing, setPlaying] = useState(true);
   const [volume, setVolume] = useState(0.9);
   const [muted, setMuted] = useState(false);
   const [played, setPlayed] = useState(0);         // 0–1 fraction
@@ -86,6 +84,18 @@ export function CineMorphTheater() {
     toastTimerRef.current = setTimeout(() => setHudToast(null), 2500);
   }, []);
 
+  // Send postMessage commands to YouTube IFrame
+  const sendIframeCommand = useCallback((func: string, args: any[] = []) => {
+    try {
+      if (iframeRef.current?.contentWindow) {
+        iframeRef.current.contentWindow.postMessage(
+          JSON.stringify({ event: 'command', func, args }),
+          '*'
+        );
+      }
+    } catch (e) {}
+  }, []);
+
   // ── Load video metadata ─────────────────────────────────────────────────────
   useEffect(() => {
     if (!id) return;
@@ -108,7 +118,8 @@ export function CineMorphTheater() {
 
     setVideo(fallback);
     if (!activeVideo || activeVideo.id !== id) setActiveVideo(fallback);
-    setTheaterState('loading');
+    setTheaterState('playing');
+    setPlaying(true);
 
     const entryTimer = setTimeout(() => setEntryComplete(true), 500);
 
@@ -121,13 +132,54 @@ export function CineMorphTheater() {
 
     if (startPos > 0) {
       const seekTimer = setTimeout(() => {
-        playerRef.current?.seekTo(startPos, 'seconds');
-      }, 1800);
+        sendIframeCommand('seekTo', [startPos, true]);
+      }, 1500);
       return () => { clearTimeout(entryTimer); clearTimeout(seekTimer); };
     }
 
     return () => clearTimeout(entryTimer);
-  }, [id]);
+  }, [id, sendIframeCommand]);
+
+  // Listen for YouTube IFrame postMessage events (play, pause, progress)
+  useEffect(() => {
+    const handleMessage = (e: MessageEvent) => {
+      try {
+        let data = e.data;
+        if (typeof data === 'string') {
+          data = JSON.parse(data);
+        }
+        if (data && data.event === 'onStateChange') {
+          if (data.info === 1) { // PLAYING
+            setTheaterState('playing');
+            setPlaying(true);
+          } else if (data.info === 2) { // PAUSED
+            setTheaterState('paused');
+            setPlaying(false);
+          } else if (data.info === 0) { // ENDED
+            setTheaterState('ended');
+            setPlaying(false);
+          }
+        }
+        if (data && data.info) {
+          if (typeof data.info.duration === 'number' && data.info.duration > 0) {
+            setDuration(data.info.duration);
+          }
+          if (typeof data.info.currentTime === 'number' && !seeking) {
+            const curTime = data.info.currentTime;
+            if (duration > 0) {
+              setPlayed(curTime / duration);
+            }
+            if (video && duration > 0 && Math.round(curTime) % 10 === 0) {
+              useAppStore.getState().addToHistory(video, Math.floor(curTime), duration);
+            }
+          }
+        }
+      } catch (err) {}
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [duration, seeking, video]);
 
   // ── Auto-hide controls ──────────────────────────────────────────────────────
   const resetControlsTimer = useCallback(() => {
@@ -147,6 +199,18 @@ export function CineMorphTheater() {
     return () => { if (controlsTimerRef.current) clearTimeout(controlsTimerRef.current); };
   }, [theaterState, showShortcuts, showStudioDrawer, resetControlsTimer]);
 
+  const togglePlay = useCallback(() => {
+    if (playing) {
+      sendIframeCommand('pauseVideo');
+      setPlaying(false);
+      setTheaterState('paused');
+    } else {
+      sendIframeCommand('playVideo');
+      setPlaying(true);
+      setTheaterState('playing');
+    }
+  }, [playing, sendIframeCommand]);
+
   // ── Keyboard shortcuts ──────────────────────────────────────────────────────
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -155,26 +219,46 @@ export function CineMorphTheater() {
       switch (e.code) {
         case 'Space':
           e.preventDefault();
-          setPlaying(p => !p);
+          togglePlay();
           break;
         case 'ArrowLeft':
           e.preventDefault();
-          playerRef.current?.seekTo(Math.max(0, (playerRef.current.getCurrentTime() || 0) - 10), 'seconds');
+          if (duration > 0) {
+            const target = Math.max(0, (played * duration) - 10);
+            setPlayed(target / duration);
+            sendIframeCommand('seekTo', [target, true]);
+          }
           break;
         case 'ArrowRight':
           e.preventDefault();
-          playerRef.current?.seekTo((playerRef.current.getCurrentTime() || 0) + 10, 'seconds');
+          if (duration > 0) {
+            const target = Math.min(duration, (played * duration) + 10);
+            setPlayed(target / duration);
+            sendIframeCommand('seekTo', [target, true]);
+          }
           break;
         case 'ArrowUp':
           e.preventDefault();
-          setVolume(v => Math.min(1, v + 0.1));
+          setVolume(v => {
+            const nv = Math.min(1, v + 0.1);
+            sendIframeCommand('setVolume', [Math.round(nv * 100)]);
+            return nv;
+          });
           break;
         case 'ArrowDown':
           e.preventDefault();
-          setVolume(v => Math.max(0, v - 0.1));
+          setVolume(v => {
+            const nv = Math.max(0, v - 0.1);
+            sendIframeCommand('setVolume', [Math.round(nv * 100)]);
+            return nv;
+          });
           break;
         case 'KeyM':
-          setMuted(m => !m);
+          setMuted(m => {
+            const nm = !m;
+            sendIframeCommand(nm ? 'mute' : 'unMute');
+            return nm;
+          });
           break;
         case 'KeyF':
           toggleFullscreen();
@@ -197,7 +281,7 @@ export function CineMorphTheater() {
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [isFullscreen, showShortcuts, showStudioDrawer, resetControlsTimer]);
+  }, [duration, isFullscreen, played, resetControlsTimer, sendIframeCommand, showShortcuts, showStudioDrawer, togglePlay]);
 
   // ── Fullscreen ──────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -214,45 +298,6 @@ export function CineMorphTheater() {
     }
   };
 
-  // ── Player callbacks ────────────────────────────────────────────────────────
-  const handleReady = () => {
-    setTheaterState('paused');
-    setPlaying(true);
-    try {
-      audioEngine.init();
-      audioEngine.applyConfig(audioEQ);
-    } catch (e) {}
-  };
-
-  const handlePlay = () => {
-    setTheaterState('playing');
-    setPlaying(true);
-  };
-
-  const handlePause = () => {
-    setTheaterState('paused');
-    setPlaying(false);
-  };
-
-  const handleEnded = () => {
-    setTheaterState('ended');
-    setPlaying(false);
-  };
-
-  const handleError = () => {
-    setTheaterState('error');
-    setPlaying(false);
-  };
-
-  const handleProgress = ({ played: p, playedSeconds }: { played: number; playedSeconds: number }) => {
-    if (!seeking) setPlayed(p);
-    if (video && duration > 0 && Math.round(playedSeconds) % 10 === 0) {
-      useAppStore.getState().addToHistory(video, Math.floor(playedSeconds), duration);
-    }
-  };
-
-  const handleDuration = (d: number) => setDuration(d);
-
   const handleSeekChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSeeking(true);
     setPlayed(parseFloat(e.target.value));
@@ -260,7 +305,10 @@ export function CineMorphTheater() {
 
   const handleSeekMouseUp = (e: React.MouseEvent<HTMLInputElement>) => {
     setSeeking(false);
-    playerRef.current?.seekTo(parseFloat((e.target as HTMLInputElement).value));
+    const fraction = parseFloat((e.target as HTMLInputElement).value);
+    if (duration > 0) {
+      sendIframeCommand('seekTo', [fraction * duration, true]);
+    }
   };
 
   const handleScrubberMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -411,30 +459,21 @@ export function CineMorphTheater() {
             transform: presentationMode === 'cinema' ? frameStyle.videoScaleTransform : 'none',
           }}
         >
-          <Player
-            ref={playerRef}
-            url={`https://www.youtube.com/watch?v=${id}`}
-            width="100%"
-            height="100%"
-            playing={playing}
-            volume={volume}
-            muted={muted}
-            onReady={handleReady}
-            onPlay={handlePlay}
-            onPause={handlePause}
-            onEnded={handleEnded}
-            onError={handleError}
-            onProgress={handleProgress}
-            onDuration={handleDuration}
-            config={{
-              playerVars: {
-                modestbranding: 1,
-                rel: 0,
-                showinfo: 0,
-                iv_load_policy: 3,
-                fs: 0,
-                playsinline: 1,
-              },
+          <iframe
+            ref={iframeRef}
+            id="cinemorph-theater-iframe"
+            src={`https://www.youtube-nocookie.com/embed/${id}?autoplay=1&enablejsapi=1&origin=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : '')}&rel=0&playsinline=1`}
+            title={video?.title || 'OmniStream CineMorph Cinema'}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
+            className="w-full h-full border-0"
+            onLoad={() => {
+              setTheaterState('playing');
+              setPlaying(true);
+              try {
+                audioEngine.init();
+                audioEngine.applyConfig(audioEQ);
+              } catch (e) {}
             }}
           />
         </div>
@@ -493,7 +532,7 @@ export function CineMorphTheater() {
               </button>
 
               <button
-                onClick={() => setPlaying(p => !p)}
+                onClick={togglePlay}
                 className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all shadow-md"
                 aria-label={playing ? 'Pause' : 'Play'}
               >
@@ -501,7 +540,11 @@ export function CineMorphTheater() {
               </button>
 
               <button
-                onClick={() => setMuted(m => !m)}
+                onClick={() => {
+                  const nm = !muted;
+                  setMuted(nm);
+                  sendIframeCommand(nm ? 'mute' : 'unMute');
+                }}
                 className="p-1.5 text-gray-400 hover:text-white transition-colors"
                 aria-label={muted ? 'Unmute' : 'Mute'}
               >
@@ -514,7 +557,13 @@ export function CineMorphTheater() {
                 max={1}
                 step={0.01}
                 value={muted ? 0 : volume}
-                onChange={(e) => { setVolume(parseFloat(e.target.value)); setMuted(false); }}
+                onChange={(e) => {
+                  const nv = parseFloat(e.target.value);
+                  setVolume(nv);
+                  setMuted(false);
+                  sendIframeCommand('unMute');
+                  sendIframeCommand('setVolume', [Math.round(nv * 100)]);
+                }}
                 className="w-16 sm:w-20 h-1 appearance-none bg-white/20 rounded-full cursor-pointer hidden sm:block"
                 aria-label="Volume"
               />
@@ -616,7 +665,7 @@ export function CineMorphTheater() {
                   <button
                     key={h.id}
                     onClick={() => {
-                      playerRef.current?.seekTo(h.timestamp, 'seconds');
+                      sendIframeCommand('seekTo', [h.timestamp, true]);
                       showToast(`⏱️ Jumped to: ${h.title}`);
                     }}
                     className="w-full p-2.5 rounded-xl bg-white/5 hover:bg-cyan-500/15 border border-white/5 hover:border-cyan-500/30 text-left transition-all flex items-center justify-between group"
