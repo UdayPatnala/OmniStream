@@ -9,7 +9,7 @@
     "render-build": "npm install && npm run build",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
-    "start": "node dist/server.cjs || tsx server.ts",
+    "start": "tsx server.ts",
     "lint": "tsc --noEmit"
   },
   "dependencies": {
