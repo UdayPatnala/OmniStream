@@ -9,20 +9,25 @@ export class LocalVideoAnalyzer {
   private canvas: HTMLCanvasElement | null = null;
   private ctx: CanvasRenderingContext2D | null = null;
   private lastHistogram: number[] | null = null;
+  private cacheMap = new Map<string, LocalVideoAnalysis>();
 
   constructor() {
     if (typeof document !== 'undefined') {
       this.canvas = document.createElement('canvas');
-      this.canvas.width = 64;  // Sample grid for speed
-      this.canvas.height = 36;
+      this.canvas.width = 16;  // 16x9 ultra-fast sample grid (144 pixels for zero CPU overhead)
+      this.canvas.height = 9;
       this.ctx = this.canvas.getContext('2d', { willReadFrequently: true });
     }
+  }
+
+  public getCachedAnalysis(key: string): LocalVideoAnalysis | undefined {
+    return this.cacheMap.get(key);
   }
 
   /**
    * Analyzes an active HTML5 Video Element frame
    */
-  public analyzeVideoFrame(videoEl: HTMLVideoElement): LocalVideoAnalysis | null {
+  public analyzeVideoFrame(videoEl: HTMLVideoElement, fileKey?: string): LocalVideoAnalysis | null {
     if (!this.ctx || !this.canvas || videoEl.readyState < 2 || videoEl.videoWidth === 0) {
       return null;
     }
@@ -93,7 +98,7 @@ export class LocalVideoAnalyzer {
       const dominantColor = `rgb(${avgR}, ${avgG}, ${avgB})`;
       const secondaryColor = `rgb(${Math.min(255, avgR + 30)}, ${Math.max(0, avgG - 20)}, ${Math.min(255, avgB + 40)})`;
 
-      return {
+      const result: LocalVideoAnalysis = {
         avgBrightness,
         dominantColor,
         secondaryColor,
@@ -102,9 +107,19 @@ export class LocalVideoAnalyzer {
         contrastScore: Math.round((totalWeight / (totalPixels * 128)) * 100),
         timestamp: Date.now(),
       };
+
+      if (fileKey) {
+        this.cacheMap.set(fileKey, result);
+      }
+
+      return result;
     } catch (err) {
       return null;
     }
+  }
+
+  public analyzeVideoFrameWithKey(videoEl: HTMLVideoElement, fileKey?: string): LocalVideoAnalysis | null {
+    return this.analyzeVideoFrame(videoEl, fileKey);
   }
 
   public reset(): void {

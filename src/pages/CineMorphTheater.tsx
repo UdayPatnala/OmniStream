@@ -157,7 +157,7 @@ export function CineMorphTheater() {
     };
 
     setVideo(fallback);
-    if (!activeVideo || activeVideo.id !== id) setActiveVideo(fallback);
+    setActiveVideo(fallback);
     setTheaterState('playing');
     setPlaying(true);
 
@@ -178,7 +178,8 @@ export function CineMorphTheater() {
     }
 
     return () => clearTimeout(entryTimer);
-  }, [id, isLocalMedia, localItem, sendIframeCommand, setActiveVideo, history, activeVideo]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, isLocalMedia, localItem?.id]);
 
   // ── YouTube Message Listener ────────────────────────────────────────────────
   useEffect(() => {
@@ -224,23 +225,42 @@ export function CineMorphTheater() {
     return () => window.removeEventListener('message', handleMessage);
   }, [curtainAnimationEnabled, duration, isLocalMedia, seeking, video]);
 
-  // ── Local Media Canvas Frame Analysis ───────────────────────────────────────
+  // ── Local Media Canvas Frame Analysis (Zero-Wait Performance Engine) ────────
   useEffect(() => {
     if (!isLocalMedia) return;
 
+    // Instant zero-wait cache lookup for immediate room glow
+    if (localItem?.id) {
+      const cached = localVideoAnalyzer.getCachedAnalysis(localItem.id);
+      if (cached) {
+        setDynamicBloomColor(cached.dominantColor);
+      }
+    }
+
     frameAnalysisTimerRef.current = setInterval(() => {
       if (localVideoRef.current && !localVideoRef.current.paused) {
-        const analysis = localVideoAnalyzer.analyzeVideoFrame(localVideoRef.current);
-        if (analysis) {
-          setDynamicBloomColor(analysis.dominantColor);
+        // Non-blocking async sampling via requestIdleCallback / microtask
+        const runSampling = () => {
+          if (localVideoRef.current) {
+            const analysis = localVideoAnalyzer.analyzeVideoFrame(localVideoRef.current, localItem?.id);
+            if (analysis) {
+              setDynamicBloomColor(analysis.dominantColor);
+            }
+          }
+        };
+
+        if ('requestIdleCallback' in window) {
+          (window as any).requestIdleCallback(runSampling, { timeout: 500 });
+        } else {
+          setTimeout(runSampling, 0);
         }
       }
-    }, 1200);
+    }, 1500);
 
     return () => {
       if (frameAnalysisTimerRef.current) clearInterval(frameAnalysisTimerRef.current);
     };
-  }, [isLocalMedia]);
+  }, [isLocalMedia, localItem?.id]);
 
   // ── Auto-hide Controls ──────────────────────────────────────────────────────
   const resetControlsTimer = useCallback(() => {
@@ -621,6 +641,7 @@ export function CineMorphTheater() {
               src={localItem.url}
               autoPlay
               playsInline
+              preload="auto"
               className="w-full h-full object-contain"
               onTimeUpdate={() => {
                 if (localVideoRef.current && !seeking) {
