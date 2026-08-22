@@ -16,7 +16,7 @@ import {
   Film, Monitor, ArrowLeft, RotateCcw, ChevronRight,
   Sparkles, HelpCircle, X, Keyboard, Sliders, Maximize2,
   Sun, FileText, Check, ListFilter, HardDrive, Armchair,
-  Eye, RefreshCw, Layers
+  Eye, RefreshCw, Layers, Zap
 } from 'lucide-react';
 import { 
   audioEngine, 
@@ -25,7 +25,8 @@ import {
   generateAISummary, 
   extractVideoScript, 
   generateSceneHighlights,
-  localVideoAnalyzer
+  localVideoAnalyzer,
+  hybridMediaRouter
 } from '../lib/cinemorph';
 
 type TheaterState = 'pre-show' | 'loading' | 'playing' | 'paused' | 'ended' | 'error';
@@ -42,7 +43,8 @@ export function CineMorphTheater() {
     glowIntensity, setGlowIntensity,
     activeLocalMedia, localMediaHistory, addLocalMediaToHistory,
     theaterSeatingEnabled, setTheaterSeatingEnabled,
-    curtainAnimationEnabled, setCurtainAnimationEnabled
+    curtainAnimationEnabled, setCurtainAnimationEnabled,
+    ecoMode, setEcoMode, devicePerformanceProfile
   } = useAppStore();
 
   const isLocalMedia = id?.startsWith('local-') || !!activeLocalMedia;
@@ -225,9 +227,15 @@ export function CineMorphTheater() {
     return () => window.removeEventListener('message', handleMessage);
   }, [curtainAnimationEnabled, duration, isLocalMedia, seeking, video]);
 
-  // ── Local Media Canvas Frame Analysis (Zero-Wait Performance Engine) ────────
+  const hybridDecision = hybridMediaRouter.determineRoute({
+    isLocal: isLocalMedia,
+    durationSeconds: duration,
+    userEcoMode: ecoMode,
+  });
+
+  // ── Master Hybrid Routing & Adaptive Performance Sampling ────────
   useEffect(() => {
-    if (!isLocalMedia) return;
+    if (!isLocalMedia || !hybridDecision.enableDynamicAmbilight || hybridDecision.sampleIntervalMs <= 0) return;
 
     // Instant zero-wait cache lookup for immediate room glow
     if (localItem?.id) {
@@ -250,17 +258,17 @@ export function CineMorphTheater() {
         };
 
         if ('requestIdleCallback' in window) {
-          (window as any).requestIdleCallback(runSampling, { timeout: 500 });
+          (window as any).requestIdleCallback(runSampling, { timeout: 400 });
         } else {
           setTimeout(runSampling, 0);
         }
       }
-    }, 1500);
+    }, hybridDecision.sampleIntervalMs);
 
     return () => {
       if (frameAnalysisTimerRef.current) clearInterval(frameAnalysisTimerRef.current);
     };
-  }, [isLocalMedia, localItem?.id]);
+  }, [isLocalMedia, localItem?.id, hybridDecision.enableDynamicAmbilight, hybridDecision.sampleIntervalMs]);
 
   // ── Auto-hide Controls ──────────────────────────────────────────────────────
   const resetControlsTimer = useCallback(() => {
@@ -886,6 +894,23 @@ export function CineMorphTheater() {
                 title="Toggle Theater Seating"
               >
                 <Armchair className="w-4 h-4" />
+              </button>
+
+              {/* Eco Mode / Adaptive Route Button */}
+              <button
+                onClick={() => {
+                  const next = !ecoMode;
+                  setEcoMode(next);
+                  showToast(next ? '🌱 Eco Mode: Enabled (CPU Optimized)' : '⚡ Performance Mode: Active (Dynamic 60FPS)');
+                }}
+                className={`p-2 rounded-xl transition-all ${
+                  ecoMode 
+                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' 
+                    : 'text-gray-400 hover:text-white hover:bg-white/10'
+                }`}
+                title={`Performance Profile: ${hybridDecision.profile.toUpperCase()} • Route: ${hybridDecision.route}`}
+              >
+                <Zap className="w-4 h-4" />
               </button>
 
               {/* Audio EQ Preset Cycle */}

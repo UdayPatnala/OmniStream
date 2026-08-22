@@ -34,7 +34,7 @@ export function RootLanding() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#040308] text-white flex flex-col justify-between p-4 sm:p-8 relative overflow-hidden select-none font-sans">
+    <div className="min-h-screen w-full bg-[#040308] text-white flex flex-col p-4 sm:p-8 relative overflow-y-auto font-sans">
       {/* Dynamic Ambient Space Background */}
       <div className="absolute top-0 left-1/4 -translate-x-1/2 w-[600px] h-[500px] bg-gradient-to-br from-indigo-900/20 via-purple-900/15 to-transparent rounded-full blur-[140px] pointer-events-none" />
       <div className="absolute bottom-0 right-1/4 translate-x-1/2 w-[700px] h-[600px] bg-gradient-to-tl from-cyan-900/20 via-blue-900/15 to-transparent rounded-full blur-[160px] pointer-events-none" />

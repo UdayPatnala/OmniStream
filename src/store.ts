@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Video, Channel, HistoryItem, Collection, QueueItem, SearchHistoryMetaData, BehaviorEvent, CineMorphTheme, VideoClip, RankingProfile, LocalMediaItem, FrameAspectRatio } from './types';
+import { Video, Channel, HistoryItem, Collection, QueueItem, SearchHistoryMetaData, BehaviorEvent, CineMorphTheme, VideoClip, RankingProfile, LocalMediaItem, FrameAspectRatio, DevicePerformanceProfile } from './types';
 
 interface AppState {
   theme: 'dark' | 'light' | 'system';
@@ -117,6 +117,12 @@ interface AppState {
   savedClips: VideoClip[];
   saveClip: (clip: VideoClip) => void;
   removeClip: (id: string) => void;
+
+  devicePerformanceProfile: DevicePerformanceProfile;
+  setDevicePerformanceProfile: (profile: DevicePerformanceProfile) => void;
+
+  ecoMode: boolean;
+  setEcoMode: (eco: boolean) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -148,6 +154,12 @@ export const useAppStore = create<AppState>()(
 
       rootLandingPreference: 'ask',
       setRootLandingPreference: (rootLandingPreference) => set({ rootLandingPreference }),
+
+      devicePerformanceProfile: 'balanced',
+      setDevicePerformanceProfile: (devicePerformanceProfile) => set({ devicePerformanceProfile }),
+
+      ecoMode: false,
+      setEcoMode: (ecoMode) => set({ ecoMode }),
 
       rankingProfile: 'balanced',
       setRankingProfile: (rankingProfile) => set({ rankingProfile }),

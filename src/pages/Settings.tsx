@@ -15,8 +15,15 @@ export function SettingsPage() {
     reframeMode, setReframeMode,
     rootLandingPreference, setRootLandingPreference,
     theaterSeatingEnabled, setTheaterSeatingEnabled,
-    curtainAnimationEnabled, setCurtainAnimationEnabled
+    curtainAnimationEnabled, setCurtainAnimationEnabled,
+    devicePerformanceProfile, setDevicePerformanceProfile,
+    ecoMode, setEcoMode
   } = useAppStore();
+
+  const metrics = typeof window !== 'undefined' ? {
+    cores: navigator.hardwareConcurrency || 4,
+    memory: (navigator as any).deviceMemory || 4,
+  } : { cores: 4, memory: 4 };
 
   return (
     <div className="max-w-2xl mx-auto space-y-8 py-4 pb-12">
@@ -216,6 +223,44 @@ export function SettingsPage() {
             >
               <option value="true">Full Velvet Curtain Sequence</option>
               <option value="false">Quick Start (Curtains Always Open)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Adaptive Performance & Hybrid Media Routing */}
+      <div className="bg-[#1C1B1F] p-6 rounded-[32px] border border-white/5 space-y-6 shadow-xl">
+        <div className="flex items-center justify-between border-b border-white/5 pb-4">
+          <h2 className="text-sm font-medium uppercase tracking-[0.2em] text-[#938F99]">Adaptive Media Engine & Hybrid Routing</h2>
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-950 text-cyan-400 border border-cyan-500/20">
+            {metrics.cores} Cores • {metrics.memory}GB RAM
+          </span>
+        </div>
+
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <label className="block font-medium text-[#E6E1E5]">Device Performance Profile</label>
+            <select
+              value={devicePerformanceProfile}
+              onChange={(e) => setDevicePerformanceProfile(e.target.value as any)}
+              className="w-full h-12 px-4 rounded-xl border border-white/10 bg-[#0F0D17] text-white focus:outline-none focus:border-cyan-400 text-sm"
+            >
+              <option value="high">High Performance (800ms 60FPS Sampling • High LOD)</option>
+              <option value="balanced">Balanced (1500ms Sampling • Medium LOD)</option>
+              <option value="low">Low Power (3000ms Sampling • Minimal LOD)</option>
+              <option value="ultra-low">Ultra Low (Zero Canvas Sampling • Native Only)</option>
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <label className="block font-medium text-[#E6E1E5]">Eco Mode (Battery & CPU Saver)</label>
+            <select
+              value={ecoMode ? 'true' : 'false'}
+              onChange={(e) => setEcoMode(e.target.value === 'true')}
+              className="w-full h-12 px-4 rounded-xl border border-white/10 bg-[#0F0D17] text-white focus:outline-none focus:border-cyan-400 text-sm"
+            >
+              <option value="false">Standard / Auto Adaptive</option>
+              <option value="true">🌱 Enabled (Throttled Background Processing)</option>
             </select>
           </div>
         </div>

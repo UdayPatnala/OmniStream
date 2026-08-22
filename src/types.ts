@@ -231,3 +231,40 @@ export interface LocalVideoAnalysis {
   contrastScore: number;
   timestamp: number;
 }
+
+// ── Master Hybrid Routing & Adaptive Performance Engine ────────────────────────
+export type DevicePerformanceProfile = 'ultra-low' | 'low' | 'balanced' | 'high';
+
+export type MediaHybridRouteType =
+  | 'youtube-no-ai'        // Route A: Provider player with standard cinematic frame
+  | 'youtube-light-ai'     // Route B: Provider player with lightweight client metadata/palette
+  | 'local-light-ai'       // Route C: Local video with fast 16x9 canvas sampling
+  | 'local-quality-ai'     // Route D: Local video with enhanced saliency tracking
+  | 'local-no-ai'          // Route E: Local video pure native decoding (zero CPU overhead)
+  | 'weak-device-fallback' // Route F: Low-spec device minimal effects
+  | 'high-end-cinema'      // Route G: High-spec device full 60fps dynamic ambilight
+  | 'network-constrained'  // Route H: Network throttled, AI paused to preserve buffer
+  | 'offline-airgap'       // Route I: 100% offline local video + local DSP
+  | 'model-unavailable';   // Route J: Clean fallback when model/canvas fails
+
+export interface AdaptivePerformanceDecision {
+  route: MediaHybridRouteType;
+  profile: DevicePerformanceProfile;
+  sampleIntervalMs: number;
+  sampleResolution: { width: number; height: number };
+  theaterLOD: 'high' | 'medium' | 'minimal';
+  spatialAudioEnabled: boolean;
+  allowBackgroundLookahead: boolean;
+  enableDynamicAmbilight: boolean;
+  reason: string;
+}
+
+export interface AdaptiveSystemMetrics {
+  isOnline: boolean;
+  hardwareConcurrency: number;
+  deviceMemoryGb?: number;
+  isOnBattery: boolean;
+  batteryLevelPercent?: number;
+  currentFps: number;
+  droppedFramesCount: number;
+}

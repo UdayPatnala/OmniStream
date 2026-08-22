@@ -32,7 +32,7 @@ export function Layout({ children }: { children: ReactNode }) {
 
   if (isFullViewport) {
     return (
-      <div className="w-screen h-screen bg-[#030208] overflow-hidden">
+      <div className="w-screen min-h-screen bg-[#030208] overflow-y-auto">
         {children}
       </div>
     );
