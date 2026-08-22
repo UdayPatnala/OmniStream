@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAppStore } from '../store';
-import { getPopularVideos, searchVideos } from '../lib/youtube';
+import { getPopularVideos, searchVideos, getVideosByIds } from '../lib/youtube';
 import { getRecommendedVideos } from '../lib/recommendations';
 import { Video } from '../types';
 import { VideoCard } from '../components/VideoCard';
@@ -35,6 +35,15 @@ export function Home() {
           setRecommended(recs.slice(0, 10));
         } else {
           const res = await searchVideos(activeCategory);
+          const videoIds = res.results.filter(r => r.type === 'video').map(r => r.id);
+          if (videoIds.length > 0) {
+            const richVideos = await getVideosByIds(videoIds);
+            if (richVideos.length > 0) {
+              setPopular(richVideos);
+              setRecommended([]);
+              return;
+            }
+          }
           const vids: Video[] = res.results.map(r => ({
             id: r.id,
             title: r.title,
@@ -43,8 +52,6 @@ export function Home() {
             channelTitle: r.channelTitle,
             publishedAt: r.publishedAt,
             thumbnails: r.thumbnails,
-            viewCount: '124000',
-            duration: 'PT12M30S'
           }));
           setPopular(vids);
           setRecommended([]);
