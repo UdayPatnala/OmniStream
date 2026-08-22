@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Sparkles, ArrowRight, Play, Film, Clock, Volume2, 
   Maximize2, Zap, HardDrive, UploadCloud, Search, 
-  Compass, ShieldCheck, FileVideo, RefreshCw, X, FolderHeart
+  Compass, ShieldCheck, FileVideo, RefreshCw, X, FolderHeart, ChevronRight
 } from 'lucide-react';
 import { useAppStore } from '../store';
 import { playbackService } from '../lib/services/playbackService';
@@ -291,43 +291,78 @@ export function CineMorphLanding() {
               </div>
             )}
 
-            {/* Recent Local Media */}
-            {recentLocalList.length > 0 && (
-              <div className="space-y-3 pt-2 max-w-xl mx-auto text-left">
-                <div className="flex items-center justify-between text-xs text-gray-400 px-1 font-semibold uppercase tracking-wider">
-                  <span>Recent Local Media Sessions</span>
-                  <span className="text-[10px] text-gray-500">Select file to resume</span>
+            {/* Recent Local Media Sessions (Premium Cards Grid) */}
+            {recentLocalList.length > 0 ? (
+              <div className="space-y-4 pt-4 max-w-xl mx-auto text-left">
+                <div className="flex items-center justify-between text-xs text-gray-400 px-1 font-bold uppercase tracking-widest">
+                  <span>Recent Cinema Sessions</span>
+                  <span className="text-[10px] text-cyan-400">Click to Resume Playback</span>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  {recentLocalList.map((item) => (
-                    <div
-                      key={item.id}
-                      onClick={() => {
-                        if (item.url) {
-                          setActiveLocalMedia(item);
-                          navigate(`/watch/${item.id}`);
-                        } else {
-                          fileInputRef.current?.click();
-                        }
-                      }}
-                      className="p-3 rounded-2xl bg-[#0e0d16]/80 hover:bg-[#151322] border border-white/5 hover:border-cyan-500/40 cursor-pointer transition-all flex items-center gap-3 group"
-                    >
-                      <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-cyan-400 shrink-0 group-hover:scale-105 transition-transform">
-                        <FileVideo className="w-5 h-5" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-xs font-bold text-gray-200 group-hover:text-white truncate">
-                          {item.name}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {recentLocalList.map((item) => {
+                    const progressPercent = item.duration > 0 ? (item.progress / item.duration) * 100 : 0;
+                    return (
+                      <div
+                        key={item.id}
+                        onClick={() => {
+                          if (item.url) {
+                            setActiveLocalMedia(item);
+                            navigate(`/watch/${item.id}`);
+                          } else {
+                            fileInputRef.current?.click();
+                          }
+                        }}
+                        className="group relative rounded-2xl bg-[#0b0a12]/80 hover:bg-[#12101e] border border-white/5 hover:border-cyan-500/40 p-4 cursor-pointer transition-all duration-300 flex flex-col justify-between h-32 hover:scale-[1.02] shadow-lg overflow-hidden"
+                      >
+                        {/* Ambient corner indicator */}
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-cyan-500/5 to-transparent rounded-full blur-xl pointer-events-none" />
+
+                        <div className="flex items-start gap-3">
+                          <div className="w-12 h-12 rounded-xl bg-cyan-950/40 border border-cyan-500/20 flex items-center justify-center text-cyan-400 shrink-0 group-hover:scale-105 transition-transform">
+                            <FileVideo className="w-6 h-6" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-xs font-bold text-gray-200 group-hover:text-white truncate">
+                              {item.name}
+                            </div>
+                            <div className="text-[10px] text-gray-400 pt-0.5 font-semibold">
+                              {(item.size / (1024 * 1024)).toFixed(1)} MB • {item.type.split('/')[1].toUpperCase()}
+                            </div>
+                          </div>
                         </div>
-                        <div className="text-[10px] text-gray-400 flex items-center gap-2 pt-0.5">
-                          <span>{(item.size / (1024 * 1024)).toFixed(1)} MB</span>
-                          <span>•</span>
-                          <span className="text-cyan-400">Play in Theater</span>
+
+                        <div className="space-y-2">
+                          {/* Progress bar */}
+                          {item.duration > 0 && (
+                            <div className="space-y-1">
+                              <div className="w-full bg-white/10 h-1 rounded-full overflow-hidden">
+                                <div 
+                                  className="bg-gradient-to-r from-cyan-500 to-indigo-500 h-full rounded-full"
+                                  style={{ width: `${progressPercent}%` }}
+                                />
+                              </div>
+                              <div className="flex justify-between text-[9px] text-gray-500 font-mono">
+                                <span>{Math.round(progressPercent)}% watched</span>
+                                <span>{Math.floor(item.duration / 60)} min</span>
+                              </div>
+                            </div>
+                          )}
+
+                          <div className="text-[10px] text-cyan-400 font-bold tracking-wider uppercase flex items-center gap-1 group-hover:text-cyan-300">
+                            <span>Resume theater</span>
+                            <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
+              </div>
+            ) : (
+              <div className="max-w-xl mx-auto p-8 rounded-3xl bg-[#0a0812]/40 border border-white/5 text-center space-y-2">
+                <FolderHeart className="w-8 h-8 text-gray-600 mx-auto" />
+                <div className="text-xs font-semibold text-gray-400">No recent local media sessions found</div>
+                <p className="text-[10px] text-gray-500">Drag or browse a video file to begin watching privately.</p>
               </div>
             )}
           </div>
