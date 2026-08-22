@@ -56,7 +56,7 @@ export function CineMorphLanding() {
           onClick={() => setVersionMode('v1')}
           className="px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-gray-300 hover:text-white transition-all shadow-sm"
         >
-          ← Exit to U-Tube Workspace
+          ← Exit to OmniStream Workspace
         </button>
       </div>
 

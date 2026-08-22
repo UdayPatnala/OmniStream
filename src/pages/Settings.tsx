@@ -226,7 +226,7 @@ export function SettingsPage() {
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `utube-cinemorph-backup-${new Date().toISOString().slice(0, 10)}.json`;
+                a.download = `omnistream-backup-${new Date().toISOString().slice(0, 10)}.json`;
                 a.click();
                 URL.revokeObjectURL(url);
               }}
@@ -314,7 +314,7 @@ export function SettingsPage() {
         <div className="space-y-3 text-sm text-[#CAC4D0]">
           <div className="flex justify-between items-center py-1">
             <span className="text-[#938F99]">Application Name</span>
-            <span className="font-semibold text-[#E6E1E5]">U Tube (CineMorph AI v2)</span>
+            <span className="font-semibold text-[#E6E1E5]">OmniStream (CineMorph AI v2)</span>
           </div>
           <div className="flex justify-between items-center py-1 border-t border-white/5">
             <span className="text-[#938F99]">Version</span>

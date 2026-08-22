@@ -119,29 +119,14 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
         </button>
 
         <Link to="/" className="flex items-center gap-2 group">
-          {versionMode === 'v1' ? (
-            <>
-              <div className="bg-red-600 text-white p-1.5 rounded-xl flex items-center justify-center shadow-lg shadow-red-600/30 group-hover:scale-105 transition-transform">
-                <VideoIcon className="w-4 h-4 text-white" />
-              </div>
-              <div className="flex flex-col">
-                <span className="text-lg font-black tracking-tight text-white font-sans">
-                  U<span className="text-red-500">-Tube</span>
-                </span>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="bg-gradient-to-tr from-cyan-600 via-indigo-500 to-purple-600 text-white p-1.5 rounded-xl flex items-center justify-center shadow-lg shadow-cyan-500/20 group-hover:scale-105 transition-transform">
-                <Sparkles className="w-4 h-4 text-white animate-pulse" />
-              </div>
-              <div className="flex flex-col">
-                <span className="text-lg font-black tracking-tight text-white font-sans bg-gradient-to-r from-white via-[#f1f1f1] to-cyan-300 bg-clip-text text-transparent">
-                  CineMorph<span className="text-cyan-400">AI</span>
-                </span>
-              </div>
-            </>
-          )}
+          <div className="bg-gradient-to-tr from-cyan-500 via-indigo-600 to-pink-500 p-1.5 rounded-xl flex items-center justify-center shadow-lg shadow-cyan-500/20 group-hover:scale-105 transition-transform">
+            <img src="/favicon.svg" alt="OmniStream" className="w-5 h-5 drop-shadow" />
+          </div>
+          <div className="flex flex-col">
+            <span className="text-lg font-black tracking-tight text-white font-sans bg-gradient-to-r from-white via-cyan-100 to-purple-300 bg-clip-text text-transparent">
+              Omni<span className="text-cyan-400">Stream</span>
+            </span>
+          </div>
         </Link>
 
         {/* Version Switcher & Instant Auto-Play Badge */}
