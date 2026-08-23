@@ -557,12 +557,16 @@ export function CineMorphTheater() {
   };
 
   const cycleAspectRatio = () => {
-    const ratios: FrameAspectRatio[] = ['original', 'auto', '16:9', '21:9', '4:3', '1:1', '4.3:1'];
+    const ratios: FrameAspectRatio[] = ['original', '1.43:1', '1.90:1', 'auto', '16:9', '21:9', '4:3', '1:1', '4.3:1'];
     const currentIdx = ratios.indexOf(frameAspectRatio);
     const nextRatio = ratios[(currentIdx + 1) % ratios.length];
     setFrameAspectRatio(nextRatio);
     const label = nextRatio === 'original' 
-      ? 'Original (16:9 Native)' 
+      ? 'Original (Native Source)' 
+      : nextRatio === '1.43:1' 
+      ? 'Large Format 1.43 (Vertical Aperture)' 
+      : nextRatio === '1.90:1' 
+      ? 'Large Format 1.90 (Wide Aperture)' 
       : nextRatio === 'auto' 
       ? 'Auto Best Fit (AI Face Center)' 
       : nextRatio === '21:9' 

@@ -135,7 +135,7 @@ export type CineMorphTheme =
 
 export type GlowIntensity = 'off' | 'low' | 'medium' | 'ultra';
 
-export type FrameAspectRatio = 'original' | 'auto' | '16:9' | '21:9' | '4:3' | '1:1' | '4.3:1';
+export type FrameAspectRatio = 'original' | 'auto' | '1.43:1' | '1.90:1' | '16:9' | '21:9' | '4:3' | '1:1' | '4.3:1';
 
 export type FrameReframeMode = 'center' | 'face-priority' | 'smart-pan-zoom';
 

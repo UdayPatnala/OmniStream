@@ -116,7 +116,15 @@ class AdaptiveCinemaEngine {
     } else {
       // Derived targets based on aspect ratio & face-priority composition
       explainabilityLabel = `Subject-Aware Presentation (${aspectRatio.toUpperCase()})`;
-      if (aspectRatio === '4.3:1') {
+      if (aspectRatio === '1.43:1') {
+        explainabilityLabel = 'Large Format 1.43 (Vertical Immersive Aperture)';
+        targetScale = reframeMode === 'face-priority' ? 1.24 : 1.18;
+        targetTranslateY = reframeMode === 'face-priority' ? -4 : -2;
+      } else if (aspectRatio === '1.90:1') {
+        explainabilityLabel = 'Large Format 1.90 (Wide Immersive Aperture)';
+        targetScale = reframeMode === 'face-priority' ? 1.12 : 1.08;
+        targetTranslateY = reframeMode === 'face-priority' ? -2 : 0;
+      } else if (aspectRatio === '4.3:1') {
         targetScale = reframeMode === 'face-priority' ? 1.45 : 1.35;
         targetTranslateY = reframeMode === 'face-priority' ? -5 : -2;
       } else if (aspectRatio === '21:9') {

@@ -70,6 +70,28 @@ export function calculateFrameStyle(
       cropOverlay = true;
       break;
 
+    case '1.43:1':
+      paddingTop = '69.93%';
+      aspectRatioStyle = '143 / 100';
+      if (reframeMode === 'face-priority') {
+        videoScaleTransform = 'scale(1.24) translateY(-4%)';
+      } else {
+        videoScaleTransform = 'scale(1.18) translateY(-2%)';
+      }
+      cropOverlay = true;
+      break;
+
+    case '1.90:1':
+      paddingTop = '52.63%';
+      aspectRatioStyle = '190 / 100';
+      if (reframeMode === 'face-priority') {
+        videoScaleTransform = 'scale(1.12) translateY(-2%)';
+      } else {
+        videoScaleTransform = 'scale(1.08) translateY(0%)';
+      }
+      cropOverlay = true;
+      break;
+
     case '4.3:1':
       paddingTop = '23.255%';
       aspectRatioStyle = '43 / 10';
@@ -99,6 +121,8 @@ export function calculateFrameStyle(
     containerAspectClass: 
       aspectRatio === 'original' ? 'aspect-video' :
       aspectRatio === 'auto' ? 'aspect-[19.5/9]' :
+      aspectRatio === '1.43:1' ? 'aspect-[143/100]' :
+      aspectRatio === '1.90:1' ? 'aspect-[190/100]' :
       aspectRatio === '21:9' ? 'aspect-[21/9]' : 
       aspectRatio === '4:3' ? 'aspect-[4/3]' : 
       aspectRatio === '1:1' ? 'aspect-square' : 
