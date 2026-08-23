@@ -9,7 +9,7 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppStore } from '../store';
-import { getVideosByIds } from '../lib/youtube';
+import { getVideosByIds, getRelatedVideos } from '../lib/youtube';
 import { Video, AudioPreset, FrameAspectRatio, CineMorphTheme, GlowIntensity, LocalMediaItem } from '../types';
 import {
   Play, Pause, Volume2, VolumeX, Maximize, Minimize,
@@ -84,6 +84,71 @@ export function CineMorphTheater() {
   const [showStudioDrawer, setShowStudioDrawer] = useState(false);
   const [hudToast, setHudToast] = useState<string | null>(null);
   const [dynamicBloomColor, setDynamicBloomColor] = useState<string | null>(null);
+
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [recommendations, setRecommendations] = useState<Video[]>([]);
+  const [nextUpCountdown, setNextUpCountdown] = useState<number | null>(null);
+
+  // Fetch recommendations for end-screen spotlight
+  useEffect(() => {
+    if (!id) return;
+    getRelatedVideos(id).then(vids => {
+      setRecommendations(vids.slice(0, 4));
+    }).catch(() => {});
+  }, [id]);
+
+  // End-Screen Auto-Play countdown timer
+  useEffect(() => {
+    if (theaterState !== 'ended') {
+      setNextUpCountdown(null);
+      return;
+    }
+
+    setNextUpCountdown(10);
+    const interval = setInterval(() => {
+      setNextUpCountdown((count) => {
+        if (count === null) return null;
+        if (count <= 1) {
+          clearInterval(interval);
+          if (recommendations.length > 0) {
+            const nextVid = recommendations[0];
+            setActiveVideo(nextVid);
+            setShowIntroBumper(false);
+            setTheaterState('playing');
+            setPlaying(true);
+            navigate(`/theater/${nextVid.id}`);
+          }
+          return null;
+        }
+        return count - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [theaterState, recommendations, navigate, setActiveVideo]);
+
+  const handleDirectLocalUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const localId = `local-${Date.now()}`;
+    const fileUrl = URL.createObjectURL(file);
+    const newItem: LocalMediaItem = {
+      id: localId,
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      url: fileUrl,
+      duration: 0,
+      progress: 0,
+      lastWatchedAt: Date.now(),
+    };
+    useAppStore.getState().setActiveLocalMedia(newItem);
+    useAppStore.getState().addLocalMediaToHistory(newItem);
+    setShowIntroBumper(false);
+    setTheaterState('playing');
+    setPlaying(true);
+    navigate(`/theater/${localId}`);
+  };
 
   // Scrubber Hover Tooltip state
   const [hoverTime, setHoverTime] = useState<number | null>(null);
@@ -776,6 +841,115 @@ export function CineMorphTheater() {
                 } catch (e) {}
               }}
             />
+          )}
+
+          {/* ── Cinema End-Screen Spotlight & Next-Up Reel ── */}
+          {theaterState === 'ended' && !showIntroBumper && (
+            <div className="absolute inset-0 z-30 bg-[#07060f]/95 backdrop-blur-2xl p-6 flex flex-col justify-between items-center animate-in fade-in zoom-in-95 duration-500 overflow-y-auto">
+              {/* Hidden Local File Input */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="video/*"
+                onChange={handleDirectLocalUpload}
+                className="hidden"
+              />
+
+              {/* End Screen Header */}
+              <div className="text-center space-y-1.5 mt-2">
+                <div className="flex items-center justify-center gap-2 text-cyan-400 text-xs font-bold uppercase tracking-widest">
+                  <Sparkles className="w-4 h-4 text-cyan-400" />
+                  <span>Cinema Session Completed</span>
+                </div>
+                <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                  What would you like to watch next?
+                </h3>
+                {nextUpCountdown !== null && (
+                  <p className="text-xs text-cyan-300 font-mono">
+                    Auto-playing next recommended stream in <span className="font-bold text-amber-400 text-sm">{nextUpCountdown}s</span>
+                  </p>
+                )}
+              </div>
+
+              {/* Recommended Stream Cards */}
+              <div className="w-full max-w-4xl grid grid-cols-2 sm:grid-cols-4 gap-3 my-4">
+                {recommendations.slice(0, 4).map((rec) => (
+                  <div
+                    key={rec.id}
+                    onClick={() => {
+                      setNextUpCountdown(null);
+                      useAppStore.getState().setActiveVideo(rec);
+                      setShowIntroBumper(false);
+                      setTheaterState('playing');
+                      setPlaying(true);
+                      navigate(`/theater/${rec.id}`);
+                    }}
+                    className="group relative bg-[#13111f] rounded-xl border border-white/10 overflow-hidden cursor-pointer hover:border-cyan-500/50 transition-all hover:scale-105 shadow-lg"
+                  >
+                    <div className="aspect-video w-full relative overflow-hidden bg-black/60">
+                      <img
+                        src={rec.thumbnails.medium || rec.thumbnails.high}
+                        alt={rec.title}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                      />
+                      <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                        <Play className="w-6 h-6 text-white drop-shadow-lg group-hover:scale-125 transition-transform" />
+                      </div>
+                    </div>
+                    <div className="p-2.5 space-y-1">
+                      <h4 className="text-xs font-bold text-white line-clamp-1 group-hover:text-cyan-300 transition-colors">
+                        {rec.title}
+                      </h4>
+                      <p className="text-[10px] text-gray-400 line-clamp-1">{rec.channelTitle}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Action Buttons Bar */}
+              <div className="flex flex-wrap items-center justify-center gap-3 mb-2">
+                {/* Replay Movie */}
+                <button
+                  onClick={() => {
+                    setNextUpCountdown(null);
+                    setPlayed(0);
+                    if (isLocalMedia && localVideoRef.current) {
+                      localVideoRef.current.currentTime = 0;
+                      localVideoRef.current.play().catch(() => {});
+                    } else {
+                      sendIframeCommand('seekTo', [0, true]);
+                      sendIframeCommand('playVideo');
+                    }
+                    setTheaterState('playing');
+                    setPlaying(true);
+                  }}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs shadow-lg shadow-cyan-600/30 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  <span>Replay Movie</span>
+                </button>
+
+                {/* Select Local Video File */}
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-600/30 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                >
+                  <HardDrive className="w-4 h-4" />
+                  <span>Play Local Video File</span>
+                </button>
+
+                {/* Pause Auto-Play Countdown */}
+                {nextUpCountdown !== null && (
+                  <button
+                    onClick={() => setNextUpCountdown(null)}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/10 hover:bg-white/20 text-gray-300 hover:text-white font-semibold text-xs transition-all cursor-pointer"
+                  >
+                    <Pause className="w-3.5 h-3.5" />
+                    <span>Pause Auto-Play</span>
+                  </button>
+                )}
+              </div>
+            </div>
           )}
 
           {/* ── Velvet Curtains Opening Sequence ── */}
