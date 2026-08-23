@@ -647,16 +647,20 @@ export function CineMorphTheater() {
       <div
         className={`relative transition-all duration-700 ${
           isFullscreen
-            ? 'max-h-[86vh] max-w-[96vw]'
+            ? 'max-h-[90vh] max-w-[98vw]'
+            : frameAspectRatio === '4.3:1'
+            ? 'w-full max-w-[98vw] max-h-[84vh]'
             : 'w-full max-w-[94vw] max-h-[78vh]'
         } flex items-center justify-center z-10 overflow-hidden shadow-2xl border border-white/10 bg-black`}
         style={{
           aspectRatio: frameStyle.aspectRatioStyle,
           filter: presentationMode === 'cinema' ? 'brightness(1.03) contrast(1.02)' : 'none',
           borderRadius: presentationMode === 'cinema' ? '6px 6px 36px 36px / 6px 6px 12px 12px' : '8px',
-          transform: presentationMode === 'cinema' ? 'perspective(1200px) rotateX(1deg)' : 'none',
+          transform: presentationMode === 'cinema' 
+            ? (frameAspectRatio === '4.3:1' ? 'perspective(1200px) rotateX(1deg) scale(1.12)' : 'perspective(1200px) rotateX(1deg)') 
+            : 'none',
           boxShadow: presentationMode === 'cinema' 
-            ? '0 0 80px rgba(0,0,0,0.9), inset 0 0 40px rgba(0,0,0,0.9)' 
+            ? '0 0 100px rgba(0,0,0,0.95), inset 0 0 50px rgba(0,0,0,0.9)' 
             : '0 20px 25px -5px rgba(0,0,0,0.1)'
         }}
       >
@@ -668,14 +672,20 @@ export function CineMorphTheater() {
         >
           {/* Dual Source Playback Element */}
           {showIntroBumper ? (
-            <div className="relative w-full h-full bg-black flex items-center justify-center">
+            <div className="relative w-full h-full bg-black flex items-center justify-center overflow-hidden">
               <video
                 ref={introVideoRef}
                 src="/Create_a_professional_cinemati.mp4"
                 autoPlay
                 playsInline
+                muted
                 preload="auto"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
+                onCanPlay={() => {
+                  if (introVideoRef.current && introVideoRef.current.paused) {
+                    introVideoRef.current.play().catch(() => {});
+                  }
+                }}
                 onEnded={() => {
                   setShowIntroBumper(false);
                   setPlaying(true);
@@ -684,6 +694,10 @@ export function CineMorphTheater() {
                   } else {
                     sendIframeCommand('playVideo');
                   }
+                }}
+                onError={() => {
+                  setShowIntroBumper(false);
+                  setPlaying(true);
                 }}
               />
               {/* Skip Cinema Intro Overlay */}
