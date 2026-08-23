@@ -55,6 +55,7 @@ export function CineMorphTheater() {
   // ── Refs ────────────────────────────────────────────────────────────────────
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const localVideoRef = useRef<HTMLVideoElement | null>(null);
+  const introVideoRef = useRef<HTMLVideoElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const controlsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -78,6 +79,7 @@ export function CineMorphTheater() {
   );
   const [entryComplete, setEntryComplete] = useState(false);
   const [curtainsOpen, setCurtainsOpen] = useState(!curtainAnimationEnabled);
+  const [showIntroBumper, setShowIntroBumper] = useState(curtainAnimationEnabled);
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [showStudioDrawer, setShowStudioDrawer] = useState(false);
   const [hudToast, setHudToast] = useState<string | null>(null);
@@ -235,10 +237,10 @@ export function CineMorphTheater() {
 
   // ── Master Hybrid Routing & Adaptive Performance Sampling ────────
   useEffect(() => {
-    if (!isLocalMedia || !hybridDecision.enableDynamicAmbilight || hybridDecision.sampleIntervalMs <= 0) return;
+    if (!hybridDecision.enableDynamicAmbilight || hybridDecision.sampleIntervalMs <= 0) return;
 
     // Instant zero-wait cache lookup for immediate room glow
-    if (localItem?.id) {
+    if (localItem?.id && !showIntroBumper) {
       const cached = localVideoAnalyzer.getCachedAnalysis(localItem.id);
       if (cached) {
         setDynamicBloomColor(cached.dominantColor);
@@ -246,11 +248,12 @@ export function CineMorphTheater() {
     }
 
     frameAnalysisTimerRef.current = setInterval(() => {
-      if (localVideoRef.current && !localVideoRef.current.paused) {
+      const activeVideoEl = showIntroBumper ? introVideoRef.current : (isLocalMedia ? localVideoRef.current : null);
+      if (activeVideoEl && !activeVideoEl.paused) {
         // Non-blocking async sampling via requestIdleCallback / microtask
         const runSampling = () => {
-          if (localVideoRef.current) {
-            const analysis = localVideoAnalyzer.analyzeVideoFrame(localVideoRef.current, localItem?.id);
+          if (activeVideoEl) {
+            const analysis = localVideoAnalyzer.analyzeVideoFrame(activeVideoEl, showIntroBumper ? 'cinema-intro' : localItem?.id);
             if (analysis) {
               setDynamicBloomColor(analysis.dominantColor);
             }
@@ -268,7 +271,7 @@ export function CineMorphTheater() {
     return () => {
       if (frameAnalysisTimerRef.current) clearInterval(frameAnalysisTimerRef.current);
     };
-  }, [isLocalMedia, localItem?.id, hybridDecision.enableDynamicAmbilight, hybridDecision.sampleIntervalMs]);
+  }, [isLocalMedia, localItem?.id, showIntroBumper, hybridDecision.enableDynamicAmbilight, hybridDecision.sampleIntervalMs]);
 
   // ── Auto-hide Controls ──────────────────────────────────────────────────────
   const resetControlsTimer = useCallback(() => {
@@ -664,7 +667,43 @@ export function CineMorphTheater() {
           }}
         >
           {/* Dual Source Playback Element */}
-          {isLocalMedia && localItem?.url ? (
+          {showIntroBumper ? (
+            <div className="relative w-full h-full bg-black flex items-center justify-center">
+              <video
+                ref={introVideoRef}
+                src="/Create_a_professional_cinemati.mp4"
+                autoPlay
+                playsInline
+                preload="auto"
+                className="w-full h-full object-cover"
+                onEnded={() => {
+                  setShowIntroBumper(false);
+                  setPlaying(true);
+                  if (isLocalMedia && localVideoRef.current) {
+                    localVideoRef.current.play().catch(() => {});
+                  } else {
+                    sendIframeCommand('playVideo');
+                  }
+                }}
+              />
+              {/* Skip Cinema Intro Overlay */}
+              <button
+                onClick={() => {
+                  setShowIntroBumper(false);
+                  setPlaying(true);
+                  if (isLocalMedia && localVideoRef.current) {
+                    localVideoRef.current.play().catch(() => {});
+                  } else {
+                    sendIframeCommand('playVideo');
+                  }
+                }}
+                className="absolute bottom-6 right-6 z-20 px-4 py-2 rounded-full bg-black/80 hover:bg-black border border-cyan-500/40 text-cyan-300 text-xs font-bold tracking-wide shadow-2xl backdrop-blur-xl flex items-center gap-2 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+              >
+                <span>Skip Cinema Intro</span>
+                <ChevronRight className="w-4 h-4 text-cyan-400" />
+              </button>
+            </div>
+          ) : isLocalMedia && localItem?.url ? (
             <video
               ref={localVideoRef}
               src={localItem.url}
