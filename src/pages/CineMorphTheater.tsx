@@ -951,30 +951,6 @@ export function CineMorphTheater() {
               </div>
             </div>
           )}
-
-          {/* ── Velvet Curtains Opening Sequence ── */}
-          {curtainAnimationEnabled && (
-            <div className="absolute inset-0 pointer-events-none overflow-hidden z-20 flex">
-              {/* Left Velvet Curtain */}
-              <div 
-                className={`w-1/2 h-full bg-gradient-to-r from-[#3a060e] via-[#660918] to-[#260307] shadow-2xl transition-transform duration-1000 ease-out border-r-2 border-amber-600/30 ${
-                  curtainsOpen ? '-translate-x-full' : 'translate-x-0'
-                }`}
-                style={{
-                  backgroundImage: 'repeating-linear-gradient(90deg, rgba(0,0,0,0.3) 0px, transparent 15px, rgba(0,0,0,0.3) 30px)',
-                }}
-              />
-              {/* Right Velvet Curtain */}
-              <div 
-                className={`w-1/2 h-full bg-gradient-to-l from-[#3a060e] via-[#660918] to-[#260307] shadow-2xl transition-transform duration-1000 ease-out border-l-2 border-amber-600/30 ${
-                  curtainsOpen ? 'translate-x-full' : 'translate-x-0'
-                }`}
-                style={{
-                  backgroundImage: 'repeating-linear-gradient(90deg, rgba(0,0,0,0.3) 0px, transparent 15px, rgba(0,0,0,0.3) 30px)',
-                }}
-              />
-            </div>
-          )}
         </div>
       </div>
 

@@ -149,7 +149,7 @@ export const useAppStore = create<AppState>()(
       theaterSeatingEnabled: true,
       setTheaterSeatingEnabled: (theaterSeatingEnabled) => set({ theaterSeatingEnabled }),
 
-      curtainAnimationEnabled: true,
+      curtainAnimationEnabled: false,
       setCurtainAnimationEnabled: (curtainAnimationEnabled) => set({ curtainAnimationEnabled }),
 
       rootLandingPreference: 'ask',
