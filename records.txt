@@ -261,7 +261,7 @@ public/
 Test Execution Command:
 npx tsx "C:\Users\udayp\.gemini\antigravity\brain\9ce24ddd-add3-46f0-ad26-21591eb730b5\scratch\test_pipeline.ts"
 
-Automated Pipeline Test Modules (69 / 69 Passed):
+Automated Pipeline Test Modules (74 / 74 Passed):
 1. Query Intelligence (Language detection, strategy generation).
 2. Ranking Engine (Relevance, title match, channel authority).
 3. Cache Manager & Single-Flight Deduplication.
@@ -274,6 +274,7 @@ Automated Pipeline Test Modules (69 / 69 Passed):
 10. YouTube Mobile Web Specification & UX Engine.
 11. Adaptive Cinematic Presentation Engine & Subtitle Guard.
 12. Large-Format Fixed Aperture Engine (1.43:1 & 1.90:1).
+13. Direct Link Parsing, Audio Pass-Through & History Deduplication.
 
 Production Build Command:
 npm run lint && npm run build (0 Errors, cleanly output to dist/).

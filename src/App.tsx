@@ -21,7 +21,6 @@ const Collections = lazy(() => import('./pages/Collections').then(m => ({ defaul
 const History = lazy(() => import('./pages/History').then(m => ({ default: m.History })));
 const SettingsPage = lazy(() => import('./pages/Settings').then(m => ({ default: m.SettingsPage })));
 const ChannelPage = lazy(() => import('./pages/Channel').then(m => ({ default: m.ChannelPage })));
-const Shorts = lazy(() => import('./pages/Shorts').then(m => ({ default: m.Shorts })));
 
 function RouteFallback() {
   return (
