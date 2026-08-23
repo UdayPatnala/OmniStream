@@ -1155,49 +1155,25 @@ export function CineMorphTheater() {
               </span>
             </div>
 
-            {/* Right Tools & Quick Cyclers */}
+            {/* Right Tools & Clean Cyclers (Minimal & Simple) */}
             <div className="flex items-center gap-1.5 sm:gap-2">
-              {/* Theater Seating Toggle */}
+              {/* Aspect Ratio Cycler */}
               <button
-                onClick={() => {
-                  const next = !theaterSeatingEnabled;
-                  setTheaterSeatingEnabled(next);
-                  showToast(next ? '💺 Cinema Seating: Visible' : '💺 Cinema Seating: Hidden');
-                }}
-                className={`p-2 rounded-xl transition-all ${
-                  theaterSeatingEnabled 
-                    ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30' 
-                    : 'text-gray-400 hover:text-white hover:bg-white/10'
-                }`}
-                title="Toggle Theater Seating"
+                onClick={cycleAspectRatio}
+                className="px-2.5 py-1.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-xs font-bold text-cyan-300 transition-all flex items-center gap-1 cursor-pointer"
+                title="Cycle Aspect Ratio (1.43, 1.90, Original, 21:9)"
               >
-                <Armchair className="w-4 h-4" />
-              </button>
-
-              {/* Eco Mode / Adaptive Route Button */}
-              <button
-                onClick={() => {
-                  const next = !ecoMode;
-                  setEcoMode(next);
-                  showToast(next ? '🌱 Eco Mode: Enabled (CPU Optimized)' : '⚡ Performance Mode: Active (Dynamic 60FPS)');
-                }}
-                className={`p-2 rounded-xl transition-all ${
-                  ecoMode 
-                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' 
-                    : 'text-gray-400 hover:text-white hover:bg-white/10'
-                }`}
-                title={`Performance Profile: ${hybridDecision.profile.toUpperCase()} • Route: ${hybridDecision.route}`}
-              >
-                <Zap className="w-4 h-4" />
+                <Maximize2 className="w-3.5 h-3.5 text-cyan-400" />
+                <span className="uppercase">{frameAspectRatio}</span>
               </button>
 
               {/* Audio EQ Preset Cycle */}
               <button
                 onClick={cycleAudioPreset}
-                className="hidden sm:flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-gray-300 hover:text-white transition-all"
+                className="hidden sm:flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-xs font-semibold text-purple-300 transition-all cursor-pointer"
                 title="Cycle Audio Preset"
               >
-                <Sliders className="w-3.5 h-3.5 text-cyan-400" />
+                <Sliders className="w-3.5 h-3.5 text-purple-400" />
                 <span className="capitalize">{audioEQ.preset.replace('-', ' ')}</span>
               </button>
 
@@ -1215,7 +1191,7 @@ export function CineMorphTheater() {
                   }
                   showToast(nextCc ? '💬 Subtitles / CC Enabled' : '💬 Subtitles / CC Disabled');
                 }}
-                className={`p-2 rounded-xl transition-all ${
+                className={`p-2 rounded-xl transition-all cursor-pointer ${
                   subtitlesOn ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30' : 'text-gray-400 hover:text-white hover:bg-white/10'
                 }`}
                 title="Toggle Subtitles / CC"
@@ -1223,84 +1199,22 @@ export function CineMorphTheater() {
                 <Captions className="w-4 h-4" />
               </button>
 
-              {/* Playback Speed Cycler */}
-              <button
-                onClick={() => {
-                  const speeds = [1.0, 1.25, 1.5, 2.0, 0.75];
-                  const nextIdx = (speeds.indexOf(speedRate) + 1) % speeds.length;
-                  const nextSpeed = speeds[nextIdx];
-                  setSpeedRate(nextSpeed);
-                  if (isLocalMedia && localVideoRef.current) {
-                    localVideoRef.current.playbackRate = nextSpeed;
-                  } else {
-                    sendIframeCommand('setPlaybackRate', [nextSpeed]);
-                  }
-                  showToast(`⚡ Playback Speed: ${nextSpeed}x`);
-                }}
-                className="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-gray-300 hover:text-white transition-all flex items-center gap-1"
-                title="Cycle Playback Speed"
-              >
-                <Gauge className="w-3.5 h-3.5 text-amber-400" />
-                <span>{speedRate}x</span>
-              </button>
-
-              {/* Audio Language / Track Switcher */}
-              <button
-                onClick={() => {
-                  const tracks = ['Stereo 2.0 (Original)', 'Dolby Surround 5.1', 'Voice Boosted', 'Night Compress'];
-                  const nextIdx = (audioTrackIndex + 1) % tracks.length;
-                  setAudioTrackIndex(nextIdx);
-                  showToast(`🗣️ Audio Track: ${tracks[nextIdx]}`);
-                }}
-                className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-colors hidden sm:block"
-                title="Switch Audio Track / Channel"
-              >
-                <Languages className="w-4 h-4 text-emerald-400" />
-              </button>
-
-              {/* Aspect Ratio Cycler */}
-              <button
-                onClick={cycleAspectRatio}
-                className="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-gray-300 hover:text-white transition-all flex items-center gap-1"
-                title="Cycle Aspect Ratio"
-              >
-                <Maximize2 className="w-3.5 h-3.5 text-purple-400" />
-                <span>{frameAspectRatio}</span>
-              </button>
-
-              {/* Dimmer Cycler */}
-              <button
-                onClick={cycleDimmer}
-                className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
-                title="Ambient Dimmer"
-              >
-                <Sun className="w-4 h-4 text-amber-400" />
-              </button>
-
-              {/* Studio Insights Drawer Toggle */}
+              {/* Studio & Cinema Settings Drawer Toggle */}
               <button
                 onClick={() => setShowStudioDrawer(s => !s)}
-                className={`p-2 rounded-xl transition-all ${
-                  showStudioDrawer ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' : 'text-gray-400 hover:text-white hover:bg-white/10'
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  showStudioDrawer ? 'bg-cyan-500 text-black shadow-lg shadow-cyan-500/30' : 'bg-white/10 text-white hover:bg-white/20'
                 }`}
-                title="AI Cinema Studio & Highlights"
+                title="Open Studio Settings & Cinema Controls"
               >
-                <FileText className="w-4 h-4" />
+                <Sparkles className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Studio</span>
               </button>
 
-              {/* Shortcuts HUD */}
-              <button
-                onClick={() => setShowShortcuts(s => !s)}
-                className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
-                title="Keyboard Shortcuts (?)"
-              >
-                <HelpCircle className="w-4 h-4" />
-              </button>
-
-              {/* Fullscreen */}
+              {/* Fullscreen Toggle */}
               <button
                 onClick={toggleFullscreen}
-                className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+                className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
                 title="Fullscreen (F)"
               >
                 {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
@@ -1316,13 +1230,86 @@ export function CineMorphTheater() {
           <div className="flex items-center justify-between pb-4 border-b border-white/10">
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-cyan-400" />
-              <span className="text-sm font-bold text-white tracking-wide">CineMorph AI Insights</span>
+              <span className="text-sm font-bold text-white tracking-wide">Studio & Cinema Controls</span>
             </div>
             <button 
               onClick={() => setShowStudioDrawer(false)}
               className="p-1 text-gray-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
             >
               <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Quick Cinema Settings & Environment */}
+          <div className="space-y-3 pb-4 border-b border-white/10">
+            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+              <Sliders className="w-3.5 h-3.5 text-cyan-400" />
+              Environment & Playback Tools
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {/* Seating Toggle */}
+              <button
+                onClick={() => {
+                  const next = !theaterSeatingEnabled;
+                  setTheaterSeatingEnabled(next);
+                  showToast(next ? '💺 Cinema Seating: Visible' : '💺 Cinema Seating: Hidden');
+                }}
+                className={`p-2.5 rounded-xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+                  theaterSeatingEnabled ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40' : 'bg-white/5 text-gray-400 border-white/10'
+                }`}
+              >
+                <Armchair className="w-4 h-4" />
+                <span>{theaterSeatingEnabled ? 'Seating On' : 'Seating Off'}</span>
+              </button>
+
+              {/* Speed Rate */}
+              <button
+                onClick={() => {
+                  const speeds = [1.0, 1.25, 1.5, 2.0, 0.75];
+                  const nextIdx = (speeds.indexOf(speedRate) + 1) % speeds.length;
+                  const nextSpeed = speeds[nextIdx];
+                  setSpeedRate(nextSpeed);
+                  if (isLocalMedia && localVideoRef.current) localVideoRef.current.playbackRate = nextSpeed;
+                  else sendIframeCommand('setPlaybackRate', [nextSpeed]);
+                  showToast(`⚡ Speed: ${nextSpeed}x`);
+                }}
+                className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-xs font-semibold text-gray-300 hover:text-white flex items-center gap-2 cursor-pointer"
+              >
+                <Gauge className="w-4 h-4 text-amber-400" />
+                <span>Speed: {speedRate}x</span>
+              </button>
+
+              {/* Eco Mode */}
+              <button
+                onClick={() => {
+                  const next = !ecoMode;
+                  setEcoMode(next);
+                  showToast(next ? '🌱 Eco Mode: Enabled' : '⚡ 60FPS Mode: Active');
+                }}
+                className={`p-2.5 rounded-xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+                  ecoMode ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-white/5 text-gray-400 border-white/10'
+                }`}
+              >
+                <Zap className="w-4 h-4 text-emerald-400" />
+                <span>{ecoMode ? 'Eco Mode' : '60FPS Mode'}</span>
+              </button>
+
+              {/* Dimmer */}
+              <button
+                onClick={cycleDimmer}
+                className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-xs font-semibold text-gray-300 hover:text-white flex items-center gap-2 cursor-pointer"
+              >
+                <Sun className="w-4 h-4 text-amber-400" />
+                <span>Glow: {glowIntensity.toUpperCase()}</span>
+              </button>
+            </div>
+
+            <button
+              onClick={() => { setShowStudioDrawer(false); setShowShortcuts(true); }}
+              className="w-full py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-gray-300 flex items-center justify-center gap-2 transition-all cursor-pointer"
+            >
+              <HelpCircle className="w-3.5 h-3.5 text-cyan-400" />
+              <span>View Keyboard Shortcuts</span>
             </button>
           </div>
 
