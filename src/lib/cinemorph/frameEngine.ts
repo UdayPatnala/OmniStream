@@ -74,9 +74,11 @@ export function calculateFrameStyle(
       paddingTop = '69.93%';
       aspectRatioStyle = '143 / 100';
       if (reframeMode === 'face-priority') {
-        videoScaleTransform = 'scale(1.24) translateY(-4%)';
+        videoScaleTransform = 'scale(1.15) translateY(-3%)';
+      } else if (reframeMode === 'smart-pan-zoom') {
+        videoScaleTransform = 'scale(1.22) translateY(-2%)';
       } else {
-        videoScaleTransform = 'scale(1.18) translateY(-2%)';
+        videoScaleTransform = 'scale(1.0) translateY(0%)';
       }
       cropOverlay = true;
       break;
@@ -85,9 +87,11 @@ export function calculateFrameStyle(
       paddingTop = '52.63%';
       aspectRatioStyle = '190 / 100';
       if (reframeMode === 'face-priority') {
-        videoScaleTransform = 'scale(1.12) translateY(-2%)';
+        videoScaleTransform = 'scale(1.10) translateY(-2%)';
+      } else if (reframeMode === 'smart-pan-zoom') {
+        videoScaleTransform = 'scale(1.18) translateY(0%)';
       } else {
-        videoScaleTransform = 'scale(1.08) translateY(0%)';
+        videoScaleTransform = 'scale(1.0) translateY(0%)';
       }
       cropOverlay = true;
       break;
