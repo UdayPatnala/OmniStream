@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Sparkles, ArrowRight, Play, Film, Clock, Volume2, 
   Maximize2, Zap, HardDrive, UploadCloud, Search, 
-  Compass, ShieldCheck, FileVideo, RefreshCw, X, FolderHeart, ChevronRight
+  Compass, ShieldCheck, FileVideo, RefreshCw, X, FolderHeart, ChevronRight,
+  Clapperboard, Ticket, Disc
 } from 'lucide-react';
 import { useAppStore } from '../store';
 import { playbackService } from '../lib/services/playbackService';
@@ -113,16 +114,46 @@ export function CineMorphLanding() {
 
   return (
     <div className="min-h-screen w-full bg-[#030206] text-white flex flex-col items-center justify-between p-4 sm:p-8 relative overflow-hidden select-none font-sans">
-      {/* Dynamic Ambient Cinema Spotlights */}
+      {/* Dynamic Ambient Cinema Spotlights & Projector Beam */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-gradient-to-tr from-cyan-900/25 via-indigo-900/35 to-purple-900/20 rounded-full blur-[160px] pointer-events-none" />
       <div className="absolute bottom-10 left-10 w-[400px] h-[300px] bg-cyan-600/10 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute top-10 right-10 w-[400px] h-[300px] bg-purple-600/10 rounded-full blur-[120px] pointer-events-none" />
+
+      {/* 🍿 Floating Cinema Props & Animated Film Reels */}
+      <div className="absolute top-16 left-8 sm:left-20 pointer-events-none z-0 opacity-40 animate-pulse">
+        <div className="flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 px-3 py-1.5 rounded-2xl backdrop-blur-md">
+          <span className="text-2xl animate-bounce">🍿</span>
+          <span className="text-[10px] font-bold text-amber-300 tracking-widest uppercase">Fresh Popcorn</span>
+        </div>
+      </div>
+
+      <div className="absolute top-36 right-8 sm:right-24 pointer-events-none z-0 opacity-30">
+        <div className="flex items-center gap-2 bg-cyan-500/10 border border-cyan-500/30 px-3 py-1.5 rounded-2xl backdrop-blur-md">
+          <Disc className="w-6 h-6 text-cyan-400 animate-[spin_12s_linear_infinite]" />
+          <span className="text-[10px] font-bold text-cyan-300 tracking-widest uppercase">35mm Film Reel</span>
+        </div>
+      </div>
+
+      <div className="absolute bottom-20 left-12 pointer-events-none z-0 opacity-30 hidden md:block">
+        <div className="flex items-center gap-2 bg-pink-500/10 border border-pink-500/30 px-3 py-1.5 rounded-2xl backdrop-blur-md">
+          <Ticket className="w-5 h-5 text-pink-400" />
+          <span className="text-[10px] font-bold text-pink-300 tracking-widest uppercase">IMAX VIP Ticket</span>
+        </div>
+      </div>
+
+      <div className="absolute bottom-28 right-16 pointer-events-none z-0 opacity-40">
+        <div className="flex items-center gap-2 bg-purple-500/10 border border-purple-500/30 px-3 py-1.5 rounded-2xl backdrop-blur-md">
+          <Clapperboard className="w-5 h-5 text-purple-400" />
+          <span className="text-[10px] font-bold text-purple-300 tracking-widest uppercase font-mono">SCENE #01</span>
+        </div>
+      </div>
 
       {/* Top Header */}
       <div className="w-full max-w-6xl flex justify-between items-center z-10 py-2">
         <div className="flex items-center gap-3">
           <div className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_12px_rgba(34,211,238,0.8)]" />
-          <span className="text-xs font-bold tracking-widest uppercase text-gray-300">
+          <span className="text-xs font-bold tracking-widest uppercase text-gray-300 flex items-center gap-1.5">
+            <Clapperboard className="w-4 h-4 text-amber-400" />
             CineMorph AI <span className="text-cyan-400">Theater V2</span>
           </span>
         </div>
@@ -130,13 +161,13 @@ export function CineMorphLanding() {
         <div className="flex items-center gap-2 sm:gap-3">
           <button
             onClick={() => navigate('/')}
-            className="px-3.5 py-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-gray-400 hover:text-white transition-all shadow-sm"
+            className="px-3.5 py-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-gray-400 hover:text-white transition-all shadow-sm cursor-pointer"
           >
             ← Experience Selector
           </button>
           <button
             onClick={() => { setVersionMode('v1'); navigate('/home'); }}
-            className="px-3.5 py-1.5 rounded-full bg-red-500/15 hover:bg-red-500/25 border border-red-500/30 text-xs font-semibold text-red-300 hover:text-white transition-all shadow-sm"
+            className="px-3.5 py-1.5 rounded-full bg-red-500/15 hover:bg-red-500/25 border border-red-500/30 text-xs font-semibold text-red-300 hover:text-white transition-all shadow-sm cursor-pointer"
           >
             Enter U-Tube V1
           </button>
@@ -148,7 +179,8 @@ export function CineMorphLanding() {
         <div className="space-y-3">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-bold tracking-widest uppercase shadow-lg shadow-cyan-950/40">
             <Sparkles className="w-4 h-4 text-cyan-400" />
-            Neural Virtual Cinema Hall
+            <span>Neural Virtual Cinema Hall</span>
+            <span className="text-amber-400 ml-1">🍿</span>
           </div>
 
           <h1 className="text-4xl sm:text-6xl md:text-7xl font-black tracking-tight text-white bg-gradient-to-b from-white via-[#f1f5f9] to-cyan-300 bg-clip-text text-transparent drop-shadow-sm">
