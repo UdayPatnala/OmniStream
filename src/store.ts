@@ -123,11 +123,69 @@ interface AppState {
 
   ecoMode: boolean;
   setEcoMode: (eco: boolean) => void;
+
+  watchLater: Video[];
+  addToWatchLater: (video: Video) => void;
+  removeFromWatchLater: (videoId: string) => void;
+  isInWatchLater: (videoId: string) => boolean;
+
+  likedVideos: Video[];
+  toggleLikeVideo: (video: Video) => void;
+  isLikedVideo: (videoId: string) => boolean;
+
+  notInterestedIds: string[];
+  markNotInterested: (videoId: string) => void;
+
+  ignoredChannelIds: string[];
+  markChannelIgnored: (channelId: string) => void;
+
+  watchPositions: Record<string, { videoId: string; timestamp: number; duration: number; updatedAt: number }>;
+  saveWatchPosition: (videoId: string, timestamp: number, duration: number) => void;
+  getWatchPosition: (videoId: string) => { videoId: string; timestamp: number; duration: number; updatedAt: number } | null;
 }
 
 export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
+      watchLater: [],
+      addToWatchLater: (video) => set((state) => ({
+        watchLater: state.watchLater.some(v => v.id === video.id) ? state.watchLater : [video, ...state.watchLater]
+      })),
+      removeFromWatchLater: (videoId) => set((state) => ({
+        watchLater: state.watchLater.filter(v => v.id !== videoId)
+      })),
+      isInWatchLater: (videoId) => get().watchLater.some(v => v.id === videoId),
+
+      likedVideos: [],
+      toggleLikeVideo: (video) => set((state) => {
+        const exists = state.likedVideos.some(v => v.id === video.id);
+        return {
+          likedVideos: exists 
+            ? state.likedVideos.filter(v => v.id !== video.id) 
+            : [video, ...state.likedVideos]
+        };
+      }),
+      isLikedVideo: (videoId) => get().likedVideos.some(v => v.id === videoId),
+
+      notInterestedIds: [],
+      markNotInterested: (videoId) => set((state) => ({
+        notInterestedIds: state.notInterestedIds.includes(videoId) ? state.notInterestedIds : [...state.notInterestedIds, videoId]
+      })),
+
+      ignoredChannelIds: [],
+      markChannelIgnored: (channelId) => set((state) => ({
+        ignoredChannelIds: state.ignoredChannelIds.includes(channelId) ? state.ignoredChannelIds : [...state.ignoredChannelIds, channelId]
+      })),
+
+      watchPositions: {},
+      saveWatchPosition: (videoId, timestamp, duration) => set((state) => ({
+        watchPositions: {
+          ...state.watchPositions,
+          [videoId]: { videoId, timestamp, duration, updatedAt: Date.now() }
+        }
+      })),
+      getWatchPosition: (videoId) => get().watchPositions[videoId] || null,
+
       localMediaHistory: {},
       activeLocalMedia: null,
       addLocalMediaToHistory: (item) => set((state) => ({

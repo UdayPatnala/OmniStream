@@ -1,16 +1,28 @@
 import { useState } from 'react';
 import { useAppStore } from '../store';
 import { VideoCard } from '../components/VideoCard';
-import { FolderHeart, Plus, Trash2, ChevronRight } from 'lucide-react';
+import { FolderHeart, Plus, Trash2, ChevronRight, Clock, ThumbsUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { Video } from '../types';
 
 export function Collections() {
-  const { collections, createCollection, deleteCollection, removeVideoFromCollection } = useAppStore();
+  const { collections, createCollection, deleteCollection, removeVideoFromCollection, watchLater, likedVideos, removeFromWatchLater } = useAppStore();
   const [newCollectionName, setNewCollectionName] = useState('');
   const [showNewForm, setShowNewForm] = useState(false);
-  const [activeCollectionId, setActiveCollectionId] = useState<string | null>(collections[0]?.id || null);
+  const [activeTabId, setActiveTabId] = useState<string>('watch-later');
 
-  const activeCollection = collections.find(c => c.id === activeCollectionId);
+  interface DisplayPlaylist {
+    id: string;
+    name: string;
+    videos: Video[];
+    isSystem?: boolean;
+  }
+
+  const watchLaterCol: DisplayPlaylist = { id: 'watch-later', name: 'Watch Later', videos: watchLater, isSystem: true };
+  const likedCol: DisplayPlaylist = { id: 'liked-videos', name: 'Liked Videos', videos: likedVideos, isSystem: true };
+
+  const allPlaylists: DisplayPlaylist[] = [watchLaterCol, likedCol, ...collections];
+  const activePlaylist = allPlaylists.find(p => p.id === activeTabId) || watchLaterCol;
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,21 +65,27 @@ export function Collections() {
         )}
 
         <div className="space-y-1.5">
-          {collections.map(col => (
+          {allPlaylists.map(col => (
             <button
               key={col.id}
-              onClick={() => setActiveCollectionId(col.id)}
+              onClick={() => setActiveTabId(col.id)}
               className={`w-full flex items-center justify-between p-3 rounded-xl text-left transition-colors ${
-                activeCollectionId === col.id 
+                activeTabId === col.id 
                   ? 'bg-[#272727] text-white font-semibold' 
                   : 'hover:bg-[#272727]/50 text-[#f1f1f1]'
               }`}
             >
               <div className="flex items-center gap-3">
-                <FolderHeart className="w-4 h-4 text-red-500" />
+                {col.id === 'watch-later' ? (
+                  <Clock className="w-4 h-4 text-cyan-400" />
+                ) : col.id === 'liked-videos' ? (
+                  <ThumbsUp className="w-4 h-4 text-purple-400" />
+                ) : (
+                  <FolderHeart className="w-4 h-4 text-red-500" />
+                )}
                 <span className="truncate text-xs">{col.name}</span>
               </div>
-              <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${activeCollectionId === col.id ? 'bg-[#383838]' : 'bg-[#1e1e1e]'}`}>
+              <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${activeTabId === col.id ? 'bg-[#383838]' : 'bg-[#1e1e1e]'}`}>
                 {col.videos.length}
               </span>
             </button>
@@ -77,22 +95,22 @@ export function Collections() {
 
       {/* Main Content Area */}
       <div className="flex-1 min-w-0 bg-[#272727] rounded-2xl p-6 border border-[#383838]">
-        {activeCollection ? (
+        {activePlaylist ? (
           <div className="space-y-6">
             <div className="flex items-center justify-between border-b border-[#383838] pb-4">
               <div>
-                <h1 className="text-2xl font-bold text-[#f1f1f1]">{activeCollection.name}</h1>
+                <h1 className="text-2xl font-bold text-[#f1f1f1]">{activePlaylist.name}</h1>
                 <p className="text-[#aaaaaa] text-xs mt-1">
-                  {activeCollection.videos.length} saved videos
+                  {activePlaylist.videos.length} saved videos
                 </p>
               </div>
               
-              {!['watch-later', 'favorites'].includes(activeCollection.id) && (
+              {!activePlaylist.isSystem && (
                 <button 
                   onClick={() => {
-                    if (confirm(`Delete playlist "${activeCollection.name}"?`)) {
-                      deleteCollection(activeCollection.id);
-                      setActiveCollectionId(collections[0]?.id || null);
+                    if (confirm(`Delete playlist "${activePlaylist.name}"?`)) {
+                      deleteCollection(activePlaylist.id);
+                      setActiveTabId('watch-later');
                     }
                   }}
                   className="p-2 text-[#aaaaaa] hover:text-red-400 hover:bg-white/10 rounded-full transition-colors"
@@ -102,7 +120,7 @@ export function Collections() {
               )}
             </div>
 
-            {activeCollection.videos.length === 0 ? (
+            {activePlaylist.videos.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-[#aaaaaa]">
                 <FolderHeart className="w-16 h-16 mb-4 opacity-20" />
                 <p className="text-sm font-medium">This playlist is empty.</p>
@@ -112,14 +130,18 @@ export function Collections() {
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 gap-y-6">
-                {activeCollection.videos.map(video => (
+                {activePlaylist.videos.map(video => (
                   <div key={video.id} className="relative group">
                     <VideoCard video={video} />
                     <button 
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        removeVideoFromCollection(activeCollection.id, video.id);
+                        if (activePlaylist.id === 'watch-later') {
+                          removeFromWatchLater(video.id);
+                        } else if (!activePlaylist.isSystem) {
+                          removeVideoFromCollection(activePlaylist.id, video.id);
+                        }
                       }}
                       className="absolute top-2 right-2 p-1.5 bg-black/80 text-white hover:bg-red-500 rounded-full opacity-0 group-hover:opacity-100 transition-all z-10"
                       aria-label="Remove from collection"
@@ -131,11 +153,7 @@ export function Collections() {
               </div>
             )}
           </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center h-full text-[#aaaaaa]">
-            <p className="text-sm font-medium">Select a playlist from the left list.</p>
-          </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

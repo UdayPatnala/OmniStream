@@ -5,7 +5,7 @@ import { useAppStore } from '../store';
 
 const mainNavItems = [
   { to: '/', icon: Home, label: 'Home' },
-  { to: '/search?q=trending', icon: Flame, label: 'Trending' },
+  { to: '/shorts', icon: Flame, label: 'Shorts' },
   { to: '/subscriptions', icon: Tv, label: 'Subscriptions' },
 ];
 

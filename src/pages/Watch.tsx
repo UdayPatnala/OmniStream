@@ -28,7 +28,12 @@ export function Watch() {
     setCinemaMode,
     playbackSpeed,
     setPlaybackSpeed,
-    setVersionMode
+    setVersionMode,
+    addToWatchLater,
+    isInWatchLater,
+    toggleLikeVideo,
+    isLikedVideo,
+    saveWatchPosition
   } = useAppStore();
   
   const [video, setVideo] = useState<Video | null>(activeVideo?.id === id ? activeVideo : null);
@@ -274,11 +279,11 @@ export function Watch() {
               {/* Like/Dislike */}
               <div className="flex items-center bg-white/5 rounded-full overflow-hidden border border-white/10">
                 <button 
-                  onClick={() => setLiked(!liked)}
-                  className={`flex items-center gap-2 px-3.5 py-1.5 text-xs font-medium hover:bg-white/10 transition-colors border-r border-white/10 ${liked ? 'text-indigo-400' : 'text-[#f1f1f1]'}`}
+                  onClick={() => video && toggleLikeVideo(video)}
+                  className={`flex items-center gap-2 px-3.5 py-1.5 text-xs font-medium hover:bg-white/10 transition-colors border-r border-white/10 ${id && isLikedVideo(id) ? 'text-indigo-400 font-bold' : 'text-[#f1f1f1]'}`}
                 >
-                  <ThumbsUp className="w-3.5 h-3.5" />
-                  <span>{liked ? '125K' : '124K'}</span>
+                  <ThumbsUp className={`w-3.5 h-3.5 ${id && isLikedVideo(id) ? 'fill-current' : ''}`} />
+                  <span>{id && isLikedVideo(id) ? '125K' : '124K'}</span>
                 </button>
                 <button className="px-3 py-1.5 text-[#f1f1f1] hover:bg-white/10 transition-colors">
                   <ThumbsDown className="w-3.5 h-3.5" />

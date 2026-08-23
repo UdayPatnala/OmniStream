@@ -1,12 +1,12 @@
 import { NavLink } from 'react-router-dom';
-import { Home, Search, Tv, FolderHeart, History } from 'lucide-react';
+import { Home, Flame, Search, Tv, FolderHeart, History } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 const navItems = [
   { to: '/', icon: Home, label: 'Home' },
-  { to: '/search', icon: Search, label: 'Search' },
+  { to: '/shorts', icon: Flame, label: 'Shorts' },
   { to: '/subscriptions', icon: Tv, label: 'Subs' },
-  { to: '/collections', icon: FolderHeart, label: 'Saved' },
+  { to: '/collections', icon: FolderHeart, label: 'Library' },
   { to: '/history', icon: History, label: 'History' },
 ];
 

@@ -106,24 +106,59 @@ export function Search() {
         </div>
       )}
 
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#272727] pb-3">
-        <h1 className="text-lg font-bold text-[#f1f1f1]">Results for "{query}"</h1>
-        
-        {/* Filter Chips */}
-        <div className="flex gap-2">
-          {filterTabs.map(tab => (
-            <button
-              key={tab.type}
-              onClick={() => setActiveFilter(tab.type)}
-              className={`px-3.5 py-1 rounded-lg text-xs font-semibold transition-colors ${
-                activeFilter === tab.type
-                  ? 'bg-white text-black font-bold'
-                  : 'bg-[#272727] text-[#f1f1f1] hover:bg-[#3f3f3f]'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+      <div className="flex flex-col gap-3 border-b border-[#272727] pb-3">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <h1 className="text-lg font-bold text-[#f1f1f1]">Results for "{query}"</h1>
+          
+          {/* Main Content Type Filter Chips */}
+          <div className="flex flex-wrap gap-2">
+            {filterTabs.map(tab => (
+              <button
+                key={tab.type}
+                onClick={() => setActiveFilter(tab.type)}
+                className={`px-3.5 py-1 rounded-lg text-xs font-semibold transition-colors ${
+                  activeFilter === tab.type
+                    ? 'bg-white text-black font-bold'
+                    : 'bg-[#272727] text-[#f1f1f1] hover:bg-[#3f3f3f]'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Secondary Specification Filters (Upload Date, Duration, Sort By) */}
+        <div className="flex flex-wrap items-center gap-3 pt-1 text-xs text-gray-400">
+          <span className="font-bold text-gray-300">Filters:</span>
+          
+          <select 
+            className="bg-[#1f1e29] border border-white/10 text-xs text-gray-200 rounded-lg px-2.5 py-1 focus:outline-none focus:border-cyan-500"
+            defaultValue="all"
+          >
+            <option value="all">Any Upload Date</option>
+            <option value="today">Today</option>
+            <option value="week">This Week</option>
+            <option value="month">This Month</option>
+          </select>
+
+          <select 
+            className="bg-[#1f1e29] border border-white/10 text-xs text-gray-200 rounded-lg px-2.5 py-1 focus:outline-none focus:border-cyan-500"
+            defaultValue="all"
+          >
+            <option value="all">Any Duration</option>
+            <option value="short">Short (&lt; 4 mins)</option>
+            <option value="long">Long (&gt; 20 mins)</option>
+          </select>
+
+          <select 
+            className="bg-[#1f1e29] border border-white/10 text-xs text-gray-200 rounded-lg px-2.5 py-1 focus:outline-none focus:border-cyan-500"
+            defaultValue="relevance"
+          >
+            <option value="relevance">Sort by Relevance</option>
+            <option value="date">Sort by Date</option>
+            <option value="viewCount">Sort by View Count</option>
+          </select>
         </div>
       </div>
 

@@ -47,6 +47,21 @@ export interface Playlist {
 
 export type SearchFilterType = 'all' | 'video' | 'channel' | 'playlist';
 
+export interface SearchFilterOptions {
+  uploadDate?: 'all' | 'hour' | 'today' | 'week' | 'month' | 'year';
+  duration?: 'all' | 'short' | 'long';
+  sortBy?: 'relevance' | 'date' | 'viewCount' | 'rating';
+}
+
+export type NotificationBellPreference = 'all' | 'personalized' | 'none';
+
+export interface WatchPosition {
+  videoId: string;
+  timestamp: number;
+  duration: number;
+  updatedAt: number;
+}
+
 export interface SearchResult {
   id: string;
   type: 'video' | 'channel' | 'playlist';
