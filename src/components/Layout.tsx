@@ -32,7 +32,7 @@ export function Layout({ children }: { children: ReactNode }) {
 
   if (isFullViewport) {
     return (
-      <div className="w-screen min-h-screen bg-[#030208] overflow-y-auto">
+      <div className="w-full max-w-full min-h-screen bg-[#030208] overflow-y-auto overflow-x-hidden hide-scrollbar">
         {children}
       </div>
     );
@@ -41,7 +41,7 @@ export function Layout({ children }: { children: ReactNode }) {
 
   // V1 Standard U-Tube Media Workspace
   return (
-    <div className="flex flex-col h-screen w-screen bg-[#0f0f0f] text-[#f1f1f1] font-sans overflow-hidden select-none relative">
+    <div className="flex flex-col h-screen w-full max-w-full bg-[#0f0f0f] text-[#f1f1f1] font-sans overflow-hidden select-none relative">
       <Header toggleSidebar={() => setCollapsed(!collapsed)} />
       
       <div className="flex flex-1 min-h-0 overflow-hidden relative">
