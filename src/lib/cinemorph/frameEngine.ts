@@ -22,6 +22,20 @@ export function calculateFrameStyle(
   let aspectRatioStyle = '16 / 9';
 
   switch (aspectRatio) {
+    case 'original':
+      paddingTop = '56.25%';
+      aspectRatioStyle = '16 / 9';
+      videoScaleTransform = 'scale(1.0) translate(0px, 0px)';
+      cropOverlay = false;
+      break;
+
+    case 'auto':
+      paddingTop = '48%';
+      aspectRatioStyle = '19.5 / 9';
+      videoScaleTransform = 'scale(1.18) translateY(-3%)';
+      cropOverlay = true;
+      break;
+
     case '21:9':
       paddingTop = '42.85%';
       aspectRatioStyle = '21 / 9';
@@ -32,7 +46,7 @@ export function calculateFrameStyle(
       } else if (reframeMode === 'smart-pan-zoom') {
         videoScaleTransform = 'scale(1.42) translateY(2%)';
       } else {
-        videoScaleTransform = 'scale(1.33)';
+        videoScaleTransform = 'scale(1.33) translateY(-2%)';
       }
       cropOverlay = true;
       break;
@@ -52,14 +66,19 @@ export function calculateFrameStyle(
     case '1:1':
       paddingTop = '100%';
       aspectRatioStyle = '1 / 1';
-      videoScaleTransform = 'scale(1.35) translateY(0%)';
+      videoScaleTransform = 'scale(1.35) translateY(-3%)';
       cropOverlay = true;
       break;
 
     case '4.3:1':
       paddingTop = '23.255%';
       aspectRatioStyle = '43 / 10';
-      videoScaleTransform = 'scale(1.0) translateY(0%)';
+      if (reframeMode === 'face-priority') {
+        videoScaleTransform = 'scale(1.45) translateY(-5%)';
+      } else {
+        videoScaleTransform = 'scale(1.35) translateY(-2%)';
+      }
+      cropOverlay = true;
       break;
 
     case '16:9':
@@ -78,6 +97,8 @@ export function calculateFrameStyle(
 
   return {
     containerAspectClass: 
+      aspectRatio === 'original' ? 'aspect-video' :
+      aspectRatio === 'auto' ? 'aspect-[19.5/9]' :
       aspectRatio === '21:9' ? 'aspect-[21/9]' : 
       aspectRatio === '4:3' ? 'aspect-[4/3]' : 
       aspectRatio === '1:1' ? 'aspect-square' : 

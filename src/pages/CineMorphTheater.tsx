@@ -556,11 +556,20 @@ export function CineMorphTheater() {
   };
 
   const cycleAspectRatio = () => {
-    const ratios: FrameAspectRatio[] = ['16:9', '21:9', '4:3', '1:1', '4.3:1'];
+    const ratios: FrameAspectRatio[] = ['original', 'auto', '16:9', '21:9', '4:3', '1:1', '4.3:1'];
     const currentIdx = ratios.indexOf(frameAspectRatio);
     const nextRatio = ratios[(currentIdx + 1) % ratios.length];
     setFrameAspectRatio(nextRatio);
-    showToast(`🎬 Viewport Reframe: ${nextRatio === '21:9' ? '21:9 UltraWide Cinema' : nextRatio === '4.3:1' ? '4.3:1 IMAX Aspect Ratio' : nextRatio}`);
+    const label = nextRatio === 'original' 
+      ? 'Original (16:9 Native)' 
+      : nextRatio === 'auto' 
+      ? 'Auto Best Fit (AI Face Center)' 
+      : nextRatio === '21:9' 
+      ? '21:9 UltraWide Cinema' 
+      : nextRatio === '4.3:1' 
+      ? '4.3:1 IMAX Super-Panoramic' 
+      : nextRatio;
+    showToast(`🎬 Viewport Reframe: ${label}`);
   };
 
   const cycleTheme = () => {
