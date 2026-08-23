@@ -642,16 +642,16 @@ export function CineMorphTheater() {
       onMouseMove={resetControlsTimer}
       onTouchStart={resetControlsTimer}
     >
-      {/* ── Dynamic Ambient Bloom (Ambilight) ── */}
+      {/* ── Dynamic Reactive Ambilight Bloom (Auditorium Ambient Glow) ── */}
       {presentationMode === 'cinema' && glowIntensity !== 'off' && (
         <div
-          className="absolute inset-0 pointer-events-none transition-all duration-1000 z-0"
+          className="absolute inset-0 pointer-events-none transition-all duration-700 z-0"
           style={{
-            background: dynamicBloomColor 
-              ? `radial-gradient(ellipse at center, ${dynamicBloomColor} 0%, rgba(3,2,6,0.85) 75%)`
-              : currentThemeConfig.glowGradient,
-            filter: currentThemeConfig.glowBlur,
-            opacity: theaterState === 'playing' ? (glowIntensity === 'ultra' ? 0.9 : 0.6) : 0.35,
+            background: `radial-gradient(ellipse at center, ${
+              dynamicBloomColor || adaptiveDecision.ambientLight.lowpassColor || 'rgba(34, 211, 238, 0.45)'
+            } 0%, rgba(3, 2, 8, 0.88) 78%)`,
+            filter: 'blur(75px)',
+            opacity: theaterState === 'playing' ? (glowIntensity === 'ultra' ? 0.95 : 0.75) : 0.4,
             transform: 'translate3d(0, 0, 0)',
           }}
         />
