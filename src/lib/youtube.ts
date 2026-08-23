@@ -289,7 +289,7 @@ export async function searchVideos(
   return { results: searchResults };
 }
 
-export async function getRelatedVideos(videoId: string): Promise<Video[]> {
+export async function getRelatedVideos(videoId: string, targetTitle?: string): Promise<Video[]> {
   try {
     const data = await fetchAPI('/search', {
       part: 'snippet',
@@ -299,10 +299,23 @@ export async function getRelatedVideos(videoId: string): Promise<Video[]> {
     });
 
     if (data && data.items) {
-      const videoIds = (data.items || []).map((item: any) => item.id.videoId).filter(Boolean);
+      const videoIds = (data.items || []).map((item: any) => item.id?.videoId).filter(Boolean);
       if (videoIds.length > 0) {
         const fetched = await getVideosByIds(videoIds);
         if (fetched.length > 0) return fetched;
+      }
+    }
+  } catch (e) {}
+
+  // Fallback: Query searchVideos using extracted keywords from the video title/ID
+  try {
+    const queryTerm = targetTitle ? targetTitle.split(/\s+/).slice(0, 3).join(' ') : '4K cinematic';
+    const searchRes = await searchVideos(queryTerm);
+    if (searchRes.results.length > 0) {
+      const ids = searchRes.results.map(r => r.id).filter(id => id !== videoId);
+      if (ids.length > 0) {
+        const rich = await getVideosByIds(ids.slice(0, 8));
+        if (rich.length > 0) return rich;
       }
     }
   } catch (e) {}

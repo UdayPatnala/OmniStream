@@ -104,7 +104,7 @@ export function CineMorphTheater() {
     setTheaterState('playing');
     setPlaying(true);
     setNextUpCountdown(null);
-    getRelatedVideos(id).then(vids => {
+    getRelatedVideos(id, video?.title || '').then(vids => {
       setRecommendations(vids.slice(0, 4));
     }).catch(() => {});
   }, [id]);

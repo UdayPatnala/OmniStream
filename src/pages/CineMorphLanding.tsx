@@ -225,6 +225,35 @@ export function CineMorphLanding() {
               </div>
             </form>
 
+            {/* Featured Channel Selector Hub */}
+            <div className="space-y-3 pt-2">
+              <div className="flex items-center justify-between text-xs text-gray-400 px-1 font-bold uppercase tracking-wider">
+                <span>Select Channel / Category First</span>
+                <span className="text-[10px] text-cyan-400">Filter Videos by Channel</span>
+              </div>
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                {[
+                  { id: 'veritasium', name: 'Veritasium', icon: '🧪', query: 'Veritasium' },
+                  { id: 'mkbhd', name: 'MKBHD', icon: '📱', query: 'Marques Brownlee' },
+                  { id: 'lofigirl', name: 'Lofi Girl', icon: '🎧', query: 'Lofi Girl' },
+                  { id: 'natgeo', name: 'Nat Geo', icon: '🌍', query: 'National Geographic' },
+                  { id: 'ted', name: 'TED Talks', icon: '💡', query: 'TED Talks' },
+                  { id: 'f1', name: 'Formula 1', icon: '🏎️', query: 'Formula 1' },
+                  { id: 'traversy', name: 'Traversy Media', icon: '💻', query: 'Traversy Media' },
+                  { id: 'bbcearth', name: 'BBC Earth', icon: '🦁', query: 'BBC Earth' },
+                ].map((chan) => (
+                  <button
+                    key={chan.id}
+                    onClick={() => handleEnterCinema(undefined, chan.query)}
+                    className="px-3.5 py-1.5 rounded-full bg-[#12101f] hover:bg-cyan-500/20 border border-white/10 hover:border-cyan-500/40 text-xs font-semibold text-gray-300 hover:text-white transition-all flex items-center gap-1.5 cursor-pointer shadow-sm hover:scale-105"
+                  >
+                    <span>{chan.icon}</span>
+                    <span>{chan.name}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* Curated Showcase Grid */}
             <div className="space-y-3 pt-2">
               <div className="flex items-center justify-between text-xs text-gray-400 px-1 font-semibold uppercase tracking-wider">
@@ -236,7 +265,7 @@ export function CineMorphLanding() {
                   <button
                     key={item.id}
                     onClick={() => handleEnterCinema(undefined, item.id)}
-                    className="p-3 rounded-2xl bg-[#0e0d16]/80 hover:bg-[#151322] border border-white/5 hover:border-cyan-500/40 text-left transition-all duration-200 group flex flex-col justify-between h-24 hover:scale-[1.02] shadow-md"
+                    className="p-3 rounded-2xl bg-[#0e0d16]/80 hover:bg-[#151322] border border-white/5 hover:border-cyan-500/40 text-left transition-all duration-200 group flex flex-col justify-between h-24 hover:scale-[1.02] shadow-md cursor-pointer"
                   >
                     <div className="text-[10px] font-bold tracking-wider text-cyan-400 uppercase bg-cyan-950/60 px-2 py-0.5 rounded-full border border-cyan-500/20 w-fit">
                       {item.tag}

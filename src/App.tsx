@@ -59,7 +59,7 @@ export default function App() {
           <Route path="/cinemorph" element={<CineMorphLanding />} />
           <Route path="/theater/:id" element={<CineMorphTheater />} />
           <Route path="/search" element={<Search />} />
-          <Route path="/shorts" element={<Shorts />} />
+          <Route path="/shorts" element={<Home />} />
           <Route path="/watch/:id" element={<WatchRouter />} />
           <Route path="/subscriptions" element={<Subscriptions />} />
           <Route path="/collections" element={<Collections />} />
