@@ -449,8 +449,16 @@ export function CineMorphTheater() {
     const nextPreset = presets[(currentIdx + 1) % presets.length];
     const newConfig = audioEngine.getPresetConfig(nextPreset);
     setAudioEQ(newConfig);
+    if (isLocalMedia && localVideoRef.current) {
+      audioEngine.init(localVideoRef.current);
+    }
     audioEngine.applyConfig(newConfig);
-    showToast(`🎧 Audio Studio: ${nextPreset.toUpperCase().replace('-', ' ')}`);
+    const detail = newConfig.bassBoost > 0 
+      ? `+${newConfig.bassBoost}dB Bass Boost` 
+      : newConfig.dialogueClarity > 0 
+      ? `+${newConfig.dialogueClarity}dB Vocal Boost` 
+      : 'Original Curve';
+    showToast(`🎧 Audio Studio: ${nextPreset.toUpperCase().replace('-', ' ')} (${detail})`);
   };
 
   const cycleAspectRatio = () => {
@@ -531,8 +539,20 @@ export function CineMorphTheater() {
         />
       )}
 
+      {/* ── Top-Right Fullscreen Header Badge ── */}
+      <div className={`absolute top-4 right-6 z-30 transition-opacity duration-300 ${controlsVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+        <button
+          onClick={toggleFullscreen}
+          className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-950/80 hover:bg-indigo-900 border border-indigo-500/40 text-xs font-bold text-indigo-300 shadow-xl shadow-indigo-950/50 backdrop-blur-md transition-all hover:scale-105 active:scale-95"
+          title="Toggle Fullscreen Cinema Hall (Hotkey: F)"
+        >
+          {isFullscreen ? <Minimize className="w-3.5 h-3.5 text-cyan-400" /> : <Maximize className="w-3.5 h-3.5 text-cyan-400" />}
+          <span>{isFullscreen ? 'Exit Fullscreen' : 'Fullscreen Cinema'}</span>
+        </button>
+      </div>
+
       {/* ── Grand IMAX Laser Cinema Auditorium Architectural Layers ── */}
-      {presentationMode === 'cinema' && !isFullscreen && (
+      {presentationMode === 'cinema' && (
         <>
           {/* Ceiling Arch Starfield & Scalloped Halogen Spotlights (matching IMAX reference) */}
           <div className="absolute top-0 inset-x-0 h-36 bg-gradient-to-b from-black via-black/80 to-transparent pointer-events-none z-1 flex flex-col justify-start items-center pt-1 overflow-hidden opacity-95">
@@ -622,12 +642,13 @@ export function CineMorphTheater() {
 
       {/* ── The Cinema Screen Container ── */}
       <div
-        className={`relative w-full transition-all duration-700 ${
+        className={`relative transition-all duration-700 ${
           isFullscreen
-            ? 'h-full w-full'
-            : `max-w-[94vw] max-h-[80vh] ${frameStyle.containerAspectClass}`
+            ? 'max-h-[86vh] max-w-[96vw]'
+            : 'w-full max-w-[94vw] max-h-[78vh]'
         } flex items-center justify-center z-10 overflow-hidden shadow-2xl border border-white/10 bg-black`}
         style={{
+          aspectRatio: frameStyle.aspectRatioStyle,
           filter: presentationMode === 'cinema' ? 'brightness(1.03) contrast(1.02)' : 'none',
           borderRadius: presentationMode === 'cinema' ? '6px 6px 36px 36px / 6px 6px 12px 12px' : '8px',
           transform: presentationMode === 'cinema' ? 'perspective(1200px) rotateX(1deg)' : 'none',
@@ -672,6 +693,10 @@ export function CineMorphTheater() {
                   setDuration(localVideoRef.current.duration || 0);
                   setTheaterState('playing');
                   setPlaying(true);
+                  try {
+                    audioEngine.init(localVideoRef.current);
+                    audioEngine.applyConfig(audioEQ);
+                  } catch (e) {}
                 }
               }}
               onEnded={() => {
@@ -727,7 +752,7 @@ export function CineMorphTheater() {
       </div>
 
       {/* ── 2.5D Tiered Theater Seating with Center Aisle (matching reference) ── */}
-      {theaterSeatingEnabled && !isFullscreen && (
+      {theaterSeatingEnabled && (
         <div className="absolute bottom-0 inset-x-0 h-24 sm:h-36 pointer-events-none z-15 flex flex-col justify-end items-center px-2 sm:px-6 overflow-hidden opacity-95">
           {/* Back Tier Row */}
           <div className="w-full max-w-5xl flex justify-between items-end gap-1 mb-1 opacity-50 scale-95">

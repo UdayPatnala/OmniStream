@@ -123,20 +123,21 @@ class CineMorphAudioEngine {
     }
 
     if (this.compressor) {
-      this.compressor.ratio.value = config.drcLoudness ? 8 : 1;
+      this.compressor.ratio.value = config.drcLoudness ? 12 : 1;
+      this.compressor.threshold.value = config.drcLoudness ? -28 : -50;
     }
   }
 
   public getPresetConfig(preset: AudioPreset): AudioEQConfig {
     switch (preset) {
       case 'dialogue-boost':
-        return { preset, bassBoost: 2, dialogueClarity: 10, trebleShine: 4, surround3D: true, drcLoudness: true };
+        return { preset, bassBoost: -4, dialogueClarity: 18, trebleShine: 8, surround3D: true, drcLoudness: true };
       case 'bass-heavy':
-        return { preset, bassBoost: 12, dialogueClarity: 2, trebleShine: 2, surround3D: true, drcLoudness: false };
+        return { preset, bassBoost: 20, dialogueClarity: 2, trebleShine: 4, surround3D: true, drcLoudness: false };
       case 'spatial-3d':
-        return { preset, bassBoost: 5, dialogueClarity: 6, trebleShine: 7, surround3D: true, drcLoudness: true };
+        return { preset, bassBoost: 8, dialogueClarity: 10, trebleShine: 14, surround3D: true, drcLoudness: true };
       case 'night-compression':
-        return { preset, bassBoost: 0, dialogueClarity: 6, trebleShine: 0, surround3D: false, drcLoudness: true };
+        return { preset, bassBoost: -6, dialogueClarity: 12, trebleShine: -2, surround3D: false, drcLoudness: true };
       case 'original':
       default:
         return { preset, bassBoost: 0, dialogueClarity: 0, trebleShine: 0, surround3D: false, drcLoudness: false };
