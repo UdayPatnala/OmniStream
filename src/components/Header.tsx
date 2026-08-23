@@ -83,17 +83,12 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
         return;
       }
 
-      if (instantAutoPlay) {
-        // Execute fully automated Search -> Rank -> Validate -> Auto-Play Pipeline
-        await playbackService.executePipeline(finalQuery, navigate);
-      } else {
-        const directVideoId = extractYouTubeId(finalQuery);
-        if (directVideoId) {
-          navigate(`/watch/${directVideoId}`);
-          return;
-        }
-        navigate(`/search?q=${encodeURIComponent(finalQuery)}`);
+      const directVideoId = extractYouTubeId(finalQuery);
+      if (directVideoId) {
+        navigate(`/watch/${directVideoId}`);
+        return;
       }
+      navigate(`/search?q=${encodeURIComponent(finalQuery)}`);
     }
   };
 

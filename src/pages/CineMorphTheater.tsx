@@ -96,9 +96,13 @@ export function CineMorphTheater() {
   const [recommendations, setRecommendations] = useState<Video[]>([]);
   const [nextUpCountdown, setNextUpCountdown] = useState<number | null>(null);
 
-  // Fetch recommendations for end-screen spotlight
+  // Fetch recommendations & reset player state on video ID change
   useEffect(() => {
     if (!id) return;
+    setPlayed(0);
+    setTheaterState('playing');
+    setPlaying(true);
+    setNextUpCountdown(null);
     getRelatedVideos(id).then(vids => {
       setRecommendations(vids.slice(0, 4));
     }).catch(() => {});
