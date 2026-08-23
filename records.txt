@@ -8,8 +8,8 @@ Architect & Principal Lead Engineer: Patnala Uday Kumar (UdayPatnala)
 GitHub Repository: https://github.com/UdayPatnala/OmniStream.git
 Live Production URI: https://0mn1stream.vercel.app
 Local Root Directory: D:\PROJECT\AROH Open Source\Products\OmniStream
-Record Document Specification: Level 5 Master Encyclopedia (Exhaustive Line-by-Line Technical Manifest)
-Generated Timestamp: 2026-08-23T13:51:00+05:30
+Record Document Specification: Level 10 Maximum Encyclopedia Manifest
+Generated Timestamp: 2026-08-23T13:55:00+05:30
 
 ====================================================================================================================================================
 TABLE OF CONTENTS & MASTER INDEX
@@ -21,9 +21,13 @@ TABLE OF CONTENTS & MASTER INDEX
   5. WEB AUDIO DSP NEURAL AUDIO ENGINE & BIQUAD EQUALIZER PIPELINE
   6. DISCOVERY SERVICES, PLAYBACK PIPELINE & CACHE DEDUPLICATION MANAGER
   7. ZERO-TRUST SECURITY GATEWAY & CLIENT AI MODEL REGISTRY
-  8. COMPLETE CODEBASE SYMBOL DIRECTORY & FILE-BY-FILE MANIFEST
+  8. COMPREHENSIVE CODEBASE SYMBOL DIRECTORY & FILE-BY-FILE MANIFEST
   9. EXHAUSTIVE BUG LOG, DIAGNOSTIC HISTORY & ROOT-CAUSE RESOLUTIONS
  10. AUTOMATED TEST MATRIX (74/74 PASSED) & PRODUCTION TELEMETRY
+ 11. DEEP SUBSYSTEM ARCHITECTURAL SPECIFICATIONS & DATA FLOW SCHEMAS
+ 12. PERFORMANCE ENGINE, MEMORY OPTIMIZATIONS & BUNDLE PROFILING
+ 13. ACCESSIBILITY, KEYBOARD HUD MATRIX & INTERNATIONALIZATION ENGINE
+ 14. LOCAL MEDIA ENGINE & CANVAS FRAME ANALYZER PIPELINE
 
 ====================================================================================================================================================
 SECTION 1: EXECUTIVE PRODUCT STRATEGY, PHILOSOPHY & MOTIVE BOUNDARIES
@@ -140,11 +144,22 @@ SECTION 4: CINEMORPH V2 ADAPTIVE LARGE-FORMAT INTELLIGENT SCREEN ENGINE (192-SEC
 The screen container presents a fixed visible aperture mask. The video element sits behind the mask.
 CSS transforms (`scale`, `translateX`, `translateY`) move the video plane behind the aperture window to frame subjects accurately without cropping out vital content.
 
-4.2 PRESENTATION MODES & APERTURE RATIOS
-1. `MODE_A: ORIGINAL`: Native source aspect ratio (`16:9`, `2.39:1`, `4:3`). `scale(1.0) translateY(0%)`. Zero ML crop.
-2. `MODE_B: LARGE_FORMAT_1_43`: Aperture aspect `1.43:1` (`aspect-[143/100]`). Center mode: `scale(1.0) translateY(0%)`; Face-priority mode: `scale(1.15) translateY(-3%)`.
-3. `MODE_C: LARGE_FORMAT_1_90`: Aperture aspect `1.90:1` (`aspect-[190/100]`). Center mode: `scale(1.0) translateY(0%)`; Face-priority mode: `scale(1.10) translateY(-2%)`.
-4. `MODE_D: 21:9`: Aperture aspect `21 / 9`. Center mode: `scale(1.33) translateY(0%)`; Face-priority mode: `scale(1.35) translateY(-4%)`.
+4.2 MATHEMATICAL PROOF OF APERTURE SCALING & RATIOS
+To fill an aperture window without inner letterbox or pillarbox bars inside the player, the scale factor is mathematically derived from the ratio between the source aspect ratio ($A_{src} = 16/9 = 1.7777$) and the aperture ratio ($A_{aperture}$):
+
+1. `MODE_A: ORIGINAL`: Aspect Ratio `16 / 9` ($1.7777$). Scale = $1.0$. Zero cropping, zero scaling.
+2. `MODE_B: LARGE_FORMAT_1_43`: Aperture Aspect Ratio `143 / 100` ($1.4300$).
+   $$\text{Scale Factor} = \frac{16/9}{1.43} = \frac{1.7777}{1.4300} = \mathbf{1.25}$$
+   - Center Mode: `scale(1.25) translateY(0%)`. Fills 100% of the 1.43:1 vertical aperture height cleanly without inner black bars.
+   - Face-Priority Mode: `scale(1.28) translateY(-3%)`.
+3. `MODE_C: LARGE_FORMAT_1_90`: Aperture Aspect Ratio `190 / 100` ($1.9000$).
+   $$\text{Scale Factor} = \frac{1.9000}{16/9} = \frac{1.9000}{1.7777} = \mathbf{1.08}$$
+   - Center Mode: `scale(1.08) translateY(0%)`. Fills 100% of the 1.90:1 widescreen aperture width cleanly.
+   - Face-Priority Mode: `scale(1.12) translateY(-2%)`.
+4. `MODE_D: 21:9`: Aperture Aspect Ratio `21 / 9` ($2.3333$).
+   $$\text{Scale Factor} = \frac{21/9}{16/9} = \frac{2.3333}{1.7777} = \mathbf{1.33}$$
+   - Center Mode: `scale(1.33) translateY(0%)`. Fills 100% of the 21:9 UltraWide aperture width.
+   - Face-Priority Mode: `scale(1.35) translateY(-4%)`.
 
 4.3 CANDIDATE WINDOW SCORER & COST EQUATION
 Total Candidate Cost = ContentLoss + FaceLoss + TextLoss + SubtitleLoss + CompositionLoss + TransitionCost
@@ -170,7 +185,7 @@ Source Node -> Bass Biquad Filter (Lowshelf 150Hz) -> Dialogue Biquad Filter (Pe
 | night-compression | -6 dB      | +12 dB           | -2 dB        | Disabled    | Thresh: -24dB, R:12|
 | original          | 0 dB       | 0 dB             | 0 dB         | Disabled    | Thresh: 0dB, R:1:1 |
 +-------------------+------------+------------------+--------------+-------------+--------------------+
-Note: The `original` preset sets compressor threshold to `0dB` (0% attenuation) and ratio to `1:1`, ensuring bit-exact native volume.
+Note: The `original` preset sets compressor threshold to `0dB` (0% attenuation) and ratio to `1:1`, guaranteeing bit-exact native volume.
 
 ====================================================================================================================================================
 SECTION 6: DISCOVERY SERVICES, PLAYBACK PIPELINE & CACHE DEDUPLICATION MANAGER
@@ -285,6 +300,10 @@ Bug #7: Replaying Movie Preserved End Watch Position
   - Root Cause: Replay click handler set `played = 0`, but did not update `watchPositions[id]` in localStorage.
   - Resolution: Added explicit `saveWatchPosition(id, 0, duration)` and `addToHistory(video, 0, duration)` calls to the Replay handler.
 
+Bug #8: Tiny Video Box Inside 1.43:1 and 1.90:1 Aperture Containers
+  - Root Cause: 16:9 YouTube video elements inside 1.43:1 aperture containers left inner black letterbox bars inside the player when unscaled (`scale(1.0)`).
+  - Resolution: Updated scale formulas in `frameEngine.ts` and `adaptiveCinemaEngine.ts` to `scale(1.25)` for 1.43:1 and `scale(1.08)` for 1.90:1, filling the aperture window completely.
+
 ====================================================================================================================================================
 SECTION 10: AUTOMATED TEST MATRIX (74/74 PASSED) & PRODUCTION TELEMETRY
 ====================================================================================================================================================
@@ -309,7 +328,73 @@ Automated Test Suite Matrix (74 / 74 Tests Passed):
 
 Production Build Metrics (`npm run build`):
 - TypeScript Verification: 0 Errors
-- Rollup Bundle Output: Cleanly emitted to `dist/` in 7.36s.
+- Rollup Bundle Output: Cleanly emitted to `dist/` in 8.19s.
+
+====================================================================================================================================================
+SECTION 11: DEEP SUBSYSTEM ARCHITECTURAL SPECIFICATIONS & DATA FLOW SCHEMAS
+====================================================================================================================================================
+
+11.1 ZUSTAND GLOBAL STATE SCHEMAS (`src/store.ts`)
+The application state is centralized using Zustand with LocalStorage persistence under the key `'cinemorph-utube-storage'`.
+
+State Schema Breakdown:
+- `activeVideo`: Currently active video item (`Video | null`).
+- `playlist`: Current playback queue array (`Video[]`).
+- `currentIndex`: Active index inside queue (`number`).
+- `history`: Watch history dictionary (`Record<string, HistoryItem>`).
+- `localMediaHistory`: Local uploaded file history (`Record<string, LocalMediaItem>`).
+- `activeLocalMedia`: Active local file (`LocalMediaItem | null`).
+- `watchPositions`: Timestamp tracking dictionary (`Record<string, WatchPosition>`).
+- `subscriptions`: Channel subscription list (`Channel[]`).
+- `collections`: User custom collections & playlists (`Collection[]`).
+- `likedVideoIds`: Set of liked video IDs (`string[]`).
+- `watchLaterIds`: Set of Watch Later video IDs (`string[]`).
+- `notInterestedIds`: Filter set of hidden recommendation IDs (`string[]`).
+- `versionMode`: App mode (`'v1' | 'v2'`).
+- `rootLandingPreference`: Gateway preference (`'ask' | 'v1' | 'v2'`).
+- `cinemorphTheme`: Active auditorium theme (`CineMorphTheme`).
+- `glowIntensity`: Ambilight bloom scale (`'off' | 'low' | 'medium' | 'ultra'`).
+- `frameAspectRatio`: Active aperture ratio (`'original' | '1.43:1' | '1.90:1' | '21:9'`).
+- `reframeMode`: Framing mode (`'center' | 'face-priority' | 'smart-pan-zoom'`).
+- `audioEQ`: Audio DSP configuration (`AudioEQConfig`).
+- `devicePerformance`: Hardware profile (`'low' | 'balanced' | 'high'`).
+
+====================================================================================================================================================
+SECTION 12: PERFORMANCE ENGINE, MEMORY OPTIMIZATIONS & BUNDLE PROFILING
+====================================================================================================================================================
+
+12.1 CODE-SPLITTING & LAZY ROUTE BUNDLES (`src/App.tsx`)
+- All major views use React `lazy()` and `Suspense` for route-level code splitting.
+- Prevents loading theater or heavy AI code bundles when browsing the main feed.
+
+12.2 ANIMATION & TRANSITION PERFORMANCE
+- Hardware Accelerated CSSTransforms: Uses `transform: translate3d(...)` and `will-change: transform`.
+- Backdrop Blur Optimization: Uses `backdrop-blur-2xl` only on supported GPU viewports, falling back gracefully on low-end mobile.
+
+====================================================================================================================================================
+SECTION 13: ACCESSIBILITY, KEYBOARD HUD MATRIX & INTERNATIONALIZATION ENGINE
+====================================================================================================================================================
+
+13.1 KEYBOARD SHORTCUTS MATRIX (`CineMorphTheater.tsx`)
+- `Space` / `KeyK`: Toggle Play / Pause.
+- `KeyF`: Toggle Fullscreen.
+- `KeyM`: Toggle Mute.
+- `KeyA`: Cycle Aspect Ratio (`original` -> `1.43:1` -> `1.90:1` -> `21:9`).
+- `KeyE`: Cycle Audio Preset (`dialogue-boost` -> `spatial-3d` -> `bass-heavy` -> `night-compression` -> `original`).
+- `KeyT`: Cycle Theater Ambient Theme (`imax-ultra` -> `cyberpunk-oled` -> `cinematic-dark` -> `golden-hour` -> `glassmorphic-neon`).
+- `KeyG`: Cycle Ambilight Dimmer (`ultra` -> `medium` -> `low` -> `off`).
+- `KeyC`: Toggle Presentation Mode (`cinema` -> `original`).
+- `Shift + /` or `KeyH`: Toggle Shortcuts HUD overlay.
+- `Escape`: Close shortcuts HUD / Studio Drawer or Exit Theater.
+
+====================================================================================================================================================
+SECTION 14: LOCAL MEDIA ENGINE & CANVAS FRAME ANALYZER PIPELINE
+====================================================================================================================================================
+
+14.1 LOCAL MEDIA UPLOADER (`CineMorphLanding.tsx` & `CineMorphTheater.tsx`)
+- Accepts drag-and-drop or file picker selection for local video/audio files (`mp4`, `webm`, `mkv`, `mov`, `m4v`, `mp3`, `flac`, `wav`).
+- Generates Blob Object URIs (`URL.createObjectURL(file)`) for zero-latency, zero-bandwidth playback directly from client disk.
+- HTML5 Canvas Frame Analyzer (`localVideoAnalyzer.ts`) samples video frames periodically for real-time Ambilight color extraction.
 
 ====================================================================================================================================================
                                             END OF ULTIMATE MASTER ENCYCLOPEDIA RECORD FILE
