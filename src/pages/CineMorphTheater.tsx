@@ -1004,50 +1004,38 @@ export function CineMorphTheater() {
         </div>
       </div>
 
-      {/* ── 2.5D Tiered Theater Seating with Center Aisle (matching reference) ── */}
+      {/* ── 2.5D Clean Theater Seating (No Screen Overlap Shadows) ── */}
       {theaterSeatingEnabled && (
-        <div className="absolute bottom-0 inset-x-0 h-24 sm:h-36 pointer-events-none z-15 flex flex-col justify-end items-center px-2 sm:px-6 overflow-hidden opacity-95">
-          {/* Back Tier Row */}
-          <div className="w-full max-w-5xl flex justify-between items-end gap-1 mb-1 opacity-50 scale-95">
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((s) => (
-              <div 
-                key={`b-${s}`}
-                className="flex-1 h-8 sm:h-12 rounded-t-xl bg-gradient-to-b from-[#2a1318] via-[#150a0d] to-[#080305] border-t border-red-900/30"
-              />
-            ))}
-          </div>
-
-          {/* Front Tier Row with Center Aisle */}
-          <div className="w-full max-w-6xl flex justify-between items-end gap-2 sm:gap-4">
+        <div className="absolute bottom-0 inset-x-0 h-16 sm:h-24 pointer-events-none z-15 flex items-end justify-center px-4 overflow-hidden opacity-90">
+          {/* Single Clean Auditorium Row with Center Aisle */}
+          <div className="w-full max-w-6xl flex justify-between items-end gap-3 sm:gap-6">
             {/* Left Bank of Seats */}
-            <div className="flex-1 flex gap-1 sm:gap-2">
-              {[1, 2, 3, 4].map((s) => (
+            <div className="flex-1 flex gap-1.5 sm:gap-3">
+              {[1, 2, 3, 4, 5].map((s) => (
                 <div 
                   key={`fl-${s}`}
-                  className="flex-1 h-14 sm:h-22 rounded-t-2xl sm:rounded-t-3xl bg-gradient-to-b from-[#3b1219] via-[#1c080d] to-[#080204] border-t border-rose-500/20 shadow-[0_-8px_20px_rgba(0,0,0,0.9)] relative flex flex-col items-center justify-start pt-1.5"
+                  className="flex-1 h-12 sm:h-16 rounded-t-2xl bg-gradient-to-b from-[#2d0f15] via-[#16070a] to-[#080204] border-t border-rose-500/20 relative flex flex-col items-center justify-start pt-1"
                 >
-                  <div className="w-[80%] h-5 sm:h-8 rounded-t-xl bg-gradient-to-b from-[#4d1621] to-[#240a0f] border-t border-rose-400/20 shadow-inner" />
-                  {/* Armrest / Cup Holder */}
-                  <div className="absolute -right-1 bottom-0 w-2 h-8 bg-[#180609] rounded-t-sm border-t border-white/10" />
+                  <div className="w-[85%] h-4 sm:h-6 rounded-t-xl bg-gradient-to-b from-[#3d141d] to-[#1c080d] border-t border-rose-400/20" />
+                  <div className="absolute -right-1 bottom-0 w-1.5 h-6 bg-[#120406] rounded-t-sm border-t border-white/10" />
                 </div>
               ))}
             </div>
 
             {/* Center Aisle with Soft Low Floor Step Light */}
-            <div className="w-8 sm:w-16 h-10 flex flex-col items-center justify-end pb-2">
-              <div className="w-2.5 h-1 rounded-full bg-cyan-400/40 shadow-[0_0_12px_rgba(34,211,238,0.8)]" />
+            <div className="w-8 sm:w-16 h-6 flex items-end justify-center pb-1">
+              <div className="w-3 h-1 rounded-full bg-cyan-400/40 shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
             </div>
 
             {/* Right Bank of Seats */}
-            <div className="flex-1 flex gap-1 sm:gap-2">
-              {[1, 2, 3, 4].map((s) => (
+            <div className="flex-1 flex gap-1.5 sm:gap-3">
+              {[1, 2, 3, 4, 5].map((s) => (
                 <div 
                   key={`fr-${s}`}
-                  className="flex-1 h-14 sm:h-22 rounded-t-2xl sm:rounded-t-3xl bg-gradient-to-b from-[#3b1219] via-[#1c080d] to-[#080204] border-t border-rose-500/20 shadow-[0_-8px_20px_rgba(0,0,0,0.9)] relative flex flex-col items-center justify-start pt-1.5"
+                  className="flex-1 h-12 sm:h-16 rounded-t-2xl bg-gradient-to-b from-[#2d0f15] via-[#16070a] to-[#080204] border-t border-rose-500/20 relative flex flex-col items-center justify-start pt-1"
                 >
-                  <div className="w-[80%] h-5 sm:h-8 rounded-t-xl bg-gradient-to-b from-[#4d1621] to-[#240a0f] border-t border-rose-400/20 shadow-inner" />
-                  {/* Armrest / Cup Holder */}
-                  <div className="absolute -left-1 bottom-0 w-2 h-8 bg-[#180609] rounded-t-sm border-t border-white/10" />
+                  <div className="w-[85%] h-4 sm:h-6 rounded-t-xl bg-gradient-to-b from-[#3d141d] to-[#1c080d] border-t border-rose-400/20" />
+                  <div className="absolute -left-1 bottom-0 w-1.5 h-6 bg-[#120406] rounded-t-sm border-t border-white/10" />
                 </div>
               ))}
             </div>
