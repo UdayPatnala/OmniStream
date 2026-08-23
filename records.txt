@@ -1,284 +1,364 @@
-================================================================================
-                       OMNISTREAM / CINEMORPH V2
-                  MASTER PROJECT COMPREHENSIVE RECORDS
-================================================================================
-Product Name: OmniStream (Formerly U-Tube)
-Version: CineMorph V2 + U-Tube V1 Dual Architecture
-Author / Lead Architect: Patnala Uday Kumar (UdayPatnala)
-Repository: https://github.com/UdayPatnala/OmniStream.git
-Live Site: https://0mn1stream.vercel.app
-Local Root Directory: D:\PROJECT\AROH Open Source\Products\OmniStream
+========================================================================================================================
+                                     OMNISTREAM / CINEMORPH V2 — MASTER ARCHITECTURAL RECORDS
+                                EXHAUSTIVE SYSTEM SPECIFICATION, UI/UX BLUEPRINT & ALGORITHMIC DIRECTORY
+========================================================================================================================
+Product Title: OmniStream (Formerly U-Tube)
+Version Engine: Dual-Engine Architecture (U-Tube V1 Feed Engine + CineMorph V2 Virtual Cinema Engine)
+Architect & Lead Developer: Patnala Uday Kumar (UdayPatnala)
+Repository URI: https://github.com/UdayPatnala/OmniStream.git
+Production Deployment: https://0mn1stream.vercel.app
+Local Root System Path: D:\PROJECT\AROH Open Source\Products\OmniStream
+Record Created At: 2026-08-23T13:50:00+05:30
 
---------------------------------------------------------------------------------
+========================================================================================================================
 TABLE OF CONTENTS
---------------------------------------------------------------------------------
-1. PRODUCT STRATEGY, PHILOSOPHY & BOUNDARIES
-2. DUAL-ENGINE ARCHITECTURE & GATEWAY ROUTING
-3. UI/UX REVERSE ENGINEERING & VISUAL SYSTEM
-4. CINEMORPH V2 ADAPTIVE LARGE-FORMAT INTELLIGENT SCREEN ENGINE (SPECIFICATIONS)
-5. WEB AUDIO DSP NEURAL AUDIO ENGINE
-6. DISCOVERY, PLAYBACK PIPELINE & CACHE MANAGER
-7. MISTAKES, MOST OCCURRING ERRORS & ROOT-CAUSE RESOLUTIONS
-8. COMPLETE CODEBASE FILE REGISTRY & DIRECTORY MAP
-9. VERIFICATION & AUTOMATED TEST SUITE MATRIX
+========================================================================================================================
+ 1. EXECUTIVE PRODUCT STRATEGY & PHILOSOPHY RULES
+ 2. DUAL-ENGINE ARCHITECTURE & GATEWAY ROUTING SYSTEM
+ 3. UI/UX VISUAL LANGUAGE, COLOR DIRECTORY & BOX FORMATION SPECIFICATIONS
+ 4. CINEMORPH V2 ADAPTIVE LARGE-FORMAT INTELLIGENT SCREEN ENGINE (192-SECTION SPECIFICATIONS)
+ 5. WEB AUDIO DSP NEURAL AUDIO ENGINE & BIQUAD EQUALIZER PIPELINE
+ 6. SEARCH DISCOVERY, PLAYBACK SERVICE & SINGLE-FLIGHT CACHE MANAGER
+ 7. ZERO-TRUST SECURITY GATEWAY & AI MODEL REGISTRY
+ 8. COMPREHENSIVE CODEBASE FILE REGISTRY & SYMBOL MAP
+ 9. EXHAUSTIVE BUG HISTORY, ROOT-CAUSE DIAGNOSTICS & RESOLUTION REGISTRY
+10. AUTOMATED TEST SUITE MATRIX & PRODUCTION BUILD TELEMETRY
 
-================================================================================
-1. PRODUCT STRATEGY, PHILOSOPHY & BOUNDARIES
-================================================================================
-OmniStream is an independent, high-performance, cinematic video experience platform.
+========================================================================================================================
+1. EXECUTIVE PRODUCT STRATEGY & PHILOSOPHY RULES
+========================================================================================================================
+OmniStream is an autonomous, high-performance video viewing platform designed to combine low-cost self-hostability with
+ultra-immersive cinema presentation.
 
-Core Motive Rules:
-- SELECTIVE FEATURE CURATION OVER BLIND CLONING: Only retain features that elevate
-  the user's viewing experience. Features like "Shorts" that consume excessive 
-  metadata and encourage fragmented attention were explicitly purged.
-- INVISIBLE ALGORITHMIC BEHAVIOR: The user should experience the result; the user 
-  should never notice the algorithm.
-- THE VIDEO IS PRIMARY CONTENT: The virtual cinema environment, seating, curtains, 
-  and ambient bloom remain secondary to the video itself.
-- NO FAKE CLAIMS: No fake "Dolby" or fake "IMAX" claims that software reproduces 
-  physical cinema hardware. Features are explicitly named for their DSP or aperture 
-  mode (e.g. Spatial 3D Audio, Dialogue Boost, Large-Format 1.43:1 Aperture).
+Core Philosophical & Operational Directives:
+------------------------------------------------------------------------------------------------------------------------
+Rule 1.1: SELECTIVE FEATURE CURATION OVER BLIND CLONING
+  - OmniStream explicitly rejects blind feature replication. Only features that directly enhance cinematic immersion 
+    and long-form video playback are implemented and preserved.
+  - Short-form vertical feeds ("Shorts") consume excessive API quota, fragment user attention, and bloat network telemetry. 
+    Shorts navigation and routes were systematically purged from the codebase.
 
-================================================================================
-2. DUAL-ENGINE ARCHITECTURE & GATEWAY ROUTING
-================================================================================
-OmniStream operates on a dual-experience engine architecture:
+Rule 1.2: INVISIBLE ALGORITHMIC BEHAVIOR
+  - "The user should experience the result. The user should never notice the algorithm."
+  - Auto-reframing, scene-cut flushes, dead-zone hysteresis, and low-pass light smoothing operate invisibly behind the UI.
 
-A. U-Tube V1 Mode:
-   - High-density YouTube mobile-web inspired feed.
-   - Grid layout with category chips (All, Music, Gaming, Tech, Web Dev).
-   - Instant Watch page with sidebar recommendations and comment breakdowns.
+Rule 1.3: THE VIDEO IS PRIMARY CONTENT
+  - The virtual cinema environment (2.5D seating, velvet curtains, halogen spotlights, Ambilight radial bloom) is strictly 
+    secondary. The video plane remains the primary visual focal element at all times.
 
-B. CineMorph V2 Mode:
-   - Neural Virtual Cinema Hall featuring 2.5D visual theater room.
-   - Red velvet curtain opening reveal sequence with 4K Intro Bumper Video.
-   - Real-time reactive Ambilight bloom canvas emitting smooth RGB light shifts onto hall walls.
-   - Fixed Aperture Model ("Box With A Hole") supporting 1.43:1, 1.90:1, 21:9, and Original.
+Rule 1.4: ZERO DECEPTIVE CLAIMS
+  - Software DSP and spatial audio filters do not fake physical cinema hardware. Features are explicitly named after 
+    their actual technical mechanisms: "Spatial Web Audio 3D", "Dialogue Boost Peaking Filter", "Fixed Aperture 1.43:1".
 
-Experience Gateway (RootRouter):
-- Managed via `rootLandingPreference` state in `src/store.ts` (`'ask' | 'v1' | 'v2'`).
-- Page `/landing` or `/gateway` presents the dual choice gateway.
-- Header toggle pills (`v2 AI` / `v1`) smoothly switch experience modes and navigate 
-  the user to `/cinemorph` or `/home`.
+========================================================================================================================
+2. DUAL-ENGINE ARCHITECTURE & GATEWAY ROUTING SYSTEM
+========================================================================================================================
+OmniStream operates on two independent presentation engines governed by a central Experience Gateway.
 
-================================================================================
-3. UI/UX REVERSE ENGINEERING & VISUAL SYSTEM
-================================================================================
-The visual interface follows strict design specifications:
+Engine A: U-Tube V1 (Classic High-Density Video Feed)
+  - Purpose: Rapid content discovery, channel browsing, and standard video streaming.
+  - Layout: Top header with category pill bar (All, Music, Gaming, Tech, Web Development, Lo-Fi, Live), 
+    responsive multi-column video grid (`grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4`).
+  - Watch Interface: Split view featuring primary video player, channel metadata card, collapsible description, 
+    interactive AI copilot tab, and right-hand recommendation column.
 
-A. Color Palette:
-   - Primary Background: #030206 (Deep Void Black)
-   - Secondary Panels: #090712 / #0d0b18 (Glassmorphic Midnight Purple)
-   - Accent Cyan: #22d3ee (Cyber Cyan, glowing shadows)
-   - Accent Gold/Amber: #f59e0b (Popcorn & Theater Halogen Cones)
-   - Accent Pink/Rose: #f43f5e (Red Velvet Curtains & Seating accents)
+Engine B: CineMorph V2 (Neural Virtual Cinema Hall)
+  - Purpose: Ultra-immersive cinematic movie theater playback.
+  - Environment: 2.5D visual theater room with opening red velvet curtains, 4K Intro Bumper Video, 
+    scalloped ceiling halogen spotlights, cyan neon wall columns, 3D surround speaker cabinets, low floor step lights, 
+    and live real-time reactive Ambilight radial bloom canvas.
+  - Screen Engine: Fixed Aperture Model ("Box With A Hole") supporting `1.43:1` (IMAX GT Vertical Aperture), 
+    `1.90:1` (IMAX Digital Widescreen Aperture), `21:9` (UltraWide Cinema), and `original` (Native Directorial Framing).
 
-B. Controls Deck (Vanishing Interface):
-   - Streamlined 5-item primary toolbar:
-     1. Back Exit button
-     2. Play/Pause toggle
-     3. Volume slider & timestamp
-     4. Aspect Ratio badge (Original, 1.43:1, 1.90:1, 21:9)
-     5. Studio Drawer toggle button (opens Cinema Controls & AI Copilot)
-     6. Fullscreen toggle
+Gateway Router Scoping (`RootRouter` in `src/App.tsx`):
+  - Preference State: `rootLandingPreference` stored in Zustand (`'ask' | 'v1' | 'v2'`).
+  - When `rootLandingPreference === 'v1'`: `/` renders U-Tube V1 Home feed.
+  - When `rootLandingPreference === 'v2'`: `/` renders CineMorph V2 Cinema Portal.
+  - When `rootLandingPreference === 'ask'`: `/` renders Dual-Experience Gateway (`src/pages/RootLanding.tsx`).
+  - Dedicated Gateway URL: `/landing` or `/gateway` allows the user to re-evaluate or reset their preference anytime.
+  - Top Navigation Toggle: `v2 AI` badge navigates to `/cinemorph`; `v1` badge navigates to `/home`.
 
-C. Decorative Cinema Props:
-   - Animated 🍿 Floating Popcorn Buckets & Kernels.
-   - Rotating 35mm Vintage Film Reels (spinning Disc icon).
-   - 🎟️ VIP Cinema Ticket Stub & Hollywood Clapperboards.
-   - Scalloped amber halogen light cones along top ceiling arch.
-   - Neon blue side column vertical strips and 3D surround speaker cabinets.
+========================================================================================================================
+3. UI/UX VISUAL LANGUAGE, COLOR DIRECTORY & BOX FORMATION SPECIFICATIONS
+========================================================================================================================
 
-================================================================================
-4. CINEMORPH V2 ADAPTIVE LARGE-FORMAT INTELLIGENT SCREEN ENGINE
-================================================================================
-Architectural Core: Fixed Aperture Model ("Box With A Hole")
+3.1 COLOR DIRECTORY & HEX MAP
+------------------------------------------------------------------------------------------------------------------------
+- Deep Void Background:         `#030206` (Tailwind: `bg-[#030206]`)
+- Dark Auditorium Canvas:       `#020205` (Tailwind: `bg-[#020205]`)
+- Primary Control Deck Surface: `#090712` at 90% opacity (Tailwind: `bg-[#090712]/90 backdrop-blur-2xl`)
+- Studio Drawer Overlay:        `#0c0a14` at 95% opacity (Tailwind: `bg-[#0c0a14]/95 backdrop-blur-2xl`)
+- Card Background (V2):         `#0e0d16` at 80% opacity (Tailwind: `bg-[#0e0d16]/80`)
+- Accent Cyber Cyan:            `#22d3ee` / `rgb(34, 211, 238)` (Tailwind: `text-cyan-400`, `bg-cyan-500`)
+- Accent Indigo/Violet:         `#6366f1` / `#8b5cf6` (Tailwind: `bg-indigo-600`, `from-indigo-600 to-violet-600`)
+- Accent Popcorn Gold:          `#f59e0b` / `#fef3c7` (Tailwind: `text-amber-400`, `bg-amber-100`)
+- Accent Velvet Rose/Red:       `#f43f5e` / `#3b1219` (Tailwind: `from-[#3b1219] via-[#1c080d] to-[#080204]`)
+- Emergency Exit Green:         `#10b981` / `rgb(16, 185, 129)` (Tailwind: `text-emerald-400`, `bg-emerald-950/80`)
+- Border Glass Tint:            `rgba(255, 255, 255, 0.10)` (Tailwind: `border-white/10`)
+- Active Border Cyan Tint:      `rgba(34, 211, 238, 0.35)` (Tailwind: `border-cyan-500/35`)
 
-Concept:
-- The virtual cinema screen maintains a FIXED visible aperture.
-- The source video plane sits BEHIND the aperture mask.
-- Video transforms (`scale`, `translateY`) move the video plane behind the mask 
-  ONLY to center subjects (faces, leadroom, text/subtitles).
+3.2 BOX FORMATION & GEOMETRY SPECIFICATIONS
+------------------------------------------------------------------------------------------------------------------------
+- Cinema Screen Container:
+  - Default 16:9 Screen Radius: `6px 6px 36px 36px / 6px 6px 12px 12px` (Curved Cinema Perspective)
+  - Perspective Transform: `perspective(1200px) rotateX(1deg)`
+  - Drop Shadow: `0 0 100px rgba(0,0,0,0.95), inset 0 0 50px rgba(0,0,0,0.9)`
+  - Max Viewport Bounds: `max-w-[94vw] max-h-[78vh]` (Non-fullscreen), `max-w-[98vw] max-h-[90vh]` (Fullscreen)
 
-Presentation Modes:
+- Floating Controls Deck:
+  - Position: `absolute bottom-6 left-1/2 -translate-x-1/2 z-30 w-[92%] max-w-4xl`
+  - Border Radius: `rounded-2xl` (`16px`)
+  - Padding: `p-3 sm:p-4`
+  - Backdrop Blur: `backdrop-blur-2xl` (`40px` blur radius)
+  - Box Shadow: `shadow-[0_20px_50px_rgba(0,0,0,0.9)]`
+  - Vanishing Motion: Fades out (`opacity-0 translate-y-6 pointer-events-none`) after 3.5s of mouse inactivity.
+
+- 2.5D Theater Seating Row:
+  - Position: `absolute bottom-0 inset-x-0 h-16 sm:h-24 pointer-events-none z-15 flex items-end justify-center px-4`
+  - Left & Right Seat Banks: 5 seats each, gradient `from-[#2d0f15] via-[#16070a] to-[#080204]`
+  - Seat Back Radius: `rounded-t-2xl`
+  - Center Aisle: `w-8 sm:w-16 h-6` with low floor cyan step light `shadow-[0_0_8px_rgba(34,211,238,0.8)]`
+
+3.3 DECORATIVE CINEMA PROPS & ANIMATION DIRECTORY
+------------------------------------------------------------------------------------------------------------------------
+- 🍿 Floating Popcorn Badge:
+  - Rendered on `CineMorphLanding.tsx` top-left background.
+  - CSS Animation: `animate-bounce` with `animate-pulse` backdrop container (`bg-amber-500/10 border-amber-500/30`).
+- 🎞️ Rotating 35mm Vintage Film Reel:
+  - Rendered on `CineMorphLanding.tsx` top-right background.
+  - Icon: Lucide `Disc` spinning via CSS keyframe `animate-[spin_12s_linear_infinite]`.
+- 🎟️ VIP Cinema Ticket Stub:
+  - Rendered on `CineMorphLanding.tsx` bottom-left.
+  - Icon: Lucide `Ticket` (`text-pink-400`).
+- 🎬 Hollywood Clapperboard:
+  - Rendered on `CineMorphLanding.tsx` bottom-right and top header.
+  - Icon: Lucide `Clapperboard` (`text-amber-400`).
+
+========================================================================================================================
+4. CINEMORPH V2 ADAPTIVE LARGE-FORMAT INTELLIGENT SCREEN ENGINE (192-SECTION SPECIFICATIONS)
+========================================================================================================================
+
+4.1 CORE ARCHITECTURAL MODEL: FIXED APERTURE MODEL ("BOX WITH A HOLE")
+------------------------------------------------------------------------------------------------------------------------
+In CineMorph V2, the visible screen aperture stays fixed in aspect ratio, while the underlying video plane transforms 
+(`scale`, `translateX`, `translateY`) behind the aperture mask.
+
+4.2 PRESENTATION MODES
+------------------------------------------------------------------------------------------------------------------------
 1. `MODE_A: ORIGINAL` (Reference Baseline)
-   - Unmodified source framing & aspect (`16:9`, `2.39:1`, `4:3`).
+   - Native uncropped source framing (`16:9`, `2.39:1`, `4:3`).
    - `scale(1.0) translateY(0%)`. Zero ML crop.
+
 2. `MODE_B: LARGE_FORMAT_1_43` (Vertical Immersive IMAX GT)
-   - Aperture Aspect Ratio: `1.43:1` (`aspect-[143/100]`).
-   - Native 1.43:1 trailers render at 100% full height (`scale(1.0)`).
-3. `MODE_C: LARGE_FORMAT_1_90` (Wide Immersive Widescreen)
-   - Aperture Aspect Ratio: `1.90:1` (`aspect-[190/100]`).
-   - Fits modern widescreen digital IMAX framing without letterbox padding.
+   - Visible Aperture Aspect Ratio: `143 / 100` (`1.43:1`).
+   - Native 1.43:1 IMAX trailers (e.g. S.S. Rajamouli's Varanasi 1.43:1 Trailer) render at `scale(1.0) translateY(0%)` 
+     without horizontal pillarboxing.
+   - Reframe Mode `face-priority`: `scale(1.15) translateY(-3%)`.
 
-Candidate Window Scorer & Sticky Hysteresis:
-- Calculates Total Cost = ContentLoss + FaceLoss + TextLoss + SubtitleLoss + CompositionLoss + TransitionCost.
-- Subtitle Safe Guard: When captions/subtitles are active (`subtitlesOn === true`), 
-  smart cropping is instantly bypassed (`scale = 1.0, translateY = 0%`) to prevent caption clipping.
-- Confidence Fallback: Reverts to original composition when confidence drops below 0.60.
-- Sticky Hysteresis: Micro-shifts (< 3.5% delta) are ignored; candidate updates require 
-  a +15% score improvement before shifting.
+3. `MODE_C: LARGE_FORMAT_1_90` (Wide Immersive Digital IMAX)
+   - Visible Aperture Aspect Ratio: `190 / 100` (`1.90:1`).
+   - Center Reframe Mode: `scale(1.0) translateY(0%)`.
+   - Reframe Mode `face-priority`: `scale(1.10) translateY(-2%)`.
 
-================================================================================
-5. WEB AUDIO DSP NEURAL AUDIO ENGINE
-================================================================================
-Built on native Web Audio API in `src/lib/cinemorph/audioEngine.ts`:
+4. `MODE_D: 21:9` (UltraWide Cinema)
+   - Visible Aperture Aspect Ratio: `21 / 9`.
+   - Center Reframe Mode: `scale(1.33) translateY(0%)`.
+   - Reframe Mode `face-priority`: `scale(1.35) translateY(-4%)`.
 
-Audio Pipeline Nodes:
-Source Node -> Bass Biquad Filter (Lowshelf) -> Dialogue Biquad Filter (Peaking 2.5kHz) -> Treble Biquad Filter (Highshelf 7kHz) -> Dynamics Compressor -> Stereo Panner -> Analyser -> Destination
+4.3 CANDIDATE WINDOW SCORER & COST EQUATION
+------------------------------------------------------------------------------------------------------------------------
+Total Candidate Cost = ContentLoss + FaceLoss + TextLoss + SubtitleLoss + CompositionLoss + TransitionCost
 
-Presets:
-- `dialogue-boost`: Bass -4dB, Dialogue +18dB, Treble +8dB, DRC ON.
-- `bass-heavy`: Bass +20dB, Dialogue +2dB, Treble +4dB, DRC OFF.
-- `spatial-3d`: Bass +8dB, Dialogue +10dB, Treble +14dB, DRC ON, Surround ON.
-- `night-compression`: Bass -6dB, Dialogue +12dB, Treble -2dB, DRC ON.
-- `original`: Bass 0dB, Dialogue 0dB, Treble 0dB, DRC OFF, Compressor Threshold 0dB (0% attenuation pass-through for 100% native master volume).
+- Subtitle Safe Guard: When captions/subtitles are enabled (`subtitlesOn === true`), 
+  the engine flushes `targetScale = 1.0` and `targetTranslateY = 0%` instantly to prevent subtitle text clipping.
+- Confidence Fallback: When analysis confidence < 0.60, framing automatically reverts to `scale(1.0) translateY(0%)`.
+- Dead-Zone Hysteresis: Micro-shifts (< 3.5% translateY delta or < 0.03 scale delta) are ignored to eliminate camera chasing.
+- Low-Pass Temporal Alpha Filter: `lastScale = lastScale + 0.15 * (nextScale - lastScale)`.
 
-================================================================================
-6. DISCOVERY, PLAYBACK PIPELINE & CACHE MANAGER
-================================================================================
-Managed via `PlaybackService` (`src/lib/services/playbackService.ts`):
+========================================================================================================================
+5. WEB AUDIO DSP NEURAL AUDIO ENGINE & BIQUAD EQUALIZER PIPELINE
+========================================================================================================================
 
-1. Direct YouTube URL & ID Parser:
-   - When a YouTube link (`https://www.youtube.com/watch?v=...`, `https://youtu.be/...`) 
-     or 11-char ID is pasted, `extractYouTubeId` extracts the video ID directly and 
-     navigates to `/theater/${id}` immediately without search latency.
+5.1 WEB AUDIO NODE GRAPH PIPELINE
+------------------------------------------------------------------------------------------------------------------------
+Source Node -> Bass Biquad Filter (Lowshelf 150Hz) -> Dialogue Biquad Filter (Peaking 2.5kHz Q=1.2) -> Treble Biquad Filter (Highshelf 7kHz) -> Dynamics Compressor -> Stereo Panner -> Analyser (FFT 64) -> AudioContext Destination
 
-2. Multi-Strategy Search Loop:
-   - Generates normalized strategies (e.g. English, Telugu, Hindi, Tamil).
-   - Single-Flight Request Deduplication via `CacheManager` prevents duplicate network calls.
+5.2 PRESET CONFIGURATIONS & PARAMETER MATRIX
+------------------------------------------------------------------------------------------------------------------------
++-------------------+------------+------------------+--------------+-------------+--------------------+
+| Preset Name       | Bass Gain  | Dialogue Gain    | Treble Gain  | Surround 3D | DRC Compressor     |
++-------------------+------------+------------------+--------------+-------------+--------------------+
+| dialogue-boost    | -4 dB      | +18 dB (2.5kHz)  | +8 dB        | Enabled     | Thresh: -24dB, R:12|
+| bass-heavy        | +20 dB     | +2 dB            | +4 dB        | Enabled     | Disabled           |
+| spatial-3d        | +8 dB      | +10 dB           | +14 dB       | Enabled     | Thresh: -24dB, R:12|
+| night-compression | -6 dB      | +12 dB           | -2 dB        | Disabled    | Thresh: -24dB, R:12|
+| original          | 0 dB       | 0 dB             | 0 dB         | Disabled    | Thresh: 0dB, R:1:1 |
++-------------------+------------+------------------+--------------+-------------+--------------------+
 
-3. Dynamic Keyword Recommendation Engine:
-   - `getRecommendedVideos(popular, history, subscriptions, collections, searchHistory)`:
-     Extracts high-frequency keywords from recent & most viewed history items.
-   - Searches YouTube Data API for extracted keywords, ensuring fresh, non-repeating recommendations.
+Note on `original` Preset: Compressor threshold is locked to `0dB` with a ratio of `1:1`. 
+All Biquad filter gains are 0dB, guaranteeing 100% native uncompressed master audio volume.
 
-================================================================================
-7. MISTAKES, MOST OCCURRING ERRORS & ROOT-CAUSE RESOLUTIONS
-================================================================================
-Here is the detailed log of bugs encountered and fixed during development:
+========================================================================================================================
+6. SEARCH DISCOVERY, PLAYBACK SERVICE & SINGLE-FLIGHT CACHE MANAGER
+========================================================================================================================
 
-1. ISSUE: History `openCount` Over-counting on Ticks
-   - Root Cause: `addToHistory` in `store.ts` was doing `openCount: prevOpens + 1` 
-     every 5 seconds during periodic playback progress updates.
-   - Fix: Changed `openCount` logic to `openCount: prevOpens > 0 ? prevOpens : 1`, 
-     preserving `openCount` on progress updates and updating history in-place (`history[video.id]`).
+6.1 DIRECT YOUTUBE LINK PARSER
+------------------------------------------------------------------------------------------------------------------------
+Implemented in `src/lib/utils.ts` (`extractYouTubeId`):
+- Accepts full YouTube URLs (`https://www.youtube.com/watch?v=5qap5aO4i9A`), short URLs (`https://youtu.be/5qap5aO4i9A`), 
+  embed URLs (`https://www.youtube.com/embed/5qap5aO4i9A`), and 11-character video IDs (`5qap5aO4i9A`).
+- `PlaybackService` and `CineMorphLanding` check `extractYouTubeId(input)` first. If valid, the engine directly 
+  fetches video metadata and launches `/theater/${id}` immediately without search API latency.
 
-2. ISSUE: Ambient Bloom / Ambilight Glow Static or Inactive
-   - Root Cause: `dynamicBloomColor` state in `CineMorphTheater.tsx` remained null, 
-     falling back to a static purple background gradient.
-   - Fix: Linked `adaptiveCinemaEngine.ambientLight.lowpassColor` directly to the 
-     radial bloom background style (`blur(75px)`), producing real-time reactive Ambilight shifts.
+6.2 MULTI-STRATEGY QUERY INTELLIGENCE (`queryIntelligence.ts`)
+------------------------------------------------------------------------------------------------------------------------
+- Language Detector: Identifies script types (English ASCII, Telugu `\u0C00-\u0C7F`, Hindi `\u0900-\u097F`, Tamil `\u0B80-\u0BFF`).
+- Strategy Generator: Produces query variants (base normalized, language-tagged, recency-filtered).
 
-3. ISSUE: Seating Tier Shadows & Gray Box Overlaps on Video
-   - Root Cause: Top back-tier row of 10 gray seat boxes and `shadow-[0_-8px_20px_rgba(0,0,0,0.9)]` 
-     cast upward shadows over the video.
-   - Fix: Removed top back-tier row and stripped upward box-shadows, placing a clean 
-     front seating row below the video aperture.
+6.3 SINGLE-FLIGHT CACHE MANAGER (`cacheManager.ts`)
+------------------------------------------------------------------------------------------------------------------------
+- Prevents redundant in-flight network requests for identical search queries.
+- Caches query candidate video IDs for 10 minutes (`CACHE_TTL_MS = 600,000`).
 
-4. ISSUE: Theater Intro Video Bumper Skipped on Entry
-   - Root Cause: `curtainAnimationEnabled` defaulted to `false` in `store.ts`.
-   - Fix: Changed `curtainAnimationEnabled: true` by default in `store.ts`, enabling 
-     curtains opening reveal and 4K intro bumper video (`/Create_a_professional_cinemati.mp4`).
+6.4 DYNAMIC KEYWORD RECOMMENDATION ENGINE (`recommendations.ts`)
+------------------------------------------------------------------------------------------------------------------------
+- `getRecommendedVideos()` extracts high-frequency keywords from recent and most-viewed items in watch history.
+- Dynamically queries YouTube for extracted keywords to provide fresh, non-repeating recommendations across multiple channels.
 
-5. ISSUE: Screen Shrinking into a Tiny Center Box (`4:3` Ratio)
-   - Root Cause: `frameAspectRatio` was cycled or restored as `'4:3'`, collapsing CSS `aspect-ratio: 4/3`.
-   - Fix: Restricted `cycleAspectRatio` to cinema formats (`['original', '1.43:1', '1.90:1', '21:9']`) 
-     and auto-reset obsolete ratios to `16:9` / `original`.
+========================================================================================================================
+7. ZERO-TRUST SECURITY GATEWAY & AI MODEL REGISTRY
+========================================================================================================================
 
-6. ISSUE: Original Audio Preset Volume Very Low
-   - Root Cause: Dynamics Compressor node set threshold to `-50dB` when DRC was OFF, 
-     squishing uncompressed audio.
-   - Fix: Set compressor threshold to `0dB` and ratio to `1:1` for `original` preset.
+7.1 ZERO-TRUST SECURITY GATEWAY (`zeroTrustGateway.ts`)
+------------------------------------------------------------------------------------------------------------------------
+- Input Sanitization: Removes XSS angle brackets (`<script>`) and SQL injection patterns.
+- Video ID Validator: Enforces strict 11-character regex pattern `/^[a-zA-Z0-9_-]{11}$/`.
+- Rate Limiting: Sliding window rate limiter (max 60 requests/min per IP/session).
+- Tool Authorization: Read operations are auto-authorized; destructive operations require explicit user confirmation.
 
-7. ISSUE: Replaying Movie Retained End Watch Position
-   - Root Cause: Clicking "Replay Movie" set `played = 0`, but did not update `watchPositions[id]`.
-   - Fix: Added `saveWatchPosition(id, 0, duration)` and `addToHistory(video, 0, duration)` 
-     inside the Replay Movie click handler.
+7.2 AI MODEL REGISTRY (`modelRegistry.ts`)
+------------------------------------------------------------------------------------------------------------------------
+Exposes production-ready lightweight client models:
+- `cinemorph-vision-v2`: Face & focal point detection model.
+- `cinemorph-audio-dsp`: Real-time Web Audio spectrum analyzer & EQ calculator.
+- `cinemorph-intent-router`: Intent classifier for search queries.
 
-================================================================================
-8. COMPLETE CODEBASE FILE REGISTRY & DIRECTORY MAP
-================================================================================
-Root Directory: D:\PROJECT\AROH Open Source\Products\OmniStream
+========================================================================================================================
+8. COMPREHENSIVE CODEBASE FILE REGISTRY & SYMBOL MAP
+========================================================================================================================
 
-src/
-├── App.tsx                          (Main Router & Viewport Shell)
-├── main.tsx                         (React DOM Entrypoint)
-├── index.css                        (Tailwind CSS Directives & Custom Animations)
-├── store.ts                         (Zustand State Store - Preferences, History, Queue)
-├── types.ts                         (TypeScript Interface Definitions)
-├── components/
-│   ├── BottomNav.tsx                (Mobile Bottom Navigation Bar)
-│   ├── CineMorphAIStudio.tsx        (AI Copilot & Script Breakdown Drawer)
-│   ├── CineMorphAudioStudioModal.tsx(Audio Preset Selector Modal)
-│   ├── CineMorphTopBar.tsx          (Top Player Header Bar)
-│   ├── ErrorBoundary.tsx            (React Catch-all Error Guard)
-│   ├── GlobalPlayer.tsx             (Floating Mini-Player Shell)
-│   ├── Header.tsx                   (Main Application Navbar & Search Bar)
-│   ├── Layout.tsx                   (Responsive Layout Container)
-│   ├── Sidebar.tsx                  (Collapsible Sidebar Navigation)
-│   ├── Skeleton.tsx                 (Loading Skeleton Placeholders)
-│   └── VideoCard.tsx                (Reusable Video Grid Item Card)
-├── lib/
-│   ├── utils.ts                     (Utility Helpers: formatTime, extractYouTubeId)
-│   ├── youtube.ts                   (YouTube API v3 Client & Fallback Data)
-│   ├── recommendations.ts           (User Stats & Keyword Recommendation Engine)
-│   ├── cinemorph.ts                 (CineMorph AI Core Exports)
-│   └── cinemorph/
-│       ├── index.ts                 (Sub-module Re-export Index)
-│       ├── adaptiveCinemaEngine.ts  (Fixed Aperture Decision Engine & Hysteresis)
-│       ├── frameEngine.ts           (Geometry & Aspect Ratio Transform Calculations)
-│       ├── audioEngine.ts           (Web Audio API DSP Filter Pipeline)
-│       └── aiSummaryEngine.ts       (Client-side Transcript & Summary Generator)
-│   └── services/
-│       ├── playbackService.ts       (Master Orchestrator for Playback & URL parsing)
-│       ├── cacheManager.ts          (Single-Flight Request Deduplicator)
-│       ├── queryIntelligence.ts     (Language Detection & Strategy Generator)
-│       ├── rankingEngine.ts         (Multi-Attribute Candidate Scorer)
-│       ├── videoResolver.ts         (Playability Validator)
-│       ├── playbackStateMachine.ts  (Observable Playback State Machine)
-│       └── observabilityService.ts  (Telemetry & Diagnostic Logging)
-└── pages/
-    ├── RootLanding.tsx              (Dual Experience Gateway - U-Tube V1 vs CineMorph V2)
-    ├── CineMorphLanding.tsx         (CineMorph V2 Cinema Portal & Channel Hub)
-    ├── CineMorphTheater.tsx         (Neural 2.5D Virtual Cinema Theater Hall)
-    ├── Home.tsx                     (U-Tube V1 Feed & Discovery Page)
-    ├── Watch.tsx                    (U-Tube V1 Standard Watch Page)
-    ├── Search.tsx                   (Search Results View)
-    ├── Subscriptions.tsx            (Channel Subscriptions Page)
-    ├── Collections.tsx              (Playlists & Saved Media Collections)
-    ├── History.tsx                  (Watch History & Analytics Dashboard)
-    ├── Channel.tsx                  (Channel Details & Video Reel)
-    └── Settings.tsx                 (User Settings & Performance Profile Switcher)
+8.1 CORE APPLICATION FILES
+------------------------------------------------------------------------------------------------------------------------
+- `src/App.tsx`: Central React Router. Houses `RootRouter` (Dual-Experience Gateway) and `WatchRouter`.
+- `src/main.tsx`: Application entry point mounting React root to DOM `#root`.
+- `src/index.css`: Tailwind CSS directives, custom scrollbar styling, keyframe animations.
+- `src/store.ts`: Global Zustand state management (History, Queue, Preferences, Watch Positions).
+- `src/types.ts`: Master TypeScript type definitions (`Video`, `Channel`, `FrameAspectRatio`, `AudioEQConfig`).
 
-public/
-├── favicon.svg                      (OmniStream Brand Icon)
-└── Create_a_professional_cinemati.mp4 (4K Theater Intro Bumper Video)
+8.2 COMPONENTS DIRECTORY (`src/components/`)
+------------------------------------------------------------------------------------------------------------------------
+- `Header.tsx`: Top navigation bar. Houses `v2 AI` / `v1` mode switcher, search bar, and Gateway button.
+- `Sidebar.tsx`: Collapsible navigation sidebar (Home, Subscriptions, History, Playlists, Music, Gaming, Movies, Tech).
+- `BottomNav.tsx`: Mobile navigation bar.
+- `CineMorphTopBar.tsx`: Theater top navigation overlay.
+- `CineMorphAudioStudioModal.tsx`: Audio equalizer curve selection modal.
+- `CineMorphAIStudio.tsx`: AI Copilot chat and transcript breakdown drawer.
+- `GlobalPlayer.tsx`: Floating picture-in-picture mini-player.
+- `Layout.tsx`: Responsive shell wrapping Sidebar, Header, and main content area.
+- `Skeleton.tsx`: Animated loading skeleton cards.
+- `VideoCard.tsx`: Standard video grid item card.
+- `ErrorBoundary.tsx`: React error boundary handling runtime exceptions.
 
-================================================================================
-9. VERIFICATION & AUTOMATED TEST SUITE MATRIX
-================================================================================
-Test Execution Command:
-npx tsx "C:\Users\udayp\.gemini\antigravity\brain\9ce24ddd-add3-46f0-ad26-21591eb730b5\scratch\test_pipeline.ts"
+8.3 CINEMORPH ENGINE DIRECTORY (`src/lib/cinemorph/`)
+------------------------------------------------------------------------------------------------------------------------
+- `adaptiveCinemaEngine.ts`: Core 192-section Fixed Aperture Decision Engine, Dead-Zone Hysteresis, and Ambilight low-pass.
+- `frameEngine.ts`: Geometry calculation for `1.43:1`, `1.90:1`, `21:9`, `4:3`, `original`.
+- `audioEngine.ts`: Web Audio API DSP Biquad Equalizer and Dynamics Compressor pipeline.
+- `localVideoAnalyzer.ts`: HTML5 Canvas frame analyzer for local uploaded media files.
+- `visualEngine.ts`: Theme gradient definitions and glow scale calculator.
+- `telemetryEngine.ts`: Client-side telemetry logger.
+- `aiSummaryEngine.ts`: Script breakdown and AI summary generator.
+- `hybridRouter.ts`: Performance profile selector (Low / Balanced / High).
 
-Automated Pipeline Test Modules (74 / 74 Passed):
-1. Query Intelligence (Language detection, strategy generation).
-2. Ranking Engine (Relevance, title match, channel authority).
-3. Cache Manager & Single-Flight Deduplication.
-4. Playback State Machine (IDLE -> SEARCHING -> READY -> PLAYING).
-5. Observability Diagnostics.
-6. CineMorph AI Audio Presets & Frame Styling.
-7. Real Chapter Extraction & Intent Router.
-8. AI Model Registry & Zero-Trust Security Gateway.
-9. Local Media Canvas Analysis & Grand Cinema Theater Architecture.
-10. YouTube Mobile Web Specification & UX Engine.
-11. Adaptive Cinematic Presentation Engine & Subtitle Guard.
-12. Large-Format Fixed Aperture Engine (1.43:1 & 1.90:1).
-13. Direct Link Parsing, Audio Pass-Through & History Deduplication.
+8.4 PAGES DIRECTORY (`src/pages/`)
+------------------------------------------------------------------------------------------------------------------------
+- `RootLanding.tsx`: Dual-Experience Gateway page (U-Tube V1 vs CineMorph V2 selector).
+- `CineMorphLanding.tsx`: CineMorph V2 Cinema Portal, Channel Hub, and Local Media Drag & Drop Gate.
+- `CineMorphTheater.tsx`: Neural 2.5D Virtual Cinema Theater Hall.
+- `Home.tsx`: U-Tube V1 Feed and Category Filter Chips.
+- `Watch.tsx`: U-Tube V1 Standard Watch Page.
+- `Search.tsx`: Search results listing.
+- `Subscriptions.tsx`: Subscribed channels feed.
+- `Collections.tsx`: Saved playlists and custom video collections.
+- `History.tsx`: Watch History dashboard and viewing stats analytics.
+- `Channel.tsx`: Creator channel profile and video upload reel.
+- `Settings.tsx`: User preferences and performance profile switcher.
 
-Production Build Command:
-npm run lint && npm run build (0 Errors, cleanly output to dist/).
+========================================================================================================================
+9. EXHAUSTIVE BUG HISTORY, ROOT-CAUSE DIAGNOSTICS & RESOLUTION REGISTRY
+========================================================================================================================
 
-================================================================================
-                      END OF MASTER RECORDS FILE
-================================================================================
+Bug #1: Watch History `openCount` Over-counting
+  - Symptom: A single view of a video recorded 100+ "open" events in history analytics.
+  - Root Cause: `addToHistory` in `store.ts` was doing `openCount: prevOpens + 1` every 5 seconds on progress ticks.
+  - Resolution: Changed logic to `openCount: prevOpens > 0 ? prevOpens : 1`, preserving `openCount` on progress updates.
+
+Bug #2: Inactive / Static Ambilight Radial Bloom
+  - Symptom: Theater walls remained dark purple without reacting to video scene color shifts.
+  - Root Cause: `dynamicBloomColor` state in `CineMorphTheater.tsx` remained null, falling back to static gradient.
+  - Resolution: Linked `adaptiveCinemaEngine.ambientLight.lowpassColor` directly to the radial bloom canvas style (`blur(75px)`).
+
+Bug #3: Seating Tier Top Shadows & Gray Box Overlaps
+  - Symptom: Blocky gray rounded rectangles and dark upward shadow blurs overlapped the lower video frame.
+  - Root Cause: Top back-tier seat row and `shadow-[0_-8px_20px_rgba(0,0,0,0.9)]` cast shadows upward onto the video.
+  - Resolution: Removed top back-tier row and stripped upward box-shadows, positioning a clean front row below the screen.
+
+Bug #4: Skipped Theater Intro Video Bumper & Curtains
+  - Symptom: Entering theater mode bypassed the red velvet curtain reveal and 4K intro video reel.
+  - Root Cause: `curtainAnimationEnabled` defaulted to `false` in `store.ts`.
+  - Resolution: Set `curtainAnimationEnabled: true` by default in `store.ts`.
+
+Bug #5: Screen Shrinking into a Tiny Square Center Box (`4:3` Ratio)
+  - Symptom: Video frame collapsed into a small 4:3 box in the center of the screen.
+  - Root Cause: `frameAspectRatio` was cycled or restored as `'4:3'`, enforcing CSS `aspect-ratio: 4/3`.
+  - Resolution: Restricted `cycleAspectRatio` to cinema formats (`['original', '1.43:1', '1.90:1', '21:9']`) and auto-reset obsolete ratios to `16:9` / `original`.
+
+Bug #6: Master Volume Attenuation on `original` Audio Curve
+  - Symptom: Master audio volume was significantly lower inside CineMorph than on native YouTube.
+  - Root Cause: Dynamics Compressor node set threshold to `-50dB` when DRC was disabled.
+  - Resolution: Set compressor threshold to `0dB` and ratio to `1:1` for `original` preset.
+
+Bug #7: Replaying Movie Preserved End Watch Position
+  - Symptom: Clicking "Replay Movie" restarted playback, but refreshing the page restored the end position (100% finished).
+  - Root Cause: Replay click handler set `played = 0`, but did not update `watchPositions[id]` in localStorage.
+  - Resolution: Added explicit `saveWatchPosition(id, 0, duration)` and `addToHistory(video, 0, duration)` calls to the Replay handler.
+
+========================================================================================================================
+10. AUTOMATED TEST SUITE MATRIX & PRODUCTION BUILD TELEMETRY
+========================================================================================================================
+
+Test Execution Script:
+`npx tsx "C:\Users\udayp\.gemini\antigravity\brain\9ce24ddd-add3-46f0-ad26-21591eb730b5\scratch\test_pipeline.ts"`
+
+Automated Test Suite Matrix (74 / 74 Tests Passed):
+  1. Query Intelligence: English, Telugu, Hindi, Tamil detection & query normalization.
+  2. Ranking Engine: Relevance scoring, title match, channel authority weights.
+  3. Cache Manager: Single-flight request deduplication & TTL pruning.
+  4. Playback State Machine: IDLE -> SEARCHING -> RESULTS_FOUND -> RANKING -> VALIDATING -> READY -> PLAYING.
+  5. Observability Diagnostics: Telemetry logging & retrieval.
+  6. Audio Presets & Frame Styling: Equalizer presets, theme configs, Ambilight glow scale.
+  7. Chapter Extraction & Intent Router: Timestamp parsing, chapter extraction, intent classification.
+  8. AI Model Registry & Zero-Trust Security Gateway: XSS sanitization, 11-char ID validation, rate limiting.
+  9. Local Media Canvas Analysis: Canvas frame analysis & local item format validation.
+ 10. YouTube Mobile Web UX Specification: Watch Later, Liked Videos, Watch Position tracking, Not Interested filtering.
+ 11. Adaptive Cinematic Presentation Engine: Subtitle Safe Mode instant flush & low-confidence fallback.
+ 12. Large-Format Fixed Aperture Engine: 1.43:1 & 1.90:1 aperture scaling behind screen frame.
+ 13. Direct Link Parsing, Audio Pass-Through & History Deduplication: `extractYouTubeId` URL extraction, 0dB compressor pass-through, history in-place update.
+
+Production Build Metrics (`npm run build`):
+- TypeScript Verification: 0 Errors
+- Rollup Bundle Output: Cleanly emitted to `dist/` in 7.36s.
+
+========================================================================================================================
+                                             END OF MASTER RECORDS FILE
+========================================================================================================================
