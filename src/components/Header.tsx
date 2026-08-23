@@ -129,8 +129,11 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
         <div className="hidden md:flex items-center gap-2 ml-2">
           <div className="flex items-center bg-black/40 border border-white/10 rounded-full p-0.5 text-xs font-semibold shadow-inner">
             <button
-              onClick={() => setVersionMode('v2')}
-              className={`px-2.5 py-0.5 rounded-full transition-all ${
+              onClick={() => {
+                setVersionMode('v2');
+                navigate('/cinemorph');
+              }}
+              className={`px-2.5 py-0.5 rounded-full transition-all cursor-pointer ${
                 versionMode === 'v2' 
                   ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md' 
                   : 'text-gray-400 hover:text-white'
@@ -139,8 +142,11 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
               v2 AI
             </button>
             <button
-              onClick={() => setVersionMode('v1')}
-              className={`px-2.5 py-0.5 rounded-full transition-all ${
+              onClick={() => {
+                setVersionMode('v1');
+                navigate('/home');
+              }}
+              className={`px-2.5 py-0.5 rounded-full transition-all cursor-pointer ${
                 versionMode === 'v1' 
                   ? 'bg-white/20 text-white shadow-md' 
                   : 'text-gray-400 hover:text-white'

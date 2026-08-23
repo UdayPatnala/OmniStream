@@ -112,19 +112,25 @@ class CineMorphAudioEngine {
       this.audioCtx.resume();
     }
 
+    const isOriginal = config.preset === 'original';
+
     if (this.bassFilter) {
-      this.bassFilter.gain.value = config.bassBoost;
+      this.bassFilter.gain.value = isOriginal ? 0 : config.bassBoost;
     }
     if (this.dialogueFilter) {
-      this.dialogueFilter.gain.value = config.dialogueClarity;
+      this.dialogueFilter.gain.value = isOriginal ? 0 : config.dialogueClarity;
     }
     if (this.trebleFilter) {
-      this.trebleFilter.gain.value = config.trebleShine;
+      this.trebleFilter.gain.value = isOriginal ? 0 : config.trebleShine;
     }
 
     if (this.compressor) {
-      this.compressor.ratio.value = config.drcLoudness ? 12 : 1;
-      this.compressor.threshold.value = config.drcLoudness ? -28 : -50;
+      this.compressor.ratio.value = (isOriginal || !config.drcLoudness) ? 1 : 12;
+      this.compressor.threshold.value = (isOriginal || !config.drcLoudness) ? 0 : -24;
+    }
+
+    if (this.panner) {
+      this.panner.pan.value = (isOriginal || !config.surround3D) ? 0 : 0;
     }
   }
 
