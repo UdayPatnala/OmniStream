@@ -256,7 +256,7 @@ export const useAppStore = create<AppState>()(
               watchedAt: Date.now(),
               progress,
               duration,
-              openCount: prevOpens + 1,
+              openCount: prevOpens > 0 ? prevOpens : 1,
               completedCount: isNowCompleted ? prevCompleted + 1 : prevCompleted,
               completionRatio: ratio,
               lastSpeed: state.playbackSpeed,

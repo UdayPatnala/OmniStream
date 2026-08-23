@@ -959,6 +959,19 @@ export function CineMorphTheater() {
                   onClick={() => {
                     setNextUpCountdown(null);
                     setPlayed(0);
+                    if (id) {
+                      useAppStore.getState().saveWatchPosition(id, 0, duration);
+                    }
+                    if (video) {
+                      useAppStore.getState().addToHistory(video, 0, duration);
+                    }
+                    if (isLocalMedia && localItem) {
+                      useAppStore.getState().addLocalMediaToHistory({
+                        ...localItem,
+                        progress: 0,
+                        lastWatchedAt: Date.now(),
+                      });
+                    }
                     if (isLocalMedia && localVideoRef.current) {
                       localVideoRef.current.currentTime = 0;
                       localVideoRef.current.play().catch(() => {});
