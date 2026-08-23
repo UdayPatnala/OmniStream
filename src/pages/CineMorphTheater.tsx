@@ -82,6 +82,10 @@ export function CineMorphTheater() {
   const [showIntroBumper, setShowIntroBumper] = useState(curtainAnimationEnabled);
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [showStudioDrawer, setShowStudioDrawer] = useState(false);
+  const [showTracksDrawer, setShowTracksDrawer] = useState(false);
+  const [selectedQuality, setSelectedQuality] = useState('auto');
+  const [selectedAudioTrack, setSelectedAudioTrack] = useState('original');
+  const [selectedSubtitleTrack, setSelectedSubtitleTrack] = useState('off');
   const [subtitlesOn, setSubtitlesOn] = useState(false);
   const [speedRate, setSpeedRate] = useState(1);
   const [audioTrackIndex, setAudioTrackIndex] = useState(0);

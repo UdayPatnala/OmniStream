@@ -54,13 +54,16 @@ export function CineMorphLanding() {
     setLocalFileError(null);
     if (!file) return;
 
-    // Validate video mime or extension
-    const validExtensions = ['mp4', 'webm', 'mkv', 'mov', 'm4v', 'ogv'];
+    // Validate video or audio mime or extension
+    const validExtensions = [
+      'mp4', 'webm', 'mkv', 'mov', 'm4v', 'avi', 'flv', 'wmv', '3gp', 'ts', 'ogv', 'm3u8', 'mpd',
+      'mp3', 'wav', 'aac', 'flac', 'm4a', 'ogg', 'opus', 'wma'
+    ];
     const ext = file.name.split('.').pop()?.toLowerCase() || '';
-    const isVideoMime = file.type.startsWith('video/');
+    const isMediaMime = file.type.startsWith('video/') || file.type.startsWith('audio/');
 
-    if (!isVideoMime && !validExtensions.includes(ext)) {
-      setLocalFileError(`Unsupported format (.${ext}). Please select a standard browser-playable video (MP4, WebM, MKV, MOV).`);
+    if (!isMediaMime && !validExtensions.includes(ext)) {
+      setLocalFileError(`Unsupported format (.${ext}). Please select a valid video or audio file.`);
       return;
     }
 
@@ -266,7 +269,7 @@ export function CineMorphLanding() {
               <input 
                 ref={fileInputRef}
                 type="file" 
-                accept="video/*,.mp4,.webm,.mkv,.mov,.m4v,.ogv"
+                accept="video/*,audio/*,.mp4,.webm,.mkv,.mov,.m4v,.avi,.flv,.wmv,.3gp,.ts,.ogv,.m3u8,.mpd,.mp3,.wav,.aac,.flac,.m4a,.ogg"
                 onChange={(e) => e.target.files?.[0] && handleLocalFileSelect(e.target.files[0])}
                 className="hidden"
               />
@@ -275,10 +278,10 @@ export function CineMorphLanding() {
               </div>
               <div className="space-y-1 text-center">
                 <div className="text-sm font-bold text-white">
-                  Drop your local video file here, or <span className="text-cyan-400 underline underline-offset-2">Browse</span>
+                  Drop your local video or audio file here, or <span className="text-cyan-400 underline underline-offset-2">Browse</span>
                 </div>
                 <div className="text-xs text-gray-400">
-                  Supports MP4, WebM, MKV, MOV • Stays 100% private in browser memory
+                  Supports MP4, MKV, WebM, MOV, AVI, FLV, TS, MP3, WAV, AAC, FLAC & All Formats
                 </div>
               </div>
             </div>
