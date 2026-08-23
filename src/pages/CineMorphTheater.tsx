@@ -108,6 +108,21 @@ export function CineMorphTheater() {
     }).catch(() => {});
   }, [id]);
 
+  // Back Button Trap for Drawers & Modals (YouTube Mobile Web Spec Technique 7.1)
+  useEffect(() => {
+    const handlePopState = () => {
+      if (showTracksDrawer) {
+        setShowTracksDrawer(false);
+      } else if (showStudioDrawer) {
+        setShowStudioDrawer(false);
+      } else if (showShortcuts) {
+        setShowShortcuts(false);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [showTracksDrawer, showStudioDrawer, showShortcuts]);
+
   // End-Screen Auto-Play countdown timer
   useEffect(() => {
     if (theaterState !== 'ended') {
