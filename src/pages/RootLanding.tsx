@@ -274,8 +274,20 @@ export function RootLanding() {
           </div>
         </div>
 
-        {/* Preference Selector Checkbox */}
-        <div className="flex items-center justify-center gap-2 pt-2">
+        {/* Preference Selector Checkbox & Reset Button */}
+        <div className="flex flex-col items-center justify-center gap-3 pt-2">
+          {rootLandingPreference !== 'ask' && (
+            <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-950/60 border border-cyan-500/30 text-xs text-cyan-300">
+              <span>Saved Root Preference: <strong className="text-white uppercase">{rootLandingPreference === 'v1' ? 'U-Tube V1' : 'CineMorph V2'}</strong></span>
+              <button 
+                onClick={() => setRootLandingPreference('ask')}
+                className="ml-2 underline font-bold text-red-400 hover:text-red-300 cursor-pointer"
+              >
+                Reset Default
+              </button>
+            </div>
+          )}
+
           <label className="flex items-center gap-2.5 cursor-pointer text-xs text-gray-400 hover:text-gray-200 select-none bg-white/5 px-4 py-2 rounded-full border border-white/10 backdrop-blur-md">
             <input 
               type="checkbox" 

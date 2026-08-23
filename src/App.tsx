@@ -34,8 +34,8 @@ function RouteFallback() {
 
 // Routes root based on user preference or launches experience selector
 function RootRouter() {
-  const { rootLandingPreference, versionMode } = useAppStore();
-  if (rootLandingPreference === 'v1' || versionMode === 'v1') return <Home />;
+  const rootLandingPreference = useAppStore(s => s.rootLandingPreference);
+  if (rootLandingPreference === 'v1') return <Home />;
   if (rootLandingPreference === 'v2') return <CineMorphLanding />;
   return <RootLanding />;
 }

@@ -28,6 +28,7 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
     setCinemorphTheme,
     instantAutoPlay,
     setInstantAutoPlay,
+    setRootLandingPreference,
   } = useAppStore();
 
   useEffect(() => {
@@ -278,6 +279,7 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
         {/* Experience Gateway Switcher */}
         <Link 
           to="/landing"
+          onClick={() => setRootLandingPreference('ask')}
           className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 text-xs font-bold transition-all"
           title="Switch between U-Tube V1 and CineMorph V2"
         >
