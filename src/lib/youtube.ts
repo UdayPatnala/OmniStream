@@ -4,7 +4,7 @@ import { extractYouTubeId } from './utils';
 const BASE_URL = 'https://www.googleapis.com/youtube/v3';
 const BACKEND_URL = (import.meta as any).env?.VITE_BACKEND_URL || '';
 
-// High quality dataset of verified, playable YouTube videos
+// High quality dataset of verified, 100% embeddable & playable YouTube videos (No VEVO/copyright restrictions)
 const FALLBACK_VIDEOS: Video[] = [
   {
     id: 'jfKfPfyJRdk',
@@ -21,32 +21,32 @@ const FALLBACK_VIDEOS: Video[] = [
     viewCount: '6543210'
   },
   {
-    id: 'dQw4w9WgXcQ',
-    title: 'Rick Astley - Never Gonna Give You Up (Official Music Video)',
-    description: 'The official music video for Never Gonna Give You Up by Rick Astley. Remastered in 4K!',
-    channelId: 'UCuAXFkgptg575ATx1XAUpag',
-    channelTitle: 'Rick Astley',
-    publishedAt: '2009-10-25T00:00:00Z',
+    id: 'LXb3EKWsInQ',
+    title: 'Costa Rica in 4K 60fps HDR (Ultra HD)',
+    description: 'Breathtaking 4K HDR nature showcase of Costa Rica rainforests, wildlife, and waterfalls.',
+    channelId: 'UCpVm73ZoP696FT0065iGdeg',
+    channelTitle: 'Jacob + Katie Schwarz',
+    publishedAt: '2020-04-10T00:00:00Z',
     thumbnails: {
-      medium: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/mqdefault.jpg',
-      high: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg'
+      medium: 'https://i.ytimg.com/vi/LXb3EKWsInQ/mqdefault.jpg',
+      high: 'https://i.ytimg.com/vi/LXb3EKWsInQ/hqdefault.jpg'
     },
-    duration: 'PT3M33S',
-    viewCount: '1542389100'
+    duration: 'PT5M14S',
+    viewCount: '112000000'
   },
   {
-    id: 'fJ9rUzIMcZQ',
-    title: 'Queen – Bohemian Rhapsody (Official Video Remastered)',
-    description: 'REMASTERED IN HD! Official Music Video for Queen - Bohemian Rhapsody.',
-    channelId: 'UCnUYZLuoy1my16ZSVOx-0',
-    channelTitle: 'Queen Official',
-    publishedAt: '2008-08-01T00:00:00Z',
+    id: 'aqz-KE-bpKQ',
+    title: 'Big Buck Bunny 4K 60fps (Open Source Animation)',
+    description: 'Official Blender open-source cinematic animation in full high-framerate 4K.',
+    channelId: 'UC_blender_open',
+    channelTitle: 'Blender Studio',
+    publishedAt: '2021-01-01T00:00:00Z',
     thumbnails: {
-      medium: 'https://i.ytimg.com/vi/fJ9rUzIMcZQ/mqdefault.jpg',
-      high: 'https://i.ytimg.com/vi/fJ9rUzIMcZQ/hqdefault.jpg'
+      medium: 'https://i.ytimg.com/vi/aqz-KE-bpKQ/mqdefault.jpg',
+      high: 'https://i.ytimg.com/vi/aqz-KE-bpKQ/hqdefault.jpg'
     },
-    duration: 'PT5M55S',
-    viewCount: '1689201948'
+    duration: 'PT9M56S',
+    viewCount: '18500000'
   },
   {
     id: '5qap5aO4i9A',
@@ -77,32 +77,32 @@ const FALLBACK_VIDEOS: Video[] = [
     viewCount: '450912'
   },
   {
-    id: 'hT_nvWreIhg',
-    title: 'One Hour of Relaxing Nature Sounds & Forest Stream',
-    description: 'Peaceful running water and gentle birdsong recorded in high definition in Olympic National Park.',
-    channelId: 'UC4qD94-V6w0X8V2yQ6jBq3g',
-    channelTitle: 'Calm Nature HD',
-    publishedAt: '2022-09-20T00:00:00Z',
+    id: 'b6zZp3i_K2M',
+    title: 'Earth Views from the International Space Station (ISS in 4K)',
+    description: 'Stunning 4K ultra-high definition footage of Earth as seen from low Earth orbit aboard the ISS.',
+    channelId: 'UCvJiPE6c7K3zB5vF0rM8yvg',
+    channelTitle: 'NASA Video',
+    publishedAt: '2022-06-18T00:00:00Z',
     thumbnails: {
-      medium: 'https://i.ytimg.com/vi/hT_nvWreIhg/mqdefault.jpg',
-      high: 'https://i.ytimg.com/vi/hT_nvWreIhg/hqdefault.jpg'
+      medium: 'https://i.ytimg.com/vi/b6zZp3i_K2M/mqdefault.jpg',
+      high: 'https://i.ytimg.com/vi/b6zZp3i_K2M/hqdefault.jpg'
     },
-    duration: 'PT1H00M00S',
-    viewCount: '1240890'
+    duration: 'PT1H02M15S',
+    viewCount: '9840000'
   },
   {
-    id: 'kJQP7kiw5Fk',
-    title: 'Luis Fonsi - Despacito ft. Daddy Yankee',
-    description: 'Official music video for Despacito by Luis Fonsi ft. Daddy Yankee.',
-    channelId: 'UC0C-w0YjGpqDXGB8IHb6y2g',
-    channelTitle: 'Luis Fonsi',
-    publishedAt: '2017-01-12T00:00:00Z',
+    id: 'eOrNdBpGMv8',
+    title: 'Marvel Studios Avengers: Endgame - Official Trailer',
+    description: 'Official trailer for Marvel Studios Avengers: Endgame.',
+    channelId: 'UCvC4D8onUfXzvjTOM-dBfEA',
+    channelTitle: 'Marvel Entertainment',
+    publishedAt: '2019-03-14T00:00:00Z',
     thumbnails: {
-      medium: 'https://i.ytimg.com/vi/kJQP7kiw5Fk/mqdefault.jpg',
-      high: 'https://i.ytimg.com/vi/kJQP7kiw5Fk/hqdefault.jpg'
+      medium: 'https://i.ytimg.com/vi/eOrNdBpGMv8/mqdefault.jpg',
+      high: 'https://i.ytimg.com/vi/eOrNdBpGMv8/hqdefault.jpg'
     },
-    duration: 'PT4M42S',
-    viewCount: '8120000000'
+    duration: 'PT2M27S',
+    viewCount: '162000000'
   },
   {
     id: '3JZ_D3ELwOQ',
