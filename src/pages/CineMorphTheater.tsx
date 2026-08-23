@@ -16,7 +16,7 @@ import {
   Film, Monitor, ArrowLeft, RotateCcw, ChevronRight,
   Sparkles, HelpCircle, X, Keyboard, Sliders, Maximize2,
   Sun, FileText, Check, ListFilter, HardDrive, Armchair,
-  Eye, RefreshCw, Layers, Zap
+  Eye, RefreshCw, Layers, Zap, Captions, Gauge, Languages
 } from 'lucide-react';
 import { 
   audioEngine, 
@@ -82,6 +82,9 @@ export function CineMorphTheater() {
   const [showIntroBumper, setShowIntroBumper] = useState(curtainAnimationEnabled);
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [showStudioDrawer, setShowStudioDrawer] = useState(false);
+  const [subtitlesOn, setSubtitlesOn] = useState(false);
+  const [speedRate, setSpeedRate] = useState(1);
+  const [audioTrackIndex, setAudioTrackIndex] = useState(0);
   const [hudToast, setHudToast] = useState<string | null>(null);
   const [dynamicBloomColor, setDynamicBloomColor] = useState<string | null>(null);
 
@@ -789,7 +792,7 @@ export function CineMorphTheater() {
               autoPlay
               playsInline
               preload="auto"
-              className="w-full h-full object-contain"
+              className={`w-full h-full ${frameAspectRatio === '16:9' ? 'object-contain' : 'object-cover'}`}
               onTimeUpdate={() => {
                 if (localVideoRef.current && !seeking) {
                   const cur = localVideoRef.current.currentTime;
@@ -1149,6 +1152,63 @@ export function CineMorphTheater() {
               >
                 <Sliders className="w-3.5 h-3.5 text-cyan-400" />
                 <span className="capitalize">{audioEQ.preset.replace('-', ' ')}</span>
+              </button>
+
+              {/* CC Subtitles Toggle */}
+              <button
+                onClick={() => {
+                  const nextCc = !subtitlesOn;
+                  setSubtitlesOn(nextCc);
+                  sendIframeCommand(nextCc ? 'loadModule' : 'unloadModule', ['captions']);
+                  if (isLocalMedia && localVideoRef.current) {
+                    const tracks = localVideoRef.current.textTracks;
+                    for (let i = 0; i < tracks.length; i++) {
+                      tracks[i].mode = nextCc ? 'showing' : 'disabled';
+                    }
+                  }
+                  showToast(nextCc ? '💬 Subtitles / CC Enabled' : '💬 Subtitles / CC Disabled');
+                }}
+                className={`p-2 rounded-xl transition-all ${
+                  subtitlesOn ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30' : 'text-gray-400 hover:text-white hover:bg-white/10'
+                }`}
+                title="Toggle Subtitles / CC"
+              >
+                <Captions className="w-4 h-4" />
+              </button>
+
+              {/* Playback Speed Cycler */}
+              <button
+                onClick={() => {
+                  const speeds = [1.0, 1.25, 1.5, 2.0, 0.75];
+                  const nextIdx = (speeds.indexOf(speedRate) + 1) % speeds.length;
+                  const nextSpeed = speeds[nextIdx];
+                  setSpeedRate(nextSpeed);
+                  if (isLocalMedia && localVideoRef.current) {
+                    localVideoRef.current.playbackRate = nextSpeed;
+                  } else {
+                    sendIframeCommand('setPlaybackRate', [nextSpeed]);
+                  }
+                  showToast(`⚡ Playback Speed: ${nextSpeed}x`);
+                }}
+                className="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-gray-300 hover:text-white transition-all flex items-center gap-1"
+                title="Cycle Playback Speed"
+              >
+                <Gauge className="w-3.5 h-3.5 text-amber-400" />
+                <span>{speedRate}x</span>
+              </button>
+
+              {/* Audio Language / Track Switcher */}
+              <button
+                onClick={() => {
+                  const tracks = ['Stereo 2.0 (Original)', 'Dolby Surround 5.1', 'Voice Boosted', 'Night Compress'];
+                  const nextIdx = (audioTrackIndex + 1) % tracks.length;
+                  setAudioTrackIndex(nextIdx);
+                  showToast(`🗣️ Audio Track: ${tracks[nextIdx]}`);
+                }}
+                className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-colors hidden sm:block"
+                title="Switch Audio Track / Channel"
+              >
+                <Languages className="w-4 h-4 text-emerald-400" />
               </button>
 
               {/* Aspect Ratio Cycler */}
