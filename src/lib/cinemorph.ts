@@ -7,6 +7,7 @@ export * from './cinemorph/frameEngine';
 export * from './cinemorph/telemetryEngine';
 export * from './cinemorph/localVideoAnalyzer';
 export * from './cinemorph/hybridRouter';
+export * from './cinemorph/adaptiveCinemaEngine';
 
 /**
  * CineMorphAI - AI Intelligence Engine (v2 Core)

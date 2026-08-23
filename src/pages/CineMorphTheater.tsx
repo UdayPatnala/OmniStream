@@ -26,7 +26,8 @@ import {
   extractVideoScript, 
   generateSceneHighlights,
   localVideoAnalyzer,
-  hybridMediaRouter
+  hybridMediaRouter,
+  adaptiveCinemaEngine
 } from '../lib/cinemorph';
 
 type TheaterState = 'pre-show' | 'loading' | 'playing' | 'paused' | 'ended' | 'error';
@@ -614,6 +615,16 @@ export function CineMorphTheater() {
 
   const currentThemeConfig = THEME_CONFIGS[cinemorphTheme] || THEME_CONFIGS['cinematic-dark'];
   const frameStyle = calculateFrameStyle(frameAspectRatio, reframeMode);
+
+  const adaptiveDecision = adaptiveCinemaEngine.process({
+    currentTime: played * duration,
+    duration,
+    aspectRatio: frameAspectRatio,
+    reframeMode,
+    subtitlesActive: subtitlesOn || selectedSubtitleTrack !== 'off',
+    audioPreset: audioEQ.preset,
+    isLocalMedia,
+  });
 
   // Intelligence metadata
   const aiSummary = video ? generateAISummary(video) : null;
