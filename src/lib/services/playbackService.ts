@@ -7,6 +7,7 @@ import { checkEmbeddable, resolveBestPlayableVideo } from './videoResolver';
 import { cacheManager } from './cacheManager';
 import { playbackStateMachine } from './playbackStateMachine';
 import { observabilityService } from './observabilityService';
+import { extractYouTubeId } from '../utils';
 
 /**
  * Playback Service - Advanced Master Orchestrator for Autonomous YouTube Discovery & Playback.
@@ -34,6 +35,26 @@ class PlaybackService {
     // Deduplicate in-flight requests for the exact same query
     return cacheManager.deduplicateRequest<AutonomousPipelineResult | null>(trimmed, async () => {
       const store = useAppStore.getState();
+
+      // Check if query is direct YouTube link or 11-char ID
+      const directId = extractYouTubeId(trimmed);
+      if (directId) {
+        const directVideos = await getVideosByIds([directId]);
+        if (directVideos.length > 0) {
+          const directVideo = directVideos[0];
+          store.setPipelineCandidates([directVideo], 0);
+          playbackStateMachine.transition('READY', { video: directVideo });
+          playbackStateMachine.transition('PLAYING', { video: directVideo });
+          if (navigateFn) navigateFn(`/theater/${directId}`);
+          return {
+            bestVideo: directVideo,
+            candidates: [directVideo],
+            strategyUsed: 'direct_url',
+            detectedLanguage: 'English',
+            totalLatencyMs: Date.now() - startTime,
+          };
+        }
+      }
 
       // 1. Query Intelligence & Multi-Strategy Analysis
       const analysis = generateSearchStrategies(trimmed);

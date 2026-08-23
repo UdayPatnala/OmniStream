@@ -8,6 +8,7 @@ import {
 import { useAppStore } from '../store';
 import { playbackService } from '../lib/services/playbackService';
 import { LocalMediaItem } from '../types';
+import { extractYouTubeId } from '../lib/utils';
 
 const CURATED_SHOWCASE = [
   { id: 'dQw4w9WgXcQ', title: 'Cinematic 4K Showcase', tag: 'IMAX 4K HDR', query: 'cinematic 4k hdr landscape movie demo' },
@@ -37,6 +38,13 @@ export function CineMorphLanding() {
     if (e) e.preventDefault();
     const query = (directInput || inputUrl).trim();
     if (!query) return;
+
+    // Check if direct YouTube video link or 11-char ID
+    const directId = extractYouTubeId(query);
+    if (directId) {
+      navigate(`/theater/${directId}`);
+      return;
+    }
 
     setLoading(true);
     try {
