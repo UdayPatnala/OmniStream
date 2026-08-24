@@ -25,7 +25,7 @@ export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
 
   if (collapsed) {
     return (
-      <aside className="w-18 h-full bg-[#0f0f0f] hidden md:flex flex-col items-center py-3 gap-6 border-r border-[#272727]/30 select-none">
+      <aside className="w-18 h-full bg-white hidden md:flex flex-col items-center py-3 gap-6 border-r border-gray-200 select-none">
         {mainNavItems.map((item) => (
           <NavLink
             key={item.to}
@@ -33,8 +33,8 @@ export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
             className={({ isActive }) => cn(
               "flex flex-col items-center gap-1 p-2 rounded-xl text-[10px] w-16 transition-colors",
               isActive 
-                ? "bg-[#272727] text-white font-medium" 
-                : "text-[#aaaaaa] hover:bg-[#272727]/60 hover:text-white"
+                ? "bg-gray-100 text-red-600 font-medium" 
+                : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
             )}
           >
             <item.icon className="w-5 h-5" />
@@ -48,8 +48,8 @@ export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
             className={({ isActive }) => cn(
               "flex flex-col items-center gap-1 p-2 rounded-xl text-[10px] w-16 transition-colors",
               isActive 
-                ? "bg-[#272727] text-white font-medium" 
-                : "text-[#aaaaaa] hover:bg-[#272727]/60 hover:text-white"
+                ? "bg-gray-100 text-red-600 font-medium" 
+                : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
             )}
           >
             <item.icon className="w-5 h-5" />
@@ -61,7 +61,7 @@ export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
   }
 
   return (
-    <aside className="w-60 h-full bg-[#0f0f0f] border-r border-[#272727]/40 hidden md:flex flex-col p-3 overflow-y-auto select-none">
+    <aside className="w-60 h-full bg-white border-r border-gray-200 hidden md:flex flex-col p-3 overflow-y-auto select-none">
       {/* Main Section */}
       <div className="space-y-1">
         {mainNavItems.map((item) => (
@@ -71,21 +71,21 @@ export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
             className={({ isActive }) => cn(
               "flex items-center gap-5 px-3 py-2.5 rounded-xl text-sm transition-colors",
               isActive 
-                ? "bg-[#272727] text-white font-semibold" 
-                : "text-[#f1f1f1] hover:bg-[#272727]"
+                ? "bg-gray-100 text-gray-900 font-semibold" 
+                : "text-gray-700 hover:bg-gray-50"
             )}
           >
-            <item.icon className="w-5 h-5 shrink-0" />
+            <item.icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-red-600' : ''}`} />
             <span className="truncate">{item.label}</span>
           </NavLink>
         ))}
       </div>
 
-      <div className="my-3 border-t border-[#272727]" />
+      <div className="my-3 border-t border-gray-200" />
 
       {/* You / Library */}
       <div className="space-y-1">
-        <h4 className="px-3 text-xs font-semibold text-[#aaaaaa] uppercase tracking-wider mb-1">
+        <h4 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
           You
         </h4>
         {libraryNavItems.map((item) => (
@@ -95,11 +95,11 @@ export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
             className={({ isActive }) => cn(
               "flex items-center gap-5 px-3 py-2.5 rounded-xl text-sm transition-colors",
               isActive 
-                ? "bg-[#272727] text-white font-semibold" 
-                : "text-[#f1f1f1] hover:bg-[#272727]"
+                ? "bg-gray-100 text-gray-900 font-semibold" 
+                : "text-gray-700 hover:bg-gray-50"
             )}
           >
-            <item.icon className="w-5 h-5 shrink-0" />
+            <item.icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-red-600' : ''}`} />
             <span className="truncate">{item.label}</span>
           </NavLink>
         ))}
@@ -108,9 +108,9 @@ export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
       {/* Subscriptions */}
       {subscriptions.length > 0 && (
         <>
-          <div className="my-3 border-t border-[#272727]" />
+          <div className="my-3 border-t border-gray-200" />
           <div className="space-y-1">
-            <h4 className="px-3 text-xs font-semibold text-[#aaaaaa] uppercase tracking-wider mb-1">
+            <h4 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
               Subscriptions
             </h4>
             {subscriptions.map(sub => (
@@ -120,8 +120,8 @@ export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
                 className={({ isActive }) => cn(
                   "flex items-center gap-4 px-3 py-2 rounded-xl text-sm transition-colors",
                   isActive 
-                    ? "bg-[#272727] text-white font-semibold" 
-                    : "text-[#f1f1f1] hover:bg-[#272727]"
+                    ? "bg-gray-100 text-gray-900 font-semibold" 
+                    : "text-gray-700 hover:bg-gray-50"
                 )}
               >
                 <img src={sub.thumbnails.default} alt={sub.title} className="w-6 h-6 rounded-full object-cover shrink-0" />
@@ -132,11 +132,11 @@ export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
         </>
       )}
 
-      <div className="my-3 border-t border-[#272727]" />
+      <div className="my-3 border-t border-gray-200" />
 
       {/* Explore */}
       <div className="space-y-1">
-        <h4 className="px-3 text-xs font-semibold text-[#aaaaaa] uppercase tracking-wider mb-1">
+        <h4 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
           Explore
         </h4>
         {exploreItems.map((item) => (
@@ -146,27 +146,27 @@ export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
             className={({ isActive }) => cn(
               "flex items-center gap-5 px-3 py-2 rounded-xl text-sm transition-colors",
               isActive 
-                ? "bg-[#272727] text-white font-semibold" 
-                : "text-[#f1f1f1] hover:bg-[#272727]"
+                ? "bg-gray-100 text-gray-900 font-semibold" 
+                : "text-gray-700 hover:bg-gray-50"
             )}
           >
-            <item.icon className="w-5 h-5 shrink-0" />
+            <item.icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-red-600' : ''}`} />
             <span className="truncate text-xs">{item.label}</span>
           </NavLink>
         ))}
       </div>
 
-      <div className="mt-auto pt-3 border-t border-[#272727]">
+      <div className="mt-auto pt-3 border-t border-gray-200">
         <NavLink
           to="/settings"
           className={({ isActive }) => cn(
             "flex items-center gap-5 px-3 py-2.5 rounded-xl text-sm transition-colors",
             isActive 
-              ? "bg-[#272727] text-white font-semibold" 
-              : "text-[#f1f1f1] hover:bg-[#272727]"
+              ? "bg-gray-100 text-gray-900 font-semibold" 
+              : "text-gray-700 hover:bg-gray-50"
           )}
         >
-          <Settings className="w-5 h-5 shrink-0" />
+          <Settings className={`w-5 h-5 shrink-0 ${isActive ? 'text-red-600' : ''}`} />
           <span className="truncate">Settings</span>
         </NavLink>
       </div>

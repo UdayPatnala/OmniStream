@@ -9,6 +9,7 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppStore } from '../store';
+import { useTicketStore } from '../state/useTicketStore';
 import { getVideosByIds, getRelatedVideos } from '../lib/youtube';
 import { Video, AudioPreset, FrameAspectRatio, CineMorphTheme, GlowIntensity, LocalMediaItem } from '../types';
 import {
@@ -634,7 +635,7 @@ export function CineMorphTheater() {
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-screen flex flex-col items-center justify-center overflow-hidden transition-colors duration-1000 select-none font-sans bg-[#020205]"
+      className="relative w-full h-screen flex flex-col items-center justify-center overflow-hidden transition-colors duration-1000 select-none font-sans bg-[#f8f5f0]"
       onMouseMove={resetControlsTimer}
       onTouchStart={resetControlsTimer}
     >
@@ -657,10 +658,10 @@ export function CineMorphTheater() {
       <div className={`absolute top-4 right-6 z-30 transition-opacity duration-300 ${controlsVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
         <button
           onClick={toggleFullscreen}
-          className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-950/80 hover:bg-indigo-900 border border-indigo-500/40 text-xs font-bold text-indigo-300 shadow-xl shadow-indigo-950/50 backdrop-blur-md transition-all hover:scale-105 active:scale-95"
+          className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-100/80 hover:bg-amber-200 border border-amber-900/20 text-xs font-bold text-amber-900 shadow-xl shadow-amber-900/10 backdrop-blur-md transition-all hover:scale-105 active:scale-95"
           title="Toggle Fullscreen Cinema Hall (Hotkey: F)"
         >
-          {isFullscreen ? <Minimize className="w-3.5 h-3.5 text-cyan-400" /> : <Maximize className="w-3.5 h-3.5 text-cyan-400" />}
+          {isFullscreen ? <Minimize className="w-3.5 h-3.5 text-amber-700" /> : <Maximize className="w-3.5 h-3.5 text-amber-700" />}
           <span>{isFullscreen ? 'Exit Fullscreen' : 'Fullscreen Cinema'}</span>
         </button>
       </div>
@@ -697,15 +698,15 @@ export function CineMorphTheater() {
           {/* Left IMAX Laser Wall Column with Neon Blue Strip & Speaker Array */}
           <div className="absolute left-0 top-0 bottom-0 w-20 sm:w-32 bg-gradient-to-r from-[#030308] via-[#080812] to-transparent pointer-events-none z-1 flex flex-col justify-between py-12 pl-3 sm:pl-6 border-r border-cyan-500/20 shadow-2xl opacity-95">
             {/* Upper Surround Speaker */}
-            <div className="w-8 sm:w-10 h-14 rounded-md bg-[#0d0d16] border border-white/10 shadow-lg p-1 flex flex-col items-center justify-around">
-              <div className="w-4 h-4 rounded-full bg-[#1c1c28] border border-cyan-500/30" />
-              <div className="w-6 h-6 rounded-full bg-[#161622] border border-cyan-500/30" />
+            <div className="w-8 sm:w-10 h-14 rounded-md bg-[#0d0d16] border border-amber-900/10 shadow-lg p-1 flex flex-col items-center justify-around">
+              <div className="w-4 h-4 rounded-full bg-[#1c1c28] border border-amber-900/20" />
+              <div className="w-6 h-6 rounded-full bg-[#161622] border border-amber-900/20" />
             </div>
 
             {/* Glowing IMAX Cyan Neon Emblem & Vertical Strip */}
             <div className="flex items-center gap-3">
               <div className="w-1.5 h-32 rounded-full bg-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.95)]" />
-              <div className="text-[10px] sm:text-xs font-black tracking-widest text-cyan-400 font-mono rotate-90 origin-left drop-shadow-[0_0_12px_rgba(6,182,212,0.8)]">
+              <div className="text-[10px] sm:text-xs font-black tracking-widest text-amber-700 font-mono rotate-90 origin-left drop-shadow-[0_0_12px_rgba(6,182,212,0.8)]">
                 IMAX
               </div>
             </div>
@@ -721,14 +722,14 @@ export function CineMorphTheater() {
           {/* Right IMAX Laser Wall Column with Neon Blue Strip & Speaker Array */}
           <div className="absolute right-0 top-0 bottom-0 w-20 sm:w-32 bg-gradient-to-l from-[#030308] via-[#080812] to-transparent pointer-events-none z-1 flex flex-col justify-between py-12 pr-3 sm:pr-6 items-end border-l border-cyan-500/20 shadow-2xl opacity-95">
             {/* Upper Surround Speaker */}
-            <div className="w-8 sm:w-10 h-14 rounded-md bg-[#0d0d16] border border-white/10 shadow-lg p-1 flex flex-col items-center justify-around">
-              <div className="w-4 h-4 rounded-full bg-[#1c1c28] border border-cyan-500/30" />
-              <div className="w-6 h-6 rounded-full bg-[#161622] border border-cyan-500/30" />
+            <div className="w-8 sm:w-10 h-14 rounded-md bg-[#0d0d16] border border-amber-900/10 shadow-lg p-1 flex flex-col items-center justify-around">
+              <div className="w-4 h-4 rounded-full bg-[#1c1c28] border border-amber-900/20" />
+              <div className="w-6 h-6 rounded-full bg-[#161622] border border-amber-900/20" />
             </div>
 
             {/* Glowing IMAX Cyan Neon Emblem & Vertical Strip */}
             <div className="flex items-center gap-3">
-              <div className="text-[10px] sm:text-xs font-black tracking-widest text-cyan-400 font-mono -rotate-90 origin-right drop-shadow-[0_0_12px_rgba(6,182,212,0.8)]">
+              <div className="text-[10px] sm:text-xs font-black tracking-widest text-amber-700 font-mono -rotate-90 origin-right drop-shadow-[0_0_12px_rgba(6,182,212,0.8)]">
                 IMAX
               </div>
               <div className="w-1.5 h-32 rounded-full bg-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.95)]" />
@@ -749,7 +750,7 @@ export function CineMorphTheater() {
 
       {/* ── HUD Toast Banner Alert ── */}
       {hudToast && (
-        <div className="absolute top-8 left-1/2 -translate-x-1/2 z-40 px-5 py-2 rounded-full bg-black/80 border border-cyan-500/40 text-cyan-300 text-xs font-bold tracking-wide shadow-2xl backdrop-blur-xl animate-in fade-in zoom-in-95 duration-200">
+        <div className="absolute top-8 left-1/2 -translate-x-1/2 z-40 px-5 py-2 rounded-full bg-white/90 border border-amber-900/20 text-amber-800 text-xs font-bold tracking-wide shadow-2xl backdrop-blur-xl animate-in fade-in zoom-in-95 duration-200">
           {hudToast}
         </div>
       )}
@@ -760,9 +761,9 @@ export function CineMorphTheater() {
           isFullscreen
             ? 'max-h-[90vh] max-w-[98vw]'
             : frameAspectRatio === '4.3:1'
-            ? 'w-full max-w-[98vw] max-h-[84vh]'
-            : 'w-full max-w-[94vw] max-h-[78vh]'
-        } flex items-center justify-center z-10 overflow-hidden shadow-2xl border border-white/10 bg-black`}
+            ? 'max-w-[98vw] max-h-[84vh] h-full'
+            : 'max-w-[94vw] max-h-[78vh] h-full'
+        } flex items-center justify-center z-10 overflow-hidden shadow-2xl border border-amber-900/10 bg-black`}
         style={{
           aspectRatio: frameStyle.aspectRatioStyle,
           filter: presentationMode === 'cinema' ? 'brightness(1.03) contrast(1.02)' : 'none',
@@ -822,10 +823,10 @@ export function CineMorphTheater() {
                     sendIframeCommand('playVideo');
                   }
                 }}
-                className="absolute bottom-6 right-6 z-20 px-4 py-2 rounded-full bg-black/80 hover:bg-black border border-cyan-500/40 text-cyan-300 text-xs font-bold tracking-wide shadow-2xl backdrop-blur-xl flex items-center gap-2 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                className="absolute bottom-6 right-6 z-20 px-4 py-2 rounded-full bg-white/90 hover:bg-black border border-amber-900/20 text-amber-800 text-xs font-bold tracking-wide shadow-2xl backdrop-blur-xl flex items-center gap-2 transition-all hover:scale-105 active:scale-95 cursor-pointer"
               >
                 <span>Skip Cinema Intro</span>
-                <ChevronRight className="w-4 h-4 text-cyan-400" />
+                <ChevronRight className="w-4 h-4 text-amber-700" />
               </button>
             </div>
           ) : isLocalMedia && localItem?.url ? (
@@ -835,7 +836,7 @@ export function CineMorphTheater() {
               autoPlay
               playsInline
               preload="auto"
-              className={`w-full h-full ${frameAspectRatio === '16:9' ? 'object-contain' : 'object-cover'}`}
+              className="w-full h-full object-cover"
               onTimeUpdate={() => {
                 if (localVideoRef.current && !seeking) {
                   const cur = localVideoRef.current.currentTime;
@@ -903,16 +904,16 @@ export function CineMorphTheater() {
 
               {/* End Screen Header */}
               <div className="text-center space-y-1.5 mt-2">
-                <div className="flex items-center justify-center gap-2 text-cyan-400 text-xs font-bold uppercase tracking-widest">
-                  <Sparkles className="w-4 h-4 text-cyan-400" />
+                <div className="flex items-center justify-center gap-2 text-amber-700 text-xs font-bold uppercase tracking-widest">
+                  <Sparkles className="w-4 h-4 text-amber-700" />
                   <span>Cinema Session Completed</span>
                 </div>
-                <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                <h3 className="text-xl sm:text-2xl font-black text-[#3d332a] tracking-tight">
                   What would you like to watch next?
                 </h3>
                 {nextUpCountdown !== null && (
-                  <p className="text-xs text-cyan-300 font-mono">
-                    Auto-playing next recommended stream in <span className="font-bold text-amber-400 text-sm">{nextUpCountdown}s</span>
+                  <p className="text-xs text-amber-800 font-mono">
+                    Auto-playing next recommended stream in <span className="font-bold text-amber-800 text-sm">{nextUpCountdown}s</span>
                   </p>
                 )}
               </div>
@@ -930,23 +931,23 @@ export function CineMorphTheater() {
                       setPlaying(true);
                       navigate(`/theater/${rec.id}`);
                     }}
-                    className="group relative bg-[#13111f] rounded-xl border border-white/10 overflow-hidden cursor-pointer hover:border-cyan-500/50 transition-all hover:scale-105 shadow-lg"
+                    className="group relative bg-white rounded-xl border border-amber-900/10 overflow-hidden cursor-pointer hover:border-cyan-500/50 transition-all hover:scale-105 shadow-lg"
                   >
-                    <div className="aspect-video w-full relative overflow-hidden bg-black/60">
+                    <div className="aspect-video w-full relative overflow-hidden bg-amber-900/5">
                       <img
                         src={rec.thumbnails.medium || rec.thumbnails.high}
                         alt={rec.title}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                       />
                       <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-                        <Play className="w-6 h-6 text-white drop-shadow-lg group-hover:scale-125 transition-transform" />
+                        <Play className="w-6 h-6 text-[#3d332a] drop-shadow-lg group-hover:scale-125 transition-transform" />
                       </div>
                     </div>
                     <div className="p-2.5 space-y-1">
-                      <h4 className="text-xs font-bold text-white line-clamp-1 group-hover:text-cyan-300 transition-colors">
+                      <h4 className="text-xs font-bold text-[#3d332a] line-clamp-1 group-hover:text-amber-800 transition-colors">
                         {rec.title}
                       </h4>
-                      <p className="text-[10px] text-gray-400 line-clamp-1">{rec.channelTitle}</p>
+                      <p className="text-[10px] text-amber-900/60 line-clamp-1">{rec.channelTitle}</p>
                     </div>
                   </div>
                 ))}
@@ -982,7 +983,7 @@ export function CineMorphTheater() {
                     setTheaterState('playing');
                     setPlaying(true);
                   }}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs shadow-lg shadow-cyan-600/30 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-amber-700 hover:bg-amber-600 text-[#3d332a] font-bold text-xs shadow-lg shadow-amber-900/20 transition-all hover:scale-105 active:scale-95 cursor-pointer"
                 >
                   <RotateCcw className="w-4 h-4" />
                   <span>Replay Movie</span>
@@ -991,7 +992,7 @@ export function CineMorphTheater() {
                 {/* Select Local Video File */}
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-600/30 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-amber-800 hover:bg-purple-500 text-[#3d332a] font-bold text-xs shadow-lg shadow-amber-900/20 transition-all hover:scale-105 active:scale-95 cursor-pointer"
                 >
                   <HardDrive className="w-4 h-4" />
                   <span>Play Local Video File</span>
@@ -1001,7 +1002,7 @@ export function CineMorphTheater() {
                 {nextUpCountdown !== null && (
                   <button
                     onClick={() => setNextUpCountdown(null)}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/10 hover:bg-white/20 text-gray-300 hover:text-white font-semibold text-xs transition-all cursor-pointer"
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-amber-900/10 hover:bg-amber-900/20 text-amber-900/80 hover:text-[#3d332a] font-semibold text-xs transition-all cursor-pointer"
                   >
                     <Pause className="w-3.5 h-3.5" />
                     <span>Pause Auto-Play</span>
@@ -1026,7 +1027,7 @@ export function CineMorphTheater() {
                   className="flex-1 h-12 sm:h-16 rounded-t-2xl bg-gradient-to-b from-[#2d0f15] via-[#16070a] to-[#080204] border-t border-rose-500/20 relative flex flex-col items-center justify-start pt-1"
                 >
                   <div className="w-[85%] h-4 sm:h-6 rounded-t-xl bg-gradient-to-b from-[#3d141d] to-[#1c080d] border-t border-rose-400/20" />
-                  <div className="absolute -right-1 bottom-0 w-1.5 h-6 bg-[#120406] rounded-t-sm border-t border-white/10" />
+                  <div className="absolute -right-1 bottom-0 w-1.5 h-6 bg-[#120406] rounded-t-sm border-t border-amber-900/10" />
                 </div>
               ))}
             </div>
@@ -1044,7 +1045,7 @@ export function CineMorphTheater() {
                   className="flex-1 h-12 sm:h-16 rounded-t-2xl bg-gradient-to-b from-[#2d0f15] via-[#16070a] to-[#080204] border-t border-rose-500/20 relative flex flex-col items-center justify-start pt-1"
                 >
                   <div className="w-[85%] h-4 sm:h-6 rounded-t-xl bg-gradient-to-b from-[#3d141d] to-[#1c080d] border-t border-rose-400/20" />
-                  <div className="absolute -left-1 bottom-0 w-1.5 h-6 bg-[#120406] rounded-t-sm border-t border-white/10" />
+                  <div className="absolute -left-1 bottom-0 w-1.5 h-6 bg-[#120406] rounded-t-sm border-t border-amber-900/10" />
                 </div>
               ))}
             </div>
@@ -1059,7 +1060,7 @@ export function CineMorphTheater() {
         }`}
         aria-hidden={!controlsVisible && theaterState === 'playing'}
       >
-        <div className="bg-[#090712]/90 backdrop-blur-2xl border border-white/10 rounded-2xl p-3 sm:p-4 shadow-[0_20px_50px_rgba(0,0,0,0.9)] space-y-3">
+        <div className="bg-[#f8f5f0]/95 backdrop-blur-2xl border border-amber-900/20 text-[#3d332a] rounded-2xl p-3 sm:p-4 shadow-[0_20px_50px_rgba(120,53,15,0.2)] space-y-3">
           {/* Interactive Seekbar with Hover Tooltip */}
           <div 
             className="relative group cursor-pointer"
@@ -1068,7 +1069,7 @@ export function CineMorphTheater() {
           >
             {hoverPosPercent !== null && hoverTime !== null && (
               <div 
-                className="absolute -top-7 -translate-x-1/2 px-2 py-0.5 rounded bg-black/90 border border-cyan-500/40 text-[10px] font-mono text-cyan-300 pointer-events-none shadow-lg"
+                className="absolute -top-7 -translate-x-1/2 px-2 py-0.5 rounded bg-black/90 border border-amber-900/20 text-[10px] font-mono text-amber-800 pointer-events-none shadow-lg"
                 style={{ left: `${hoverPosPercent}%` }}
               >
                 {formatTime(hoverTime)}
@@ -1097,7 +1098,7 @@ export function CineMorphTheater() {
             <div className="flex items-center gap-2 sm:gap-3">
               <button
                 onClick={exitTheater}
-                className="p-1.5 text-gray-400 hover:text-white transition-colors rounded-lg hover:bg-white/10"
+                className="p-1.5 text-amber-900/60 hover:text-[#3d332a] transition-colors rounded-lg hover:bg-amber-900/10"
                 aria-label="Leave cinema"
                 title="Exit Cinema"
               >
@@ -1106,7 +1107,7 @@ export function CineMorphTheater() {
 
               <button
                 onClick={togglePlay}
-                className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all shadow-md"
+                className="p-2.5 rounded-full bg-amber-900/10 hover:bg-amber-900/20 text-[#3d332a] transition-all shadow-md"
                 aria-label={playing ? 'Pause' : 'Play'}
               >
                 {playing ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 fill-current" />}
@@ -1119,7 +1120,7 @@ export function CineMorphTheater() {
                   if (isLocalMedia && localVideoRef.current) localVideoRef.current.muted = nm;
                   else sendIframeCommand(nm ? 'mute' : 'unMute');
                 }}
-                className="p-1.5 text-gray-400 hover:text-white transition-colors"
+                className="p-1.5 text-amber-900/60 hover:text-[#3d332a] transition-colors"
                 aria-label={muted ? 'Unmute' : 'Mute'}
               >
                 {muted || volume === 0 ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
@@ -1143,11 +1144,11 @@ export function CineMorphTheater() {
                     sendIframeCommand('setVolume', [Math.round(nv * 100)]);
                   }
                 }}
-                className="w-16 sm:w-20 h-1 appearance-none bg-white/20 rounded-full cursor-pointer hidden sm:block"
+                className="w-16 sm:w-20 h-1 appearance-none bg-amber-900/20 rounded-full cursor-pointer hidden sm:block"
                 aria-label="Volume"
               />
 
-              <span className="text-[11px] text-gray-400 tabular-nums font-mono">
+              <span className="text-[11px] text-amber-900/60 tabular-nums font-mono">
                 {formatTime(played * duration)} / {formatTime(duration)}
               </span>
             </div>
@@ -1157,10 +1158,10 @@ export function CineMorphTheater() {
               {/* Aspect Ratio Cycler */}
               <button
                 onClick={cycleAspectRatio}
-                className="px-2.5 py-1.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-xs font-bold text-cyan-300 transition-all flex items-center gap-1 cursor-pointer"
+                className="px-2.5 py-1.5 rounded-xl bg-amber-600/10 hover:bg-amber-600/20 border border-amber-900/20 text-xs font-bold text-amber-800 transition-all flex items-center gap-1 cursor-pointer"
                 title="Cycle Aspect Ratio (1.43, 1.90, Original, 21:9)"
               >
-                <Maximize2 className="w-3.5 h-3.5 text-cyan-400" />
+                <Maximize2 className="w-3.5 h-3.5 text-amber-700" />
                 <span className="uppercase">{frameAspectRatio}</span>
               </button>
 
@@ -1189,7 +1190,7 @@ export function CineMorphTheater() {
                   showToast(nextCc ? '💬 Subtitles / CC Enabled' : '💬 Subtitles / CC Disabled');
                 }}
                 className={`p-2 rounded-xl transition-all cursor-pointer ${
-                  subtitlesOn ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30' : 'text-gray-400 hover:text-white hover:bg-white/10'
+                  subtitlesOn ? 'bg-amber-600/20 text-amber-800 border border-amber-900/20' : 'text-amber-900/60 hover:text-[#3d332a] hover:bg-amber-900/10'
                 }`}
                 title="Toggle Subtitles / CC"
               >
@@ -1200,7 +1201,7 @@ export function CineMorphTheater() {
               <button
                 onClick={() => setShowStudioDrawer(s => !s)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  showStudioDrawer ? 'bg-cyan-500 text-black shadow-lg shadow-cyan-500/30' : 'bg-white/10 text-white hover:bg-white/20'
+                  showStudioDrawer ? 'bg-amber-600 text-black shadow-lg shadow-cyan-500/30' : 'bg-amber-900/10 text-[#3d332a] hover:bg-amber-900/20'
                 }`}
                 title="Open Studio Settings & Cinema Controls"
               >
@@ -1211,7 +1212,7 @@ export function CineMorphTheater() {
               {/* Fullscreen Toggle */}
               <button
                 onClick={toggleFullscreen}
-                className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                className="p-2 rounded-xl text-amber-900/60 hover:text-[#3d332a] hover:bg-amber-900/10 transition-colors cursor-pointer"
                 title="Fullscreen (F)"
               >
                 {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
@@ -1223,24 +1224,24 @@ export function CineMorphTheater() {
 
       {/* ── Studio Drawer Overlay ── */}
       {showStudioDrawer && (
-        <div className="absolute top-0 right-0 bottom-0 w-80 sm:w-96 bg-[#0c0a14]/95 backdrop-blur-2xl border-l border-white/10 p-6 z-40 overflow-y-auto space-y-6 animate-in slide-in-from-right duration-300">
-          <div className="flex items-center justify-between pb-4 border-b border-white/10">
+        <div className="absolute top-0 right-0 bottom-0 w-80 sm:w-96 bg-[#0c0a14]/95 backdrop-blur-2xl border-l border-amber-900/10 p-6 z-40 overflow-y-auto space-y-6 animate-in slide-in-from-right duration-300">
+          <div className="flex items-center justify-between pb-4 border-b border-amber-900/10">
             <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-cyan-400" />
-              <span className="text-sm font-bold text-white tracking-wide">Studio & Cinema Controls</span>
+              <Sparkles className="w-4 h-4 text-amber-700" />
+              <span className="text-sm font-bold text-[#3d332a] tracking-wide">Studio & Cinema Controls</span>
             </div>
             <button 
               onClick={() => setShowStudioDrawer(false)}
-              className="p-1 text-gray-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+              className="p-1 text-amber-900/60 hover:text-[#3d332a] rounded-lg hover:bg-amber-900/10 transition-colors"
             >
               <X className="w-4 h-4" />
             </button>
           </div>
 
           {/* Quick Cinema Settings & Environment */}
-          <div className="space-y-3 pb-4 border-b border-white/10">
-            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
-              <Sliders className="w-3.5 h-3.5 text-cyan-400" />
+          <div className="space-y-3 pb-4 border-b border-amber-900/10">
+            <div className="text-[10px] font-bold text-amber-900/60 uppercase tracking-widest flex items-center gap-1.5">
+              <Sliders className="w-3.5 h-3.5 text-amber-700" />
               Environment & Playback Tools
             </div>
             <div className="grid grid-cols-2 gap-2">
@@ -1252,7 +1253,7 @@ export function CineMorphTheater() {
                   showToast(next ? '💺 Cinema Seating: Visible' : '💺 Cinema Seating: Hidden');
                 }}
                 className={`p-2.5 rounded-xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
-                  theaterSeatingEnabled ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40' : 'bg-white/5 text-gray-400 border-white/10'
+                  theaterSeatingEnabled ? 'bg-amber-600/20 text-amber-800 border-amber-900/20' : 'bg-amber-900/5 text-amber-900/60 border-amber-900/10'
                 }`}
               >
                 <Armchair className="w-4 h-4" />
@@ -1270,9 +1271,9 @@ export function CineMorphTheater() {
                   else sendIframeCommand('setPlaybackRate', [nextSpeed]);
                   showToast(`⚡ Speed: ${nextSpeed}x`);
                 }}
-                className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-xs font-semibold text-gray-300 hover:text-white flex items-center gap-2 cursor-pointer"
+                className="p-2.5 rounded-xl bg-amber-900/5 border border-amber-900/10 text-xs font-semibold text-amber-900/80 hover:text-[#3d332a] flex items-center gap-2 cursor-pointer"
               >
-                <Gauge className="w-4 h-4 text-amber-400" />
+                <Gauge className="w-4 h-4 text-amber-800" />
                 <span>Speed: {speedRate}x</span>
               </button>
 
@@ -1284,7 +1285,7 @@ export function CineMorphTheater() {
                   showToast(next ? '🌱 Eco Mode: Enabled' : '⚡ 60FPS Mode: Active');
                 }}
                 className={`p-2.5 rounded-xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
-                  ecoMode ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-white/5 text-gray-400 border-white/10'
+                  ecoMode ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-amber-900/5 text-amber-900/60 border-amber-900/10'
                 }`}
               >
                 <Zap className="w-4 h-4 text-emerald-400" />
@@ -1294,26 +1295,26 @@ export function CineMorphTheater() {
               {/* Dimmer */}
               <button
                 onClick={cycleDimmer}
-                className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-xs font-semibold text-gray-300 hover:text-white flex items-center gap-2 cursor-pointer"
+                className="p-2.5 rounded-xl bg-amber-900/5 border border-amber-900/10 text-xs font-semibold text-amber-900/80 hover:text-[#3d332a] flex items-center gap-2 cursor-pointer"
               >
-                <Sun className="w-4 h-4 text-amber-400" />
+                <Sun className="w-4 h-4 text-amber-800" />
                 <span>Glow: {glowIntensity.toUpperCase()}</span>
               </button>
             </div>
 
             <button
               onClick={() => { setShowStudioDrawer(false); setShowShortcuts(true); }}
-              className="w-full py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-gray-300 flex items-center justify-center gap-2 transition-all cursor-pointer"
+              className="w-full py-2 px-3 rounded-xl bg-amber-900/5 hover:bg-amber-900/10 border border-amber-900/10 text-xs font-bold text-amber-900/80 flex items-center justify-center gap-2 transition-all cursor-pointer"
             >
-              <HelpCircle className="w-3.5 h-3.5 text-cyan-400" />
+              <HelpCircle className="w-3.5 h-3.5 text-amber-700" />
               <span>View Keyboard Shortcuts</span>
             </button>
           </div>
 
           {/* Scene Highlights */}
           <div className="space-y-2">
-            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
-              <ListFilter className="w-3.5 h-3.5 text-cyan-400" />
+            <div className="text-[10px] font-bold text-amber-900/60 uppercase tracking-widest flex items-center gap-1.5">
+              <ListFilter className="w-3.5 h-3.5 text-amber-700" />
               Synchronized Scene Highlights
             </div>
             <div className="space-y-1.5">
@@ -1328,12 +1329,12 @@ export function CineMorphTheater() {
                     }
                     showToast(`⏱️ Jumped to: ${h.title}`);
                   }}
-                  className="w-full p-2.5 rounded-xl bg-white/5 hover:bg-cyan-500/15 border border-white/5 hover:border-cyan-500/30 text-left transition-all flex items-center justify-between group"
+                  className="w-full p-2.5 rounded-xl bg-amber-900/5 hover:bg-amber-600/15 border border-amber-900/5 hover:border-amber-900/20 text-left transition-all flex items-center justify-between group"
                 >
-                  <div className="text-xs font-semibold text-gray-300 group-hover:text-white truncate max-w-[200px]">
+                  <div className="text-xs font-semibold text-amber-900/80 group-hover:text-[#3d332a] truncate max-w-[200px]">
                     {h.title}
                   </div>
-                  <span className="text-[10px] font-mono font-bold text-cyan-400 bg-cyan-950/60 px-2 py-0.5 rounded-full border border-cyan-500/20">
+                  <span className="text-[10px] font-mono font-bold text-amber-700 bg-cyan-950/60 px-2 py-0.5 rounded-full border border-cyan-500/20">
                     {formatTime(h.timestamp)}
                   </span>
                 </button>
@@ -1343,11 +1344,11 @@ export function CineMorphTheater() {
 
           {/* AI Summary Breakdown */}
           {aiSummary && (
-            <div className="space-y-2 pt-2 border-t border-white/10">
-              <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+            <div className="space-y-2 pt-2 border-t border-amber-900/10">
+              <div className="text-[10px] font-bold text-amber-900/60 uppercase tracking-widest">
                 Executive Breakdown
               </div>
-              <p className="text-xs text-gray-300 leading-relaxed bg-white/5 p-3 rounded-xl border border-white/5">
+              <p className="text-xs text-amber-900/80 leading-relaxed bg-amber-900/5 p-3 rounded-xl border border-amber-900/5">
                 {aiSummary.executiveSummary}
               </p>
             </div>
@@ -1358,58 +1359,58 @@ export function CineMorphTheater() {
       {/* ── Keyboard Shortcuts HUD Overlay ── */}
       {showShortcuts && (
         <div 
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-white/90 backdrop-blur-md p-4 animate-in fade-in duration-200"
           onClick={() => setShowShortcuts(false)}
         >
           <div 
-            className="w-full max-w-md bg-[#0e0c14] border border-cyan-500/30 rounded-2xl p-6 shadow-2xl relative"
+            className="w-full max-w-md bg-[#0e0c14] border border-amber-900/20 rounded-2xl p-6 shadow-2xl relative"
             onClick={e => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between pb-4 mb-4 border-b border-white/10">
-              <div className="flex items-center gap-2.5 text-white font-semibold">
-                <Keyboard className="w-5 h-5 text-cyan-400" />
+            <div className="flex items-center justify-between pb-4 mb-4 border-b border-amber-900/10">
+              <div className="flex items-center gap-2.5 text-[#3d332a] font-semibold">
+                <Keyboard className="w-5 h-5 text-amber-700" />
                 <span>Cinema Theater Shortcuts</span>
               </div>
               <button 
                 onClick={() => setShowShortcuts(false)}
-                className="p-1 text-gray-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+                className="p-1 text-amber-900/60 hover:text-[#3d332a] rounded-lg hover:bg-amber-900/10 transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="space-y-3 text-xs text-gray-300">
+            <div className="space-y-3 text-xs text-amber-900/80">
               <div className="flex items-center justify-between py-1">
                 <span>Play / Pause</span>
-                <kbd className="px-2 py-1 bg-white/10 rounded font-mono text-cyan-300 border border-white/10">Space</kbd>
+                <kbd className="px-2 py-1 bg-amber-900/10 rounded font-mono text-amber-800 border border-amber-900/10">Space</kbd>
               </div>
               <div className="flex items-center justify-between py-1">
                 <span>Seek Forward / Backward 10s</span>
-                <kbd className="px-2 py-1 bg-white/10 rounded font-mono text-cyan-300 border border-white/10">➔ / ⬅</kbd>
+                <kbd className="px-2 py-1 bg-amber-900/10 rounded font-mono text-amber-800 border border-amber-900/10">➔ / ⬅</kbd>
               </div>
               <div className="flex items-center justify-between py-1">
                 <span>Volume Up / Down</span>
-                <kbd className="px-2 py-1 bg-white/10 rounded font-mono text-cyan-300 border border-white/10">⬆ / ⬇</kbd>
+                <kbd className="px-2 py-1 bg-amber-900/10 rounded font-mono text-amber-800 border border-amber-900/10">⬆ / ⬇</kbd>
               </div>
               <div className="flex items-center justify-between py-1">
                 <span>Mute / Unmute</span>
-                <kbd className="px-2 py-1 bg-white/10 rounded font-mono text-cyan-300 border border-white/10">M</kbd>
+                <kbd className="px-2 py-1 bg-amber-900/10 rounded font-mono text-amber-800 border border-amber-900/10">M</kbd>
               </div>
               <div className="flex items-center justify-between py-1">
                 <span>Toggle Fullscreen</span>
-                <kbd className="px-2 py-1 bg-white/10 rounded font-mono text-cyan-300 border border-white/10">F</kbd>
+                <kbd className="px-2 py-1 bg-amber-900/10 rounded font-mono text-amber-800 border border-amber-900/10">F</kbd>
               </div>
               <div className="flex items-center justify-between py-1">
                 <span>Toggle Presentation Mode</span>
-                <kbd className="px-2 py-1 bg-white/10 rounded font-mono text-cyan-300 border border-white/10">C</kbd>
+                <kbd className="px-2 py-1 bg-amber-900/10 rounded font-mono text-amber-800 border border-amber-900/10">C</kbd>
               </div>
               <div className="flex items-center justify-between py-1">
                 <span>Exit Theater / Close Overlays</span>
-                <kbd className="px-2 py-1 bg-white/10 rounded font-mono text-cyan-300 border border-white/10">Esc</kbd>
+                <kbd className="px-2 py-1 bg-amber-900/10 rounded font-mono text-amber-800 border border-amber-900/10">Esc</kbd>
               </div>
               <div className="flex items-center justify-between py-1">
                 <span>Toggle Shortcuts Help</span>
-                <kbd className="px-2 py-1 bg-white/10 rounded font-mono text-cyan-300 border border-white/10">?</kbd>
+                <kbd className="px-2 py-1 bg-amber-900/10 rounded font-mono text-amber-800 border border-amber-900/10">?</kbd>
               </div>
             </div>
           </div>

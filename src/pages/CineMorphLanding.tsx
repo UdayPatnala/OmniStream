@@ -10,13 +10,7 @@ import { useAppStore } from '../store';
 import { playbackService } from '../lib/services/playbackService';
 import { LocalMediaItem } from '../types';
 import { extractYouTubeId } from '../lib/utils';
-
-const CURATED_SHOWCASE = [
-  { id: 'dQw4w9WgXcQ', title: 'Cinematic 4K Showcase', tag: 'IMAX 4K HDR', query: 'cinematic 4k hdr landscape movie demo' },
-  { id: 'jfKfPfyJRdk', title: 'Lo-Fi Chill Cinema', tag: 'Spatial Audio', query: 'lofi hip hop radio beats to relax study' },
-  { id: '5qap5aO4i9A', title: 'Cyberpunk Neon City', tag: '21:9 UltraWide', query: 'cyberpunk 2077 night city 4k 60fps showcase' },
-  { id: 'LXb3EKWsInQ', title: 'Nature in 8K Ultra HDR', tag: 'Ambilight Glow', query: 'costa rica 8k 60fps hdr ultra hd' },
-];
+import { useTicketStore } from '../state/useTicketStore';
 
 export function CineMorphLanding() {
   const [activeSourceTab, setActiveSourceTab] = useState<'youtube' | 'local'>('youtube');
@@ -27,12 +21,11 @@ export function CineMorphLanding() {
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const navigate = useNavigate();
+  const tickets = useTicketStore(state => state.tickets);
   const { 
-    history, 
     localMediaHistory, 
     addLocalMediaToHistory, 
-    setActiveLocalMedia, 
-    setVersionMode 
+    setActiveLocalMedia 
   } = useAppStore();
 
   const handleEnterCinema = async (e?: React.FormEvent, directInput?: string) => {
@@ -40,16 +33,20 @@ export function CineMorphLanding() {
     const query = (directInput || inputUrl).trim();
     if (!query) return;
 
-    // Check if direct YouTube video link or 11-char ID
-    const directId = extractYouTubeId(query);
-    if (directId) {
-      navigate(`/theater/${directId}`);
-      return;
-    }
-
     setLoading(true);
     try {
-      await playbackService.executePipeline(query, (path) => {
+      const directId = extractYouTubeId(query);
+      if (directId) {
+        await useTicketStore.getState().trigger10sPrintAnimation({
+          title: 'YouTube Stream',
+          source: query,
+          isLocal: false
+        });
+        navigate(`/theater/${directId}`);
+        return;
+      }
+
+      await playbackService.executePipeline(query, async (path) => {
         navigate(path);
       });
     } catch (e) {
@@ -59,11 +56,10 @@ export function CineMorphLanding() {
     }
   };
 
-  const handleLocalFileSelect = (file: File) => {
+  const handleLocalFileSelect = async (file: File) => {
     setLocalFileError(null);
     if (!file) return;
 
-    // Validate video or audio mime or extension
     const validExtensions = [
       'mp4', 'webm', 'mkv', 'mov', 'm4v', 'avi', 'flv', 'wmv', '3gp', 'ts', 'ogv', 'm3u8', 'mpd',
       'mp3', 'wav', 'aac', 'flac', 'm4a', 'ogg', 'opus', 'wma'
@@ -79,9 +75,10 @@ export function CineMorphLanding() {
     try {
       const blobUrl = URL.createObjectURL(file);
       const fileId = `local-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+      const title = file.name.replace(/\.[^/.]+$/, '');
       const mediaItem: LocalMediaItem = {
         id: fileId,
-        name: file.name.replace(/\.[^/.]+$/, ''),
+        name: title,
         size: file.size,
         type: file.type || `video/${ext}`,
         url: blobUrl,
@@ -93,8 +90,14 @@ export function CineMorphLanding() {
       addLocalMediaToHistory(mediaItem);
       setActiveLocalMedia(mediaItem);
 
-      // Navigate to theater with local mode identifier
-      navigate(`/watch/${fileId}`);
+      await useTicketStore.getState().trigger10sPrintAnimation({
+        title: title,
+        source: blobUrl,
+        isLocal: true,
+        file: file
+      });
+
+      navigate(`/theater/${fileId}`);
     } catch (err) {
       setLocalFileError('Failed to read local file. Please try again.');
     }
@@ -113,355 +116,200 @@ export function CineMorphLanding() {
     .slice(0, 4);
 
   return (
-    <div className="min-h-screen w-full bg-[#030206] text-white flex flex-col items-center justify-between p-4 sm:p-8 relative overflow-hidden select-none font-sans">
-      {/* Dynamic Ambient Cinema Spotlights & Projector Beam */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-gradient-to-tr from-cyan-900/25 via-indigo-900/35 to-purple-900/20 rounded-full blur-[160px] pointer-events-none" />
-      <div className="absolute bottom-10 left-10 w-[400px] h-[300px] bg-cyan-600/10 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute top-10 right-10 w-[400px] h-[300px] bg-purple-600/10 rounded-full blur-[120px] pointer-events-none" />
+    <div className="min-h-screen w-full bg-[#f8f5f0] text-[#3d332a] flex flex-col items-center justify-between p-4 sm:p-8 relative overflow-hidden select-none font-serif">
+      {/* Dynamic Ambient Vintage Spotlights */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-gradient-to-tr from-amber-700/10 via-amber-600/5 to-amber-900/10 rounded-full blur-[160px] pointer-events-none" />
+      <div className="absolute bottom-10 left-10 w-[400px] h-[300px] bg-amber-800/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-10 right-10 w-[400px] h-[300px] bg-red-900/5 rounded-full blur-[120px] pointer-events-none" />
 
-      {/* 🍿 Floating Cinema Props & Animated Film Reels */}
-      <div className="absolute top-16 left-8 sm:left-20 pointer-events-none z-0 opacity-40 animate-pulse">
-        <div className="flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 px-3 py-1.5 rounded-2xl backdrop-blur-md">
-          <span className="text-2xl animate-bounce">🍿</span>
-          <span className="text-[10px] font-bold text-amber-300 tracking-widest uppercase">Fresh Popcorn</span>
+      {/* Floating Vintage Cinema Props */}
+      <div className="absolute top-36 right-8 sm:right-24 pointer-events-none z-0 opacity-40">
+        <div className="flex items-center gap-2 bg-amber-100/50 border border-amber-900/10 px-3 py-1.5 rounded-2xl backdrop-blur-md shadow-sm">
+          <Disc className="w-6 h-6 text-amber-800 animate-[spin_12s_linear_infinite]" />
+          <span className="text-[10px] font-bold text-amber-900 tracking-widest uppercase">35mm Film Reel</span>
         </div>
       </div>
 
-      <div className="absolute top-36 right-8 sm:right-24 pointer-events-none z-0 opacity-30">
-        <div className="flex items-center gap-2 bg-cyan-500/10 border border-cyan-500/30 px-3 py-1.5 rounded-2xl backdrop-blur-md">
-          <Disc className="w-6 h-6 text-cyan-400 animate-[spin_12s_linear_infinite]" />
-          <span className="text-[10px] font-bold text-cyan-300 tracking-widest uppercase">35mm Film Reel</span>
+      <div className="absolute bottom-20 left-12 pointer-events-none z-0 opacity-40 hidden md:block">
+        <div className="flex items-center gap-2 bg-amber-100/50 border border-amber-900/10 px-3 py-1.5 rounded-2xl backdrop-blur-md shadow-sm">
+          <Ticket className="w-5 h-5 text-amber-800" />
+          <span className="text-[10px] font-bold text-amber-900 tracking-widest uppercase">Theater Ticket</span>
         </div>
       </div>
 
-      <div className="absolute bottom-20 left-12 pointer-events-none z-0 opacity-30 hidden md:block">
-        <div className="flex items-center gap-2 bg-pink-500/10 border border-pink-500/30 px-3 py-1.5 rounded-2xl backdrop-blur-md">
-          <Ticket className="w-5 h-5 text-pink-400" />
-          <span className="text-[10px] font-bold text-pink-300 tracking-widest uppercase">IMAX VIP Ticket</span>
+      <div className="absolute bottom-28 right-16 pointer-events-none z-0 opacity-50">
+        <div className="flex items-center gap-2 bg-amber-100/50 border border-amber-900/10 px-3 py-1.5 rounded-2xl backdrop-blur-md shadow-sm">
+          <Clapperboard className="w-5 h-5 text-amber-800" />
+          <span className="text-[10px] font-bold text-amber-900 tracking-widest uppercase font-mono">SCENE #01</span>
         </div>
       </div>
 
-      <div className="absolute bottom-28 right-16 pointer-events-none z-0 opacity-40">
-        <div className="flex items-center gap-2 bg-purple-500/10 border border-purple-500/30 px-3 py-1.5 rounded-2xl backdrop-blur-md">
-          <Clapperboard className="w-5 h-5 text-purple-400" />
-          <span className="text-[10px] font-bold text-purple-300 tracking-widest uppercase font-mono">SCENE #01</span>
-        </div>
-      </div>
-
-      {/* Top Header */}
-      <div className="w-full max-w-6xl flex justify-between items-center z-10 py-2">
-        <div className="flex items-center gap-3">
-          <div className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_12px_rgba(34,211,238,0.8)]" />
-          <span className="text-xs font-bold tracking-widest uppercase text-gray-300 flex items-center gap-1.5">
-            <Clapperboard className="w-4 h-4 text-amber-400" />
-            CineMorph AI <span className="text-cyan-400">Theater V2</span>
-          </span>
+      {/* Main Gateway Panel */}
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-center w-full max-w-4xl mt-12 mb-16">
+        <div className="w-16 h-16 rounded-full overflow-hidden p-0.5 bg-gradient-to-tr from-amber-600 via-amber-800 to-red-900 shadow-xl shadow-amber-900/20 mb-8 border border-amber-900/30">
+          <img src="/omn_logo.jpg" alt="OMS Intelligence Core" className="w-full h-full object-cover rounded-full" />
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-3">
-          <button
-            onClick={() => navigate('/')}
-            className="px-3.5 py-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-gray-400 hover:text-white transition-all shadow-sm cursor-pointer"
-          >
-            ← Experience Selector
-          </button>
-          <button
-            onClick={() => { setVersionMode('v1'); navigate('/home'); }}
-            className="px-3.5 py-1.5 rounded-full bg-red-500/15 hover:bg-red-500/25 border border-red-500/30 text-xs font-semibold text-red-300 hover:text-white transition-all shadow-sm cursor-pointer"
-          >
-            Enter U-Tube V1
-          </button>
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-900 text-amber-50 text-[10px] font-bold tracking-[0.2em] uppercase border border-amber-800 shadow-sm mb-6">
+          <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+          <span>Cinematic Immersion Engine</span>
+          <Film className="w-3.5 h-3.5 text-amber-400" />
         </div>
-      </div>
 
-      {/* Main Center Stage */}
-      <div className="w-full max-w-3xl text-center space-y-6 z-10 my-auto py-6">
-        <div className="space-y-3">
-          <div className="flex items-center justify-center gap-3">
-            <div className="relative w-14 h-14 rounded-full overflow-hidden p-0.5 bg-gradient-to-tr from-cyan-400 via-indigo-500 to-pink-500 shadow-xl shadow-cyan-500/30">
-              <img
-                src="/omn_logo.jpg"
-                alt="OMS Core"
-                className="w-full h-full object-cover rounded-full animate-oms-core"
-              />
-            </div>
+        <h1 className="text-5xl sm:text-7xl font-black tracking-tight text-amber-950 text-center mb-6 drop-shadow-sm font-sans uppercase">
+          Cine<span className="text-amber-700">Morph</span>
+        </h1>
+        
+        <p className="text-center text-amber-900/70 max-w-xl text-base sm:text-lg mb-12 font-medium tracking-wide">
+          Step into a grand theatrical environment with opening curtains, vintage acoustics, and dynamic spatial framing.
+        </p>
+
+        {/* Feature Badges */}
+        <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 mb-12">
+          <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-50 border border-amber-200 shadow-sm">
+            <Maximize2 className="w-4 h-4 text-amber-700" />
+            <span className="text-xs font-bold text-amber-900 tracking-wider">Screen Behind Hole</span>
           </div>
-
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-bold tracking-widest uppercase shadow-lg shadow-cyan-950/40">
-            <Sparkles className="w-4 h-4 text-cyan-400" />
-            <span>Neural Virtual Cinema Hall</span>
-            <span className="text-amber-400 ml-1">🍿</span>
+          <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-50 border border-amber-200 shadow-sm">
+            <Volume2 className="w-4 h-4 text-amber-700" />
+            <span className="text-xs font-bold text-amber-900 tracking-wider">Spatial Acoustics</span>
           </div>
-
-          <h1 className="text-4xl sm:text-6xl md:text-7xl font-black tracking-tight text-white bg-gradient-to-b from-white via-[#f1f5f9] to-cyan-300 bg-clip-text text-transparent drop-shadow-sm">
-            CineMorph<span className="text-cyan-400">AI</span>
-          </h1>
-
-          <p className="text-xs sm:text-sm md:text-base text-gray-400 font-medium tracking-wide max-w-lg mx-auto">
-            Experience ultra-immersive cinematic playback with 2.5D visual theater room, opening curtains, adaptive Ambilight bloom, and spatial Web Audio DSP.
-          </p>
-
-          {/* Feature Badges */}
-          <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] font-semibold text-gray-300">
-              <Film className="w-3 h-3 text-cyan-400" /> 2.5D Theater Seating
-            </span>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] font-semibold text-gray-300">
-              <Volume2 className="w-3 h-3 text-purple-400" /> Spatial Audio DSP
-            </span>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] font-semibold text-gray-300">
-              <Zap className="w-3 h-3 text-amber-400" /> Dynamic Ambilight Bloom
-            </span>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] font-semibold text-gray-300">
-              <HardDrive className="w-3 h-3 text-emerald-400" /> 100% Private Local Media
-            </span>
+          <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-50 border border-amber-200 shadow-sm">
+            <Film className="w-4 h-4 text-amber-700" />
+            <span className="text-xs font-bold text-amber-900 tracking-wider">100% Private Local Media</span>
           </div>
         </div>
 
-        {/* Source Switcher Tabs */}
-        <div className="flex items-center justify-center gap-2 p-1.5 rounded-2xl bg-black/60 border border-white/10 w-fit mx-auto shadow-xl">
-          <button
-            onClick={() => setActiveSourceTab('youtube')}
-            className={`flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-bold transition-all ${
-              activeSourceTab === 'youtube'
-                ? 'bg-gradient-to-r from-cyan-600 to-indigo-600 text-white shadow-lg shadow-cyan-500/25'
-                : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            <Play className="w-3.5 h-3.5 fill-current" />
-            <span>YouTube Stream Cinema</span>
-          </button>
+        {/* Action Form */}
+        <div className="w-full max-w-2xl bg-white border border-amber-200 rounded-[2rem] p-3 shadow-2xl shadow-amber-900/10 flex flex-col md:flex-row gap-3">
+          
+          <div className="flex bg-amber-50 p-1 rounded-full border border-amber-200 shadow-inner">
+            <button
+              onClick={() => setActiveSourceTab('youtube')}
+              className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-2.5 rounded-full text-xs font-bold transition-all ${
+                activeSourceTab === 'youtube'
+                  ? 'bg-amber-700 text-white shadow-md'
+                  : 'text-amber-800 hover:text-amber-950 hover:bg-amber-100'
+              }`}
+            >
+              <Play className="w-4 h-4" />
+              <span>Web Stream</span>
+            </button>
+            <button
+              onClick={() => setActiveSourceTab('local')}
+              className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-2.5 rounded-full text-xs font-bold transition-all ${
+                activeSourceTab === 'local'
+                  ? 'bg-amber-700 text-white shadow-md'
+                  : 'text-amber-800 hover:text-amber-950 hover:bg-amber-100'
+              }`}
+            >
+              <HardDrive className="w-4 h-4" />
+              <span>Local File</span>
+            </button>
+          </div>
 
-          <button
-            onClick={() => setActiveSourceTab('local')}
-            className={`flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-bold transition-all ${
-              activeSourceTab === 'local'
-                ? 'bg-gradient-to-r from-cyan-600 to-indigo-600 text-white shadow-lg shadow-cyan-500/25'
-                : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            <HardDrive className="w-3.5 h-3.5 text-cyan-300" />
-            <span>Personal Local Media</span>
-          </button>
-        </div>
-
-        {/* TAB 1: YOUTUBE CINEMA GATE */}
-        {activeSourceTab === 'youtube' && (
-          <div className="space-y-6 animate-in fade-in zoom-in-95 duration-200">
-            <form onSubmit={handleEnterCinema} className="relative w-full max-w-xl mx-auto">
-              <div className="relative flex items-center bg-[#0a0812]/90 border border-cyan-500/35 rounded-2xl p-1.5 shadow-[0_15px_40px_rgba(0,0,0,0.8)] backdrop-blur-2xl focus-within:border-cyan-400 focus-within:shadow-[0_0_30px_rgba(34,211,238,0.25)] transition-all">
+          <div className="flex-1 relative">
+            {activeSourceTab === 'youtube' ? (
+              <form onSubmit={handleEnterCinema} className="h-full relative flex items-center w-full bg-amber-50 rounded-full border border-amber-200 focus-within:border-amber-500 focus-within:ring-2 focus-within:ring-amber-200 transition-all shadow-inner">
                 <input
                   type="text"
+                  placeholder="Paste YouTube Link or Search..."
                   value={inputUrl}
                   onChange={(e) => setInputUrl(e.target.value)}
-                  placeholder="Paste YouTube Link or Search (e.g. Interstellar 4K, Cyberpunk City)..."
-                  className="w-full bg-transparent px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none"
+                  className="w-full bg-transparent text-amber-950 placeholder-amber-900/50 py-3 pl-6 pr-32 text-sm focus:outline-none font-sans font-medium"
                   autoFocus
                 />
                 <button
                   type="submit"
-                  disabled={loading || !inputUrl.trim()}
-                  className="px-5 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 disabled:opacity-40 disabled:pointer-events-none text-white font-bold text-xs tracking-wider uppercase transition-all flex items-center gap-2 shadow-lg shadow-cyan-500/20 shrink-0"
+                  disabled={!inputUrl.trim() || loading}
+                  className="absolute right-1.5 top-1.5 bottom-1.5 bg-amber-700 hover:bg-amber-800 disabled:opacity-50 text-white px-5 rounded-full text-[11px] font-black tracking-widest uppercase flex items-center gap-2 transition-colors shadow-sm"
                 >
-                  {loading ? (
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    <>
-                      <span>Enter Cinema</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </>
-                  )}
+                  {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : 'Enter'}
+                  {!loading && <ArrowRight className="w-3.5 h-3.5" />}
                 </button>
-              </div>
-            </form>
-
-            {/* Featured Channel Selector Hub */}
-            <div className="space-y-3 pt-2">
-              <div className="flex items-center justify-between text-xs text-gray-400 px-1 font-bold uppercase tracking-wider">
-                <span>Select Channel / Category First</span>
-                <span className="text-[10px] text-cyan-400">Filter Videos by Channel</span>
-              </div>
-              <div className="flex flex-wrap items-center justify-center gap-2">
-                {[
-                  { id: 'veritasium', name: 'Veritasium', icon: '🧪', query: 'Veritasium' },
-                  { id: 'mkbhd', name: 'MKBHD', icon: '📱', query: 'Marques Brownlee' },
-                  { id: 'lofigirl', name: 'Lofi Girl', icon: '🎧', query: 'Lofi Girl' },
-                  { id: 'natgeo', name: 'Nat Geo', icon: '🌍', query: 'National Geographic' },
-                  { id: 'ted', name: 'TED Talks', icon: '💡', query: 'TED Talks' },
-                  { id: 'f1', name: 'Formula 1', icon: '🏎️', query: 'Formula 1' },
-                  { id: 'traversy', name: 'Traversy Media', icon: '💻', query: 'Traversy Media' },
-                  { id: 'bbcearth', name: 'BBC Earth', icon: '🦁', query: 'BBC Earth' },
-                ].map((chan) => (
-                  <button
-                    key={chan.id}
-                    onClick={() => handleEnterCinema(undefined, chan.query)}
-                    className="px-3.5 py-1.5 rounded-full bg-[#12101f] hover:bg-cyan-500/20 border border-white/10 hover:border-cyan-500/40 text-xs font-semibold text-gray-300 hover:text-white transition-all flex items-center gap-1.5 cursor-pointer shadow-sm hover:scale-105"
-                  >
-                    <span>{chan.icon}</span>
-                    <span>{chan.name}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Curated Showcase Grid */}
-            <div className="space-y-3 pt-2">
-              <div className="flex items-center justify-between text-xs text-gray-400 px-1 font-semibold uppercase tracking-wider">
-                <span>Featured Cinematic Showcases</span>
-                <span className="text-[10px] text-cyan-400">1-Click Instant Play</span>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                {CURATED_SHOWCASE.map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={() => handleEnterCinema(undefined, item.id)}
-                    className="p-3 rounded-2xl bg-[#0e0d16]/80 hover:bg-[#151322] border border-white/5 hover:border-cyan-500/40 text-left transition-all duration-200 group flex flex-col justify-between h-24 hover:scale-[1.02] shadow-md cursor-pointer"
-                  >
-                    <div className="text-[10px] font-bold tracking-wider text-cyan-400 uppercase bg-cyan-950/60 px-2 py-0.5 rounded-full border border-cyan-500/20 w-fit">
-                      {item.tag}
-                    </div>
-                    <div className="text-xs font-semibold text-gray-300 group-hover:text-white line-clamp-2 leading-tight">
-                      {item.title}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* TAB 2: LOCAL MEDIA GATE */}
-        {activeSourceTab === 'local' && (
-          <div className="space-y-6 animate-in fade-in zoom-in-95 duration-200">
-            {/* Drag and Drop Zone */}
-            <div
-              onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-              onDragLeave={() => setDragOver(false)}
-              onDrop={handleDrop}
-              onClick={() => fileInputRef.current?.click()}
-              className={`w-full max-w-xl mx-auto p-8 rounded-3xl border-2 border-dashed transition-all cursor-pointer flex flex-col items-center justify-center gap-3 bg-[#0a0812]/90 backdrop-blur-2xl ${
-                dragOver 
-                  ? 'border-cyan-400 bg-cyan-950/20 scale-[1.02] shadow-[0_0_40px_rgba(34,211,238,0.25)]' 
-                  : 'border-white/15 hover:border-cyan-500/40 hover:bg-[#0e0d18]'
-              }`}
-            >
-              <input 
-                ref={fileInputRef}
-                type="file" 
-                accept="video/*,audio/*,.mp4,.webm,.mkv,.mov,.m4v,.avi,.flv,.wmv,.3gp,.ts,.ogv,.m3u8,.mpd,.mp3,.wav,.aac,.flac,.m4a,.ogg"
-                onChange={(e) => e.target.files?.[0] && handleLocalFileSelect(e.target.files[0])}
-                className="hidden"
-              />
-              <div className="w-16 h-16 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shadow-lg shadow-cyan-500/15">
-                <UploadCloud className="w-8 h-8" />
-              </div>
-              <div className="space-y-1 text-center">
-                <div className="text-sm font-bold text-white">
-                  Drop your local video or audio file here, or <span className="text-cyan-400 underline underline-offset-2">Browse</span>
-                </div>
-                <div className="text-xs text-gray-400">
-                  Supports MP4, MKV, WebM, MOV, AVI, FLV, TS, MP3, WAV, AAC, FLAC & All Formats
-                </div>
-              </div>
-            </div>
-
-            {/* Error Message */}
-            {localFileError && (
-              <div className="max-w-xl mx-auto p-3 rounded-xl bg-red-500/15 border border-red-500/30 text-red-300 text-xs font-semibold flex items-center justify-between">
-                <span>{localFileError}</span>
-                <button onClick={() => setLocalFileError(null)}><X className="w-4 h-4" /></button>
-              </div>
-            )}
-
-            {/* Recent Local Media Sessions (Premium Cards Grid) */}
-            {recentLocalList.length > 0 ? (
-              <div className="space-y-4 pt-4 max-w-xl mx-auto text-left">
-                <div className="flex items-center justify-between text-xs text-gray-400 px-1 font-bold uppercase tracking-widest">
-                  <span>Recent Cinema Sessions</span>
-                  <span className="text-[10px] text-cyan-400">Click to Resume Playback</span>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {recentLocalList.map((item) => {
-                    const progressPercent = item.duration > 0 ? (item.progress / item.duration) * 100 : 0;
-                    return (
-                      <div
-                        key={item.id}
-                        onClick={() => {
-                          if (item.url) {
-                            setActiveLocalMedia(item);
-                            navigate(`/watch/${item.id}`);
-                          } else {
-                            fileInputRef.current?.click();
-                          }
-                        }}
-                        className="group relative rounded-2xl bg-[#0b0a12]/80 hover:bg-[#12101e] border border-white/5 hover:border-cyan-500/40 p-4 cursor-pointer transition-all duration-300 flex flex-col justify-between h-32 hover:scale-[1.02] shadow-lg overflow-hidden"
-                      >
-                        {/* Ambient corner indicator */}
-                        <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-cyan-500/5 to-transparent rounded-full blur-xl pointer-events-none" />
-
-                        <div className="flex items-start gap-3">
-                          <div className="w-12 h-12 rounded-xl bg-cyan-950/40 border border-cyan-500/20 flex items-center justify-center text-cyan-400 shrink-0 group-hover:scale-105 transition-transform">
-                            <FileVideo className="w-6 h-6" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="text-xs font-bold text-gray-200 group-hover:text-white truncate">
-                              {item.name}
-                            </div>
-                            <div className="text-[10px] text-gray-400 pt-0.5 font-semibold">
-                              {(item.size / (1024 * 1024)).toFixed(1)} MB • {item.type.split('/')[1].toUpperCase()}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="space-y-2">
-                          {/* Progress bar */}
-                          {item.duration > 0 && (
-                            <div className="space-y-1">
-                              <div className="w-full bg-white/10 h-1 rounded-full overflow-hidden">
-                                <div 
-                                  className="bg-gradient-to-r from-cyan-500 to-indigo-500 h-full rounded-full"
-                                  style={{ width: `${progressPercent}%` }}
-                                />
-                              </div>
-                              <div className="flex justify-between text-[9px] text-gray-500 font-mono">
-                                <span>{Math.round(progressPercent)}% watched</span>
-                                <span>{Math.floor(item.duration / 60)} min</span>
-                              </div>
-                            </div>
-                          )}
-
-                          <div className="text-[10px] text-cyan-400 font-bold tracking-wider uppercase flex items-center gap-1 group-hover:text-cyan-300">
-                            <span>Resume theater</span>
-                            <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
+              </form>
             ) : (
-              <div className="max-w-xl mx-auto p-8 rounded-3xl bg-[#0a0812]/40 border border-white/5 text-center space-y-2">
-                <FolderHeart className="w-8 h-8 text-gray-600 mx-auto" />
-                <div className="text-xs font-semibold text-gray-400">No recent local media sessions found</div>
-                <p className="text-[10px] text-gray-500">Drag or browse a video file to begin watching privately.</p>
+              <div 
+                className={`h-full relative flex items-center justify-center w-full rounded-full border-2 border-dashed transition-all cursor-pointer ${
+                  dragOver ? 'border-amber-600 bg-amber-100' : 'border-amber-300 bg-amber-50 hover:border-amber-500 hover:bg-amber-100/50'
+                }`}
+                onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                onDragLeave={() => setDragOver(false)}
+                onDrop={handleDrop}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  className="hidden"
+                  accept="video/*,audio/*,.mkv,.ts,.m3u8,.avi,.mp4"
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files.length > 0) {
+                      handleLocalFileSelect(e.target.files[0]);
+                    }
+                  }}
+                />
+                <div className="flex items-center gap-3 text-amber-800">
+                  <UploadCloud className={`w-5 h-5 ${dragOver ? 'animate-bounce text-amber-600' : ''}`} />
+                  <span className="text-sm font-bold tracking-wide font-sans">
+                    {dragOver ? 'Drop file to play' : 'Click or drop media file here'}
+                  </span>
+                </div>
               </div>
             )}
           </div>
+        </div>
+
+        {localFileError && (
+          <div className="mt-4 px-4 py-2 bg-red-50 border border-red-200 text-red-600 text-xs font-semibold rounded-lg flex items-center gap-2">
+            <X className="w-4 h-4" />
+            {localFileError}
+          </div>
         )}
+
+        {/* Torn Tickets / Continue Watching */}
+        {tickets.length > 0 && (
+          <div className="w-full max-w-2xl mt-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <div className="flex items-center gap-2 mb-4 px-2">
+              <Ticket className="w-4 h-4 text-amber-700" />
+              <h3 className="text-xs font-bold text-amber-900 tracking-[0.2em] uppercase">My Stubs</h3>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {tickets.slice(0, 4).map(ticket => (
+                <div 
+                  key={ticket.ticketId}
+                  onClick={async () => {
+                    const resumed = useTicketStore.getState().resumeFromTicket(ticket.ticketId);
+                    if (resumed) {
+                      await useTicketStore.getState().trigger10sPrintAnimation({
+                        title: ticket.movieTitle,
+                        source: ticket.sourceUrl,
+                        isLocal: ticket.isLocal
+                      });
+                      navigate(ticket.isLocal ? /theater/ : /theater/);
+                    }
+                  }}
+                  className="group relative bg-white border border-amber-200 hover:border-amber-400 p-3 rounded-2xl flex items-center gap-4 cursor-pointer transition-all shadow-sm hover:shadow-md"
+                >
+                  <div className="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center border border-amber-100 group-hover:scale-105 transition-transform">
+                    {ticket.isLocal ? <HardDrive className="w-5 h-5 text-amber-700" /> : <Film className="w-5 h-5 text-amber-700" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-sm font-bold text-amber-950 truncate">{ticket.movieTitle}</h4>
+                    <p className="text-[10px] font-mono text-amber-700 mt-1">{ticket.seatAssignment}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
       </div>
 
-      {/* Footer System Diagnostics */}
-      <div className="w-full max-w-6xl flex flex-col sm:flex-row items-center justify-between gap-3 z-10 pt-4 border-t border-white/5 text-xs text-gray-500">
-        <div className="flex items-center gap-2">
-          <span>CineMorph Virtual Theater Architecture</span>
-          <span>•</span>
-          <span>Zero-Latency Media Pipeline</span>
-        </div>
-        <div className="flex items-center gap-2 text-emerald-400">
-          <ShieldCheck className="w-4 h-4" />
-          <span>Private Client-Side Execution</span>
-        </div>
+      <div className="absolute bottom-6 font-mono text-[10px] text-amber-900/40 tracking-[0.3em] uppercase flex items-center gap-3 font-bold">
+        <span>OmniStream V2.0</span>
+        <span className="w-1 h-1 rounded-full bg-amber-900/40" />
+        <span>Intelligence Architecture</span>
       </div>
     </div>
   );

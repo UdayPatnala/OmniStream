@@ -12,24 +12,24 @@ const navItems = [
 
 export function BottomNav() {
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 h-20 bg-[#1C1B1F] border-t border-white/5 flex items-center justify-around px-2 z-50">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-gray-200 flex items-center justify-around px-2 z-50 pb-safe">
       {navItems.map((item) => (
         <NavLink
           key={item.to}
           to={item.to}
           className={({ isActive }) => cn(
-            "flex flex-col items-center justify-center w-full h-full gap-1.5 text-[10px] font-medium transition-colors",
+            "flex flex-col items-center justify-center w-full h-full gap-1 text-[10px] font-semibold transition-colors",
             isActive 
-              ? "text-[#D0BCFF]" 
-              : "text-[#938F99] hover:text-[#E6E1E5]"
+              ? "text-red-600" 
+              : "text-gray-500 hover:text-gray-900"
           )}
         >
           {({ isActive }) => (
             <>
-              <div className={cn("p-1.5 rounded-xl", isActive ? "bg-[#4F378B]/50" : "")}>
-                 <item.icon className="w-6 h-6" />
+              <div className={cn("p-1 rounded-full", isActive ? "bg-red-50" : "")}>
+                 <item.icon className="w-5 h-5" />
               </div>
-              {item.label}
+              <span className="truncate">{item.label}</span>
             </>
           )}
         </NavLink>
