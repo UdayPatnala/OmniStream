@@ -119,31 +119,31 @@ export const ModeCard: React.FC<ModeCardProps> = ({ mode, className = '' }) => {
   if (mode === 'utube') {
     return (
       <div
-        className={`relative overflow-hidden rounded-3xl border border-red-500/30 bg-gradient-to-br from-[#1c080a] via-[#120406] to-[#0a0203] p-7 shadow-2xl transition-all duration-300 hover:border-red-500/60 hover:shadow-red-950/50 flex flex-col justify-between ${className}`}
+        className={`relative overflow-hidden rounded-3xl border border-red-200 bg-gradient-to-br from-white via-red-50/30 to-red-50/80 p-7 shadow-sm transition-all duration-300 hover:border-red-300 hover:shadow-md flex flex-col justify-between ${className}`}
       >
         {/* Glow ambient accent */}
-        <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-red-600/15 blur-3xl pointer-events-none" />
+        <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-red-100 blur-3xl pointer-events-none" />
 
         <div className="relative z-10 space-y-5">
           {/* Header */}
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3.5">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-600/20 border border-red-500/40 text-red-500 shadow-inner">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-50 border border-red-200 text-red-500 shadow-sm">
                 <Play className="h-6 w-6 fill-red-500" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h2 className="text-2xl font-black tracking-tight text-white">U-TUBE</h2>
-                  <span className="rounded-full bg-red-500/20 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-red-400 border border-red-500/30">
+                  <h2 className="text-2xl font-black tracking-tight text-gray-900">U-TUBE</h2>
+                  <span className="rounded-full bg-red-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-red-700 border border-red-200">
                     Ad-Free
                   </span>
                 </div>
-                <p className="text-xs text-red-200/70 font-medium">Pure Streaming • Fast Discovery Search • Offline History</p>
+                <p className="text-xs text-gray-500 font-medium">Pure Streaming • Fast Discovery Search • Offline History</p>
               </div>
             </div>
             <button
               onClick={() => navigate('/home')}
-              className="group flex items-center gap-1 rounded-xl bg-white/5 px-3 py-1.5 text-xs font-semibold text-gray-300 hover:bg-red-600 hover:text-white transition-all cursor-pointer border border-white/10"
+              className="group flex items-center gap-1 rounded-xl bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-red-600 hover:text-white hover:border-red-600 transition-all cursor-pointer border border-gray-200 shadow-sm"
             >
               <span>Explore Feed</span>
               <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
@@ -152,24 +152,24 @@ export const ModeCard: React.FC<ModeCardProps> = ({ mode, className = '' }) => {
 
           {/* Feature Badges */}
           <div className="flex flex-wrap gap-2 pt-1">
-            <div className="flex items-center gap-1.5 rounded-lg bg-red-950/40 px-2.5 py-1 text-[11px] text-red-300/90 border border-red-900/40">
-              <ShieldCheck className="h-3.5 w-3.5 text-red-400" />
+            <div className="flex items-center gap-1.5 rounded-lg bg-white px-2.5 py-1 text-[11px] text-gray-700 border border-gray-200">
+              <ShieldCheck className="h-3.5 w-3.5 text-red-500" />
               <span>Zero Ads / Zero Popups</span>
             </div>
-            <div className="flex items-center gap-1.5 rounded-lg bg-red-950/40 px-2.5 py-1 text-[11px] text-red-300/90 border border-red-900/40">
-              <Sparkles className="h-3.5 w-3.5 text-red-400" />
+            <div className="flex items-center gap-1.5 rounded-lg bg-white px-2.5 py-1 text-[11px] text-gray-700 border border-gray-200">
+              <Sparkles className="h-3.5 w-3.5 text-red-500" />
               <span>Intelligent Recommendations</span>
             </div>
-            <div className="flex items-center gap-1.5 rounded-lg bg-red-950/40 px-2.5 py-1 text-[11px] text-red-300/90 border border-red-900/40">
-              <Tv className="h-3.5 w-3.5 text-red-400" />
+            <div className="flex items-center gap-1.5 rounded-lg bg-white px-2.5 py-1 text-[11px] text-gray-700 border border-gray-200">
+              <Tv className="h-3.5 w-3.5 text-red-500" />
               <span>4-Hour Feed Sync</span>
             </div>
           </div>
 
           {/* Quick Search Launcher */}
           <form onSubmit={handleUtubeSearch} className="space-y-2">
-            <label className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 flex items-center gap-1.5">
-              <Search className="h-3.5 w-3.5 text-red-400" />
+            <label className="text-[11px] font-semibold uppercase tracking-wider text-gray-500 flex items-center gap-1.5">
+              <Search className="h-3.5 w-3.5 text-red-500" />
               Search YouTube Videos
             </label>
             <div className="relative">
@@ -178,7 +178,7 @@ export const ModeCard: React.FC<ModeCardProps> = ({ mode, className = '' }) => {
                 value={utubeQuery}
                 onChange={(e) => setUtubeQuery(e.target.value)}
                 placeholder="Search documentaries, music, tech..."
-                className="w-full rounded-xl bg-black/50 border border-red-500/20 py-2.5 pl-3.5 pr-24 text-sm text-white placeholder-gray-500 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500/50 transition-all"
+                className="w-full rounded-xl bg-white border border-gray-200 py-2.5 pl-3.5 pr-24 text-sm text-gray-900 placeholder-gray-400 focus:border-red-400 focus:outline-none focus:ring-1 focus:ring-red-400/50 transition-all shadow-sm"
               />
               <button
                 type="submit"
@@ -191,8 +191,8 @@ export const ModeCard: React.FC<ModeCardProps> = ({ mode, className = '' }) => {
 
           {/* Direct URL Input */}
           <form onSubmit={handleUtubeDirectUrl} className="space-y-2">
-            <label className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 flex items-center gap-1.5">
-              <LinkIcon className="h-3.5 w-3.5 text-red-400" />
+            <label className="text-[11px] font-semibold uppercase tracking-wider text-gray-500 flex items-center gap-1.5">
+              <LinkIcon className="h-3.5 w-3.5 text-red-500" />
               Paste YouTube URL
             </label>
             <div className="relative">
@@ -201,11 +201,11 @@ export const ModeCard: React.FC<ModeCardProps> = ({ mode, className = '' }) => {
                 value={utubeUrl}
                 onChange={(e) => setUtubeUrl(e.target.value)}
                 placeholder="https://www.youtube.com/watch?v=..."
-                className="w-full rounded-xl bg-black/50 border border-red-500/20 py-2.5 pl-3.5 pr-20 text-sm text-white placeholder-gray-500 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500/50 transition-all"
+                className="w-full rounded-xl bg-white border border-gray-200 py-2.5 pl-3.5 pr-20 text-sm text-gray-900 placeholder-gray-400 focus:border-red-400 focus:outline-none focus:ring-1 focus:ring-red-400/50 transition-all shadow-sm"
               />
               <button
                 type="submit"
-                className="absolute right-1.5 top-1.5 rounded-lg bg-white/10 hover:bg-white/20 px-3 py-1 text-xs font-bold text-white transition-colors cursor-pointer border border-white/10"
+                className="absolute right-1.5 top-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 px-3 py-1 text-xs font-bold text-gray-700 transition-colors cursor-pointer border border-gray-200"
               >
                 Play
               </button>
@@ -214,11 +214,11 @@ export const ModeCard: React.FC<ModeCardProps> = ({ mode, className = '' }) => {
         </div>
 
         {/* Footer Action */}
-        <div className="relative z-10 pt-6 mt-4 border-t border-red-900/30 flex items-center justify-between">
-          <span className="text-[11px] font-mono text-red-400/80">CHANNEL SUBSCRIPTIONS READY</span>
+        <div className="relative z-10 pt-6 mt-4 border-t border-red-100 flex items-center justify-between">
+          <span className="text-[11px] font-mono text-gray-500">CHANNEL SUBSCRIPTIONS READY</span>
           <button
             onClick={() => navigate('/subscriptions')}
-            className="text-xs font-semibold text-red-400 hover:text-red-300 underline cursor-pointer"
+            className="text-xs font-semibold text-red-600 hover:text-red-500 underline cursor-pointer"
           >
             Manage Channels
           </button>
@@ -230,31 +230,31 @@ export const ModeCard: React.FC<ModeCardProps> = ({ mode, className = '' }) => {
   // CineMorph Card
   return (
     <div
-      className={`relative overflow-hidden rounded-3xl border border-amber-500/30 bg-gradient-to-br from-[#1a1309] via-[#120d06] to-[#0a0703] p-7 shadow-2xl transition-all duration-300 hover:border-amber-500/60 hover:shadow-amber-950/50 flex flex-col justify-between ${className}`}
+      className={`relative overflow-hidden rounded-3xl border border-amber-200 bg-gradient-to-br from-white via-amber-50/30 to-amber-50/80 p-7 shadow-sm transition-all duration-300 hover:border-amber-300 hover:shadow-md flex flex-col justify-between ${className}`}
     >
       {/* Glow ambient accent */}
-      <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-amber-600/15 blur-3xl pointer-events-none" />
+      <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-amber-100 blur-3xl pointer-events-none" />
 
       <div className="relative z-10 space-y-5">
         {/* Header */}
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3.5">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-600/20 border border-amber-500/40 text-amber-400 shadow-inner">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-50 border border-amber-200 text-amber-500 shadow-sm">
               <Film className="h-6 w-6" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-2xl font-black tracking-tight text-white">CineMorph</h2>
-                <span className="rounded-full bg-amber-500/20 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-300 border border-amber-500/30">
+                <h2 className="text-2xl font-black tracking-tight text-gray-900">CineMorph</h2>
+                <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-700 border border-amber-200">
                   3D Theatrical
                 </span>
               </div>
-              <p className="text-xs text-amber-200/70 font-medium">Three.js 3D Theater • TF.js ML Framing • 10s Ticket Ritual</p>
+              <p className="text-xs text-gray-500 font-medium">Three.js 3D Theater • TF.js ML Framing • 10s Ticket Ritual</p>
             </div>
           </div>
           <button
             onClick={() => navigate('/cinemorph')}
-            className="group flex items-center gap-1 rounded-xl bg-white/5 px-3 py-1.5 text-xs font-semibold text-gray-300 hover:bg-amber-600 hover:text-white transition-all cursor-pointer border border-white/10"
+            className="group flex items-center gap-1 rounded-xl bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-amber-500 hover:text-white transition-all cursor-pointer border border-gray-200 shadow-sm"
           >
             <span>Lobby</span>
             <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
@@ -263,23 +263,23 @@ export const ModeCard: React.FC<ModeCardProps> = ({ mode, className = '' }) => {
 
         {/* Feature Badges */}
         <div className="flex flex-wrap gap-2 pt-1">
-          <div className="flex items-center gap-1.5 rounded-lg bg-amber-950/40 px-2.5 py-1 text-[11px] text-amber-300/90 border border-amber-900/40">
-            <Cpu className="h-3.5 w-3.5 text-amber-400" />
+          <div className="flex items-center gap-1.5 rounded-lg bg-white px-2.5 py-1 text-[11px] text-gray-700 border border-gray-200">
+            <Cpu className="h-3.5 w-3.5 text-amber-500" />
             <span>Real-Time ML Framing</span>
           </div>
-          <div className="flex items-center gap-1.5 rounded-lg bg-amber-950/40 px-2.5 py-1 text-[11px] text-amber-300/90 border border-amber-900/40">
-            <Layers className="h-3.5 w-3.5 text-amber-400" />
+          <div className="flex items-center gap-1.5 rounded-lg bg-white px-2.5 py-1 text-[11px] text-gray-700 border border-gray-200">
+            <Layers className="h-3.5 w-3.5 text-amber-500" />
             <span>Curved Screen & Seats</span>
           </div>
-          <div className="flex items-center gap-1.5 rounded-lg bg-amber-950/40 px-2.5 py-1 text-[11px] text-amber-300/90 border border-amber-900/40">
-            <Maximize2 className="h-3.5 w-3.5 text-amber-400" />
+          <div className="flex items-center gap-1.5 rounded-lg bg-white px-2.5 py-1 text-[11px] text-gray-700 border border-gray-200">
+            <Maximize2 className="h-3.5 w-3.5 text-amber-500" />
             <span>1.43:1 / 1.90:1 Ratios</span>
           </div>
         </div>
 
         {/* Aspect Ratio Selector Presets */}
         <div className="space-y-1.5">
-          <label className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+          <label className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">
             Screen Aperture Format
           </label>
           <div className="grid grid-cols-4 gap-2">
@@ -290,8 +290,8 @@ export const ModeCard: React.FC<ModeCardProps> = ({ mode, className = '' }) => {
                 onClick={() => setAspectRatio(mode)}
                 className={`rounded-xl py-1.5 px-2 text-xs font-bold transition-all cursor-pointer border ${
                   aspectRatio === mode
-                    ? 'bg-amber-500 text-black border-amber-400 shadow-md shadow-amber-500/20'
-                    : 'bg-black/40 text-gray-300 border-white/10 hover:border-amber-500/40 hover:text-white'
+                    ? 'bg-amber-500 text-white border-amber-400 shadow-sm'
+                    : 'bg-white text-gray-600 border-gray-200 hover:border-amber-300 hover:text-gray-900'
                 }`}
               >
                 {mode === '1.43:1' ? '1.43 IMAX' : mode === '1.90:1' ? '1.90 IMAX' : mode === 'original' ? 'Original' : '4:3 Crop'}
@@ -311,8 +311,8 @@ export const ModeCard: React.FC<ModeCardProps> = ({ mode, className = '' }) => {
           onClick={() => fileInputRef.current?.click()}
           className={`group relative rounded-2xl border-2 border-dashed p-5 text-center cursor-pointer transition-all duration-200 ${
             isDraggingFile
-              ? 'border-amber-400 bg-amber-500/10 scale-[1.01]'
-              : 'border-amber-500/30 bg-black/40 hover:border-amber-500/60 hover:bg-amber-950/20'
+              ? 'border-amber-400 bg-amber-50 scale-[1.01]'
+              : 'border-gray-200 bg-gray-50 hover:border-amber-300 hover:bg-amber-50/50'
           }`}
         >
           <input
@@ -323,13 +323,13 @@ export const ModeCard: React.FC<ModeCardProps> = ({ mode, className = '' }) => {
             className="hidden"
           />
           <div className="flex flex-col items-center justify-center space-y-1.5">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-400 group-hover:scale-110 transition-transform">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-amber-500 group-hover:scale-110 transition-transform shadow-sm border border-gray-100">
               <Upload className="h-5 w-5" />
             </div>
-            <div className="text-xs font-bold text-white">
+            <div className="text-xs font-bold text-gray-800">
               Drop Any Video File or Click to Browse
             </div>
-            <p className="text-[11px] text-gray-400 font-mono">
+            <p className="text-[11px] text-gray-500 font-mono">
               MP4 · MKV · MOV · AVI · WebM · TS · WMV · 3GP · OGV & more
             </p>
           </div>
@@ -343,11 +343,11 @@ export const ModeCard: React.FC<ModeCardProps> = ({ mode, className = '' }) => {
               value={cinemorphUrl}
               onChange={(e) => setCinemorphUrl(e.target.value)}
               placeholder="Or enter YouTube URL to project into 3D theater..."
-              className="w-full rounded-xl bg-black/50 border border-amber-500/20 py-2.5 pl-3.5 pr-28 text-sm text-white placeholder-gray-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500/50 transition-all"
+              className="w-full rounded-xl bg-white border border-gray-200 py-2.5 pl-3.5 pr-28 text-sm text-gray-900 placeholder-gray-400 focus:border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400/50 transition-all shadow-sm"
             />
             <button
               type="submit"
-              className="absolute right-1.5 top-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 px-3 py-1 text-xs font-bold text-black transition-colors cursor-pointer"
+              className="absolute right-1.5 top-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 px-3 py-1 text-xs font-bold text-white transition-colors cursor-pointer"
             >
               3D Stream
             </button>
@@ -356,11 +356,11 @@ export const ModeCard: React.FC<ModeCardProps> = ({ mode, className = '' }) => {
       </div>
 
       {/* Footer */}
-      <div className="relative z-10 pt-6 mt-4 border-t border-amber-900/30 flex items-center justify-between">
-        <span className="text-[11px] font-mono text-amber-400/80">CLIENT-SIDE ML GEOMETRY ACTIVE</span>
+      <div className="relative z-10 pt-6 mt-4 border-t border-amber-100 flex items-center justify-between">
+        <span className="text-[11px] font-mono text-gray-500">CLIENT-SIDE ML GEOMETRY ACTIVE</span>
         <button
           onClick={() => navigate('/theater/demo')}
-          className="text-xs font-semibold text-amber-400 hover:text-amber-300 underline cursor-pointer"
+          className="text-xs font-semibold text-amber-600 hover:text-amber-500 underline cursor-pointer"
         >
           Launch Theater Direct
         </button>
