@@ -1,4 +1,4 @@
-import { Search, Menu, Clock, X, Mic, Bell, Video as VideoIcon, Sparkles, Layers, Palette, Zap } from 'lucide-react';
+import { Search, Menu, Clock, X, Mic, Bell, Video as VideoIcon, Sparkles, Layers, Palette, Zap, Settings2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { fetchSearchSuggestions } from '../lib/youtube';
@@ -123,65 +123,31 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
             />
           </div>
           <div className="flex flex-col">
-            <span className="text-lg font-black tracking-tight text-white font-sans bg-gradient-to-r from-white via-cyan-100 to-purple-300 bg-clip-text text-transparent flex items-center gap-1">
-              Omni<span className="text-cyan-400">Stream</span>
-              <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 tracking-wider">
+            <span className="text-lg font-black tracking-tight text-gray-900 font-sans flex items-center gap-1 group-hover:text-red-600 transition-colors">
+              Omni<span className="text-red-500">Stream</span>
+              <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-red-50 text-red-600 border border-red-200 tracking-wider hidden sm:block">
                 OMS
               </span>
             </span>
           </div>
         </Link>
 
-        {/* Version Switcher & Instant Auto-Play Badge */}
+        {/* Instant Auto-Play Badge */}
         <div className="hidden md:flex items-center gap-2 ml-2">
-          <div className="flex items-center bg-black/40 border border-white/10 rounded-full p-0.5 text-xs font-semibold shadow-inner">
-            <button
-              onClick={() => {
-                setVersionMode('v2');
-                navigate('/cinemorph');
-              }}
-              className={`px-2.5 py-0.5 rounded-full transition-all cursor-pointer ${
-                versionMode === 'v2' 
-                  ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md' 
-                  : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              v2 AI
-            </button>
-            <button
-              onClick={() => {
-                setVersionMode('v1');
-                navigate('/home');
-              }}
-              className={`px-2.5 py-0.5 rounded-full transition-all cursor-pointer ${
-                versionMode === 'v1' 
-                  ? 'bg-white/20 text-white shadow-md' 
-                  : 'text-gray-400 hover:text-white'
-              }`}
-              title="Archived U-Tube v1 mode"
-            >
-              v1
-            </button>
-          </div>
-
-          {/* Instant Auto-Play Mode Toggle */}
-          <button
+          <button 
             onClick={() => setInstantAutoPlay(!instantAutoPlay)}
-            className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold transition-all border shadow-md ${
-              instantAutoPlay
-                ? 'bg-gradient-to-r from-amber-500/20 to-purple-500/20 border-amber-500/40 text-amber-300'
-                : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+            className={`hidden lg:flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border transition-colors ${
+              instantAutoPlay ? 'bg-red-50 border-red-200 text-red-600' : 'bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100'
             }`}
-            title="Instant Search -> Playback Automation"
           >
-            <Zap className={`w-3.5 h-3.5 ${instantAutoPlay ? 'text-amber-400 animate-bounce' : ''}`} />
+            <Settings2 className="w-3 h-3" />
             <span>Instant Play {instantAutoPlay ? 'ON' : 'OFF'}</span>
           </button>
 
           {/* Live Pipeline State Machine Badge */}
           {pipelineState !== 'IDLE' && pipelineState !== 'PLAYING' && (
-            <div className="flex items-center gap-1.5 px-3 py-1 bg-purple-950/80 border border-purple-500/40 text-purple-300 rounded-full text-xs font-bold animate-pulse">
-              <Sparkles className="w-3.5 h-3.5 text-purple-400 animate-spin" />
+            <div className="flex items-center gap-1.5 px-3 py-1 bg-purple-50 border border-purple-200 text-purple-700 rounded-full text-xs font-bold animate-pulse">
+              <Sparkles className="w-3.5 h-3.5 text-purple-500 animate-spin" />
               <span>{pipelineState}...</span>
             </div>
           )}
@@ -191,7 +157,7 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
       {/* Center: Search Bar & Voice Input */}
       <div className="flex items-center gap-3 flex-1 max-w-[680px] mx-4 justify-center">
         <div className="relative w-full max-w-[560px]">
-          <form onSubmit={(e) => handleSearch(e)} className="flex items-center w-full">
+          <form onSubmit={(e) => handleSearch(e)} className="flex items-center w-full shadow-sm">
             <div className="relative flex-1">
               <input
                 type="text"
@@ -200,16 +166,16 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
                 onFocus={() => setShowSuggestions(true)}
                 onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                 onChange={(e) => setQuery(e.target.value)}
-                className="w-full bg-[#121218]/80 text-[#f1f1f1] placeholder-[#777788] rounded-l-full py-2 px-4 text-sm focus:outline-none border border-[#2d2d3a] focus:border-indigo-500 shadow-inner backdrop-blur-md"
+                className="w-full bg-gray-50 text-gray-900 placeholder-gray-500 rounded-l-full py-2 px-4 text-sm focus:outline-none border border-gray-300 focus:border-red-500 transition-colors"
               />
             </div>
 
             <button 
               type="submit" 
-              className="bg-[#1c1c28] hover:bg-[#28283a] border border-l-0 border-[#2d2d3a] text-[#f1f1f1] px-5 py-2 rounded-r-full flex items-center justify-center transition-colors shrink-0"
+              className="bg-gray-100 hover:bg-gray-200 border border-l-0 border-gray-300 text-gray-600 px-5 py-2 rounded-r-full flex items-center justify-center transition-colors shrink-0"
               aria-label="Search"
             >
-              <Search className="w-4 h-4 text-indigo-300" />
+              <Search className="w-4 h-4 text-red-500" />
             </button>
           </form>
 
@@ -220,7 +186,7 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
                 initial={{ opacity: 0, y: -5 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -5 }}
-                className="absolute top-full left-0 right-14 mt-1 bg-[#161622]/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/10 overflow-hidden z-50 py-2"
+                className="absolute top-full left-0 right-14 mt-1 bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden z-50 py-2"
               >
                 {suggestions.map((suggestion, idx) => (
                   <button
@@ -229,10 +195,10 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
                       setQuery(suggestion);
                       handleSearch(undefined, suggestion);
                     }}
-                    className="w-full flex items-center justify-between px-4 py-2 hover:bg-white/10 text-left text-sm text-[#f1f1f1]"
+                    className="w-full flex items-center justify-between px-4 py-2 hover:bg-gray-50 text-left text-sm text-gray-900"
                   >
                     <div className="flex items-center gap-3">
-                      <Search className="w-4 h-4 text-indigo-400" />
+                      <Search className="w-4 h-4 text-red-500" />
                       <span>{suggestion}</span>
                     </div>
                   </button>
@@ -240,13 +206,13 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
 
                 {query.length === 0 && searchHistory.length > 0 && (
                   <div>
-                    <div className="px-4 py-1.5 text-[11px] font-semibold text-indigo-300 uppercase tracking-wider border-t border-white/10 mt-1 flex items-center gap-1.5">
+                    <div className="px-4 py-1.5 text-[11px] font-semibold text-gray-500 uppercase tracking-wider border-t border-gray-100 mt-1 flex items-center gap-1.5">
                       <Clock className="w-3 h-3" /> Recent & Frequent Searches
                     </div>
                     {searchHistory.slice(0, 6).map((item, idx) => (
                       <div
                         key={`hist-${idx}`}
-                        className="w-full flex items-center justify-between px-4 py-2 hover:bg-white/10 text-left text-sm text-[#f1f1f1]"
+                        className="w-full flex items-center justify-between px-4 py-2 hover:bg-gray-50 text-left text-sm text-gray-900"
                       >
                         <button
                           onMouseDown={() => {
@@ -255,7 +221,7 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
                           }}
                           className="flex items-center gap-3 flex-1 text-left"
                         >
-                          <Clock className="w-4 h-4 text-[#888]" />
+                          <Clock className="w-4 h-4 text-gray-400" />
                           <span>{item}</span>
                         </button>
                         <button
@@ -263,7 +229,7 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
                             e.stopPropagation();
                             removeSearchHistory(item);
                           }}
-                          className="p-1 text-[#aaa] hover:text-red-400 rounded-full"
+                          className="p-1 text-gray-400 hover:text-red-500 rounded-full"
                           aria-label="Remove search"
                         >
                           <X className="w-3.5 h-3.5" />
@@ -279,7 +245,7 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
 
         {/* Voice Search Button */}
         <button 
-          className="w-9 h-9 rounded-full bg-[#1c1c28] hover:bg-[#28283a] flex items-center justify-center text-indigo-300 transition-colors shrink-0 border border-[#2d2d3a]"
+          className="w-9 h-9 rounded-full bg-gray-50 hover:bg-gray-100 flex items-center justify-center text-gray-600 hover:text-red-600 transition-colors shrink-0 border border-gray-300"
           aria-label="Search with voice"
           onClick={() => alert('CineMorph Voice Engine Ready')}
         >
@@ -293,7 +259,7 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
         <Link 
           to="/landing"
           onClick={() => setRootLandingPreference('ask')}
-          className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 text-xs font-bold transition-all"
+          className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-50 hover:bg-red-50 border border-gray-200 hover:border-red-200 text-gray-600 hover:text-red-600 text-xs font-bold transition-all"
           title="Switch between U-Tube V1 and CineMorph V2"
         >
           <Sparkles className="w-3.5 h-3.5" />
@@ -304,15 +270,15 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
         <div className="relative">
           <button 
             onClick={() => setShowThemeMenu(!showThemeMenu)}
-            className="p-2 text-indigo-300 hover:bg-white/10 rounded-full transition-colors"
+            className="p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
             title="Morph Aesthetic Theme"
           >
             <Palette className="w-5 h-5" />
           </button>
 
           {showThemeMenu && (
-            <div className="absolute right-0 mt-2 w-48 bg-[#161622] border border-white/10 rounded-2xl shadow-2xl p-2 z-50">
-              <div className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 px-3 py-1 border-b border-white/10 mb-1">
+            <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-2xl shadow-xl p-2 z-50">
+              <div className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 px-3 py-1 border-b border-gray-100 mb-1">
                 Aesthetic Mode
               </div>
               {themesList.map(t => (
@@ -323,7 +289,7 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
                     setShowThemeMenu(false);
                   }}
                   className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-left transition-colors ${
-                    cinemorphTheme === t.id ? 'bg-indigo-600 text-white font-semibold' : 'text-gray-300 hover:bg-white/10'
+                    cinemorphTheme === t.id ? 'bg-red-600 text-white font-semibold' : 'text-gray-600 hover:bg-gray-100'
                   }`}
                 >
                   <span className={`w-2.5 h-2.5 rounded-full ${t.color}`} />
@@ -334,19 +300,19 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
           )}
         </div>
 
-        <button className="p-2 text-white hover:bg-white/10 rounded-full transition-colors hidden sm:block">
-          <Layers className="w-5 h-5 text-indigo-300" />
+        <button className="p-2 text-gray-500 hover:bg-gray-100 rounded-full transition-colors hidden sm:block">
+          <Layers className="w-5 h-5 text-gray-600" />
         </button>
-        <button className="p-2 text-white hover:bg-white/10 rounded-full transition-colors hidden sm:block">
-          <Bell className="w-5 h-5 text-gray-300" />
+        <button className="p-2 text-gray-500 hover:bg-gray-100 rounded-full transition-colors hidden sm:block">
+          <Bell className="w-5 h-5 text-gray-600" />
         </button>
-        <Link to="/settings" className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-600 to-violet-500 text-white flex items-center justify-center font-bold text-xs ml-1 shadow-lg shadow-indigo-500/30">
+        <Link to="/settings" className="w-8 h-8 rounded-full bg-red-600 hover:bg-red-700 text-white flex items-center justify-center font-bold text-xs ml-1 shadow-sm transition-colors">
           U
         </Link>
       </div>
     </header>
   );
+
+
+
 }
-
-
-

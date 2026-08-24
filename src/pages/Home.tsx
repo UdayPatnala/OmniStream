@@ -84,15 +84,15 @@ export function Home() {
   return (
     <div className="space-y-6 max-w-[1800px] mx-auto pb-6">
       {/* YouTube Category Filter Chips Bar */}
-      <div className="flex items-center gap-2.5 overflow-x-auto hide-scrollbar py-2.5 mb-2 sticky top-0 bg-[#0f0f0f] z-30 border-b border-[#272727]/30">
+      <div className="flex items-center gap-2.5 overflow-x-auto hide-scrollbar py-2.5 mb-2 sticky top-0 bg-gray-50 z-30 border-b border-gray-200">
         {CATEGORIES.map(category => (
           <button
             key={category}
             onClick={() => setActiveCategory(category)}
             className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors shrink-0 ${
               activeCategory === category
-                ? 'bg-white text-black font-bold'
-                : 'bg-[#272727] text-[#f1f1f1] hover:bg-[#3f3f3f]'
+                ? 'bg-gray-900 text-white font-bold'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-transparent'
             }`}
           >
             {category}
@@ -104,8 +104,8 @@ export function Home() {
       {continueWatchingItems.length > 0 && activeCategory === 'All' && (
         <section className="pt-1">
           <div className="flex items-center gap-2 mb-3">
-            <PlayCircle className="w-5 h-5 text-red-500" />
-            <h2 className="text-base font-bold text-[#f1f1f1]">Continue Watching</h2>
+            <PlayCircle className="w-5 h-5 text-red-600" />
+            <h2 className="text-base font-bold text-gray-900">Continue Watching</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 gap-y-8">
             {continueWatchingItems.map(item => (
@@ -119,8 +119,8 @@ export function Home() {
       {recommended.length > 0 && activeCategory === 'All' && (
         <section className="pt-1">
           <div className="flex items-center gap-2 mb-3">
-            <Sparkles className="w-5 h-5 text-amber-400" />
-            <h2 className="text-base font-bold text-[#f1f1f1]">Recommended For You</h2>
+            <Sparkles className="w-5 h-5 text-red-500" />
+            <h2 className="text-base font-bold text-gray-900">Recommended For You</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 gap-y-8">
             {recommended.map(video => (
@@ -134,8 +134,8 @@ export function Home() {
       {mostWatchedItems.length > 0 && activeCategory === 'All' && (
         <section className="pt-1">
           <div className="flex items-center gap-2 mb-3">
-            <HistoryIcon className="w-5 h-5 text-blue-400" />
-            <h2 className="text-base font-bold text-[#f1f1f1]">Most Rewatched</h2>
+            <HistoryIcon className="w-5 h-5 text-red-400" />
+            <h2 className="text-base font-bold text-gray-900">Most Rewatched</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 gap-y-8">
             {mostWatchedItems.map(item => (
@@ -150,13 +150,13 @@ export function Home() {
         <div className="flex items-center gap-2 mb-3">
           {activeCategory === 'All' ? (
             <>
-              <Flame className="w-5 h-5 text-orange-500" />
-              <h2 className="text-base font-bold text-[#f1f1f1]">Trending Videos</h2>
+              <Flame className="w-5 h-5 text-red-600" />
+              <h2 className="text-base font-bold text-gray-900">Trending Videos</h2>
             </>
           ) : (
             <>
-              <Layers className="w-5 h-5 text-purple-400" />
-              <h2 className="text-base font-bold text-[#f1f1f1]">{activeCategory} Videos</h2>
+              <Layers className="w-5 h-5 text-red-500" />
+              <h2 className="text-base font-bold text-gray-900">{activeCategory} Videos</h2>
             </>
           )}
         </div>

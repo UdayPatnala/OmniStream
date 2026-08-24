@@ -56,14 +56,14 @@ export function VideoCard({ video, progress }: VideoCardProps) {
     <div className="relative flex flex-col gap-2.5 group">
       {/* Toast Feedback */}
       {savedToast && (
-        <div className="absolute top-2 left-2 z-30 px-3 py-1.5 rounded-lg bg-black/90 border border-cyan-500/40 text-cyan-300 text-xs font-bold shadow-xl animate-in fade-in zoom-in-95 duration-150">
+        <div className="absolute top-2 left-2 z-30 px-3 py-1.5 rounded-lg bg-gray-900 border border-gray-700 text-white text-xs font-bold shadow-xl animate-in fade-in zoom-in-95 duration-150">
           {savedToast}
         </div>
       )}
 
       <Link to={isVideo ? `/watch/${video.id}` : `/channel/${video.id}`} className="flex flex-col gap-2.5 cursor-pointer">
         {/* Thumbnail Container */}
-        <div className="aspect-video bg-[#272727] rounded-xl relative overflow-hidden">
+        <div className="aspect-video bg-gray-200 rounded-xl relative overflow-hidden">
           <img 
             src={video.thumbnails.high || video.thumbnails.medium} 
             alt={video.title} 
@@ -76,7 +76,7 @@ export function VideoCard({ video, progress }: VideoCardProps) {
             </div>
           )}
           {activeProgress > 0 && (
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-200">
               <div className="h-full bg-red-600" style={{ width: `${Math.min(100, activeProgress)}%` }} />
             </div>
           )}
@@ -84,17 +84,17 @@ export function VideoCard({ video, progress }: VideoCardProps) {
 
         {/* Info Container */}
         <div className="flex gap-3 items-start px-0.5 relative">
-          <div className="w-9 h-9 rounded-full bg-[#272727] flex-shrink-0 overflow-hidden mt-0.5">
+          <div className="w-9 h-9 rounded-full bg-gray-200 flex-shrink-0 overflow-hidden mt-0.5 border border-gray-100">
             <img src={video.thumbnails.medium} alt={video.channelTitle} className="w-full h-full object-cover" />
           </div>
           <div className="flex flex-col min-w-0 flex-1 pr-6">
-            <h3 className="text-sm font-semibold line-clamp-2 text-[#f1f1f1] leading-snug group-hover:text-white transition-colors">
+            <h3 className="text-sm font-semibold line-clamp-2 text-gray-900 leading-snug group-hover:text-red-600 transition-colors">
               {video.title}
             </h3>
-            <span className="text-xs text-[#aaaaaa] hover:text-white mt-1 truncate transition-colors">
+            <span className="text-xs text-gray-500 hover:text-gray-900 mt-1 truncate transition-colors">
               {video.channelTitle}
             </span>
-            <span className="text-xs text-[#aaaaaa] mt-0.5">
+            <span className="text-xs text-gray-500 mt-0.5">
               {views ? `${formatViews(views)} views • ` : ''}{formatTimeAgo(video.publishedAt)}
             </span>
           </div>
@@ -109,7 +109,7 @@ export function VideoCard({ video, progress }: VideoCardProps) {
             e.stopPropagation();
             setShowMenu(s => !s);
           }}
-          className="p-1.5 text-gray-400 hover:text-white rounded-full hover:bg-white/10 transition-colors"
+          className="p-1.5 text-gray-400 hover:text-gray-900 rounded-full hover:bg-gray-100 transition-colors"
           title="Video Options"
         >
           <MoreVertical className="w-4 h-4" />
@@ -118,7 +118,7 @@ export function VideoCard({ video, progress }: VideoCardProps) {
         {/* Dropdown Menu */}
         {showMenu && (
           <div 
-            className="absolute right-0 bottom-8 w-52 bg-[#12101e]/95 backdrop-blur-2xl border border-white/10 rounded-2xl p-1.5 shadow-2xl z-40 space-y-1 animate-in fade-in zoom-in-95 duration-150"
+            className="absolute right-0 bottom-8 w-52 bg-white border border-gray-200 rounded-2xl p-1.5 shadow-xl z-40 space-y-1 animate-in fade-in zoom-in-95 duration-150"
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -132,9 +132,9 @@ export function VideoCard({ video, progress }: VideoCardProps) {
                 }
                 setShowMenu(false);
               }}
-              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-gray-200 hover:text-white hover:bg-white/10 transition-colors"
+              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition-colors"
             >
-              <Clock className="w-3.5 h-3.5 text-cyan-400" />
+              <Clock className="w-3.5 h-3.5 text-gray-400" />
               <span>{inWatchLater ? 'Remove Watch Later' : 'Save to Watch Later'}</span>
             </button>
 
@@ -144,9 +144,9 @@ export function VideoCard({ video, progress }: VideoCardProps) {
                 triggerToast('Marked as Not Interested');
                 setShowMenu(false);
               }}
-              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-gray-200 hover:text-white hover:bg-white/10 transition-colors"
+              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition-colors"
             >
-              <Ban className="w-3.5 h-3.5 text-amber-400" />
+              <Ban className="w-3.5 h-3.5 text-gray-400" />
               <span>Not Interested</span>
             </button>
 
@@ -156,9 +156,9 @@ export function VideoCard({ video, progress }: VideoCardProps) {
                 triggerToast('Channel ignored from recommendations');
                 setShowMenu(false);
               }}
-              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-gray-200 hover:text-white hover:bg-white/10 transition-colors"
+              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition-colors"
             >
-              <Flag className="w-3.5 h-3.5 text-red-400" />
+              <Flag className="w-3.5 h-3.5 text-gray-400" />
               <span>Don't Recommend Channel</span>
             </button>
 
@@ -168,9 +168,9 @@ export function VideoCard({ video, progress }: VideoCardProps) {
                 triggerToast('Video Link Copied!');
                 setShowMenu(false);
               }}
-              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-gray-200 hover:text-white hover:bg-white/10 transition-colors"
+              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition-colors"
             >
-              <Share2 className="w-3.5 h-3.5 text-purple-400" />
+              <Share2 className="w-3.5 h-3.5 text-gray-400" />
               <span>Share Video Link</span>
             </button>
           </div>
