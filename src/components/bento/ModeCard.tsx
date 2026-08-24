@@ -90,7 +90,7 @@ export const ModeCard: React.FC<ModeCardProps> = ({ mode, className = '' }) => {
     e.preventDefault();
     setIsDraggingFile(false);
     const file = e.dataTransfer.files?.[0];
-    if (file && file.type.startsWith('video/')) {
+    if (file) {
       handleFileSelect(file);
     }
   };
@@ -318,7 +318,7 @@ export const ModeCard: React.FC<ModeCardProps> = ({ mode, className = '' }) => {
           <input
             ref={fileInputRef}
             type="file"
-            accept="video/mp4,video/webm,video/mkv,video/ogg"
+            accept="video/*,.mkv,.avi,.mov,.m4v,.ts,.m2ts,.flv,.wmv,.3gp,.ogv,.divx,.vob,.rmvb,.asf"
             onChange={handleFileInputChange}
             className="hidden"
           />
@@ -327,10 +327,10 @@ export const ModeCard: React.FC<ModeCardProps> = ({ mode, className = '' }) => {
               <Upload className="h-5 w-5" />
             </div>
             <div className="text-xs font-bold text-white">
-              Drop Local Video (MP4 / MKV) or Click to Browse
+              Drop Any Video File or Click to Browse
             </div>
             <p className="text-[11px] text-gray-400 font-mono">
-              Triggers 10s Heads-Up ML Pre-Scan & Diegetic Ticket Print
+              MP4 · MKV · MOV · AVI · WebM · TS · WMV · 3GP · OGV & more
             </p>
           </div>
         </div>

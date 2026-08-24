@@ -50,24 +50,24 @@ export const BentoGrid: React.FC = () => {
   const effectiveOffline = !onlineState || isOffline;
 
   return (
-    <div className="min-h-screen bg-[#070608] text-white p-4 sm:p-6 lg:p-8 space-y-6">
+    <div className="min-h-screen bg-gray-50 text-gray-900 p-4 sm:p-6 lg:p-8 space-y-6">
       {/* Offline Status Warning Banner */}
       {effectiveOffline && (
-        <div className="flex items-center justify-between rounded-2xl bg-amber-950/80 border border-amber-500/50 p-4 text-amber-200 shadow-xl backdrop-blur-md animate-pulse">
+        <div className="flex items-center justify-between rounded-2xl bg-amber-50 border border-amber-200 p-4 text-amber-800 shadow-sm">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-amber-500/20 text-amber-400">
+            <div className="p-2 rounded-xl bg-amber-100 text-amber-600">
               <WifiOff className="h-5 w-5" />
             </div>
             <div>
               <div className="text-sm font-bold">Offline Fallback Mode Active</div>
-              <p className="text-xs text-amber-300/80 font-mono">
+              <p className="text-xs text-amber-600 font-mono">
                 Playback locked to 4:3 cropped aspect ratio. Client-side ML framing suspended.
               </p>
             </div>
           </div>
           <button
             onClick={() => setOfflineStatus(false)}
-            className="px-3 py-1.5 rounded-xl bg-amber-500 text-black text-xs font-bold hover:bg-amber-400 cursor-pointer"
+            className="px-3 py-1.5 rounded-xl bg-amber-500 text-white text-xs font-bold hover:bg-amber-400 cursor-pointer"
           >
             Force Reconnect
           </button>
@@ -75,10 +75,10 @@ export const BentoGrid: React.FC = () => {
       )}
 
       {/* Hero Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-200 pb-6">
         <div>
           <div className="flex items-center gap-3.5">
-            <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-black/60 border border-cyan-500/40 p-1 shadow-lg shadow-cyan-500/20">
+            <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-white border border-gray-200 p-1 shadow-md">
               <img
                 src="/omn_logo.jpg"
                 alt="OMS Intelligence System"
@@ -86,13 +86,13 @@ export const BentoGrid: React.FC = () => {
               />
             </div>
             <div>
-              <h1 className="text-3xl font-black tracking-tight text-white flex items-center gap-2">
+              <h1 className="text-3xl font-black tracking-tight text-gray-900 flex items-center gap-2">
                 OMNISTREAM
-                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 tracking-wider">
+                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-cyan-100 text-cyan-700 border border-cyan-200 tracking-wider">
                   OMS CORE
                 </span>
               </h1>
-              <p className="text-xs text-gray-400 font-mono">
+              <p className="text-xs text-gray-500 font-mono">
                 The Dual-Mode Multimedia Gateway • Ad-Free YouTube & 3D Theatrical Cinema
               </p>
             </div>
@@ -101,31 +101,31 @@ export const BentoGrid: React.FC = () => {
 
         {/* Engine Status Indicators */}
         <div className="flex flex-wrap items-center gap-2.5">
-          <div className="flex items-center gap-1.5 rounded-xl bg-black/60 px-3 py-1.5 text-xs font-mono border border-white/10">
+          <div className="flex items-center gap-1.5 rounded-xl bg-white px-3 py-1.5 text-xs font-mono border border-gray-200 shadow-sm">
             {effectiveOffline ? (
               <>
-                <WifiOff className="h-3.5 w-3.5 text-amber-400" />
-                <span className="text-amber-400">Offline (4:3 Fallback)</span>
+                <WifiOff className="h-3.5 w-3.5 text-amber-500" />
+                <span className="text-amber-600">Offline (4:3 Fallback)</span>
               </>
             ) : (
               <>
-                <Wifi className="h-3.5 w-3.5 text-emerald-400" />
-                <span className="text-emerald-400">Online Synced</span>
+                <Wifi className="h-3.5 w-3.5 text-emerald-500" />
+                <span className="text-emerald-600">Online Synced</span>
               </>
             )}
           </div>
 
           <button
             onClick={() => navigate('/home')}
-            className="flex items-center gap-1.5 rounded-xl bg-red-600/20 hover:bg-red-600/40 px-3 py-1.5 text-xs font-semibold text-red-300 border border-red-500/30 transition-all cursor-pointer"
+            className="flex items-center gap-1.5 rounded-xl bg-red-50 hover:bg-red-100 px-3 py-1.5 text-xs font-semibold text-red-600 border border-red-200 transition-all cursor-pointer shadow-sm"
           >
-            <Play className="h-3.5 w-3.5 fill-red-400" />
+            <Play className="h-3.5 w-3.5 fill-red-500" />
             <span>U-TUBE Feed</span>
           </button>
 
           <button
             onClick={() => navigate('/cinemorph')}
-            className="flex items-center gap-1.5 rounded-xl bg-amber-600/20 hover:bg-amber-600/40 px-3 py-1.5 text-xs font-semibold text-amber-300 border border-amber-500/30 transition-all cursor-pointer"
+            className="flex items-center gap-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 px-3 py-1.5 text-xs font-semibold text-amber-700 border border-amber-200 transition-all cursor-pointer shadow-sm"
           >
             <Film className="h-3.5 w-3.5" />
             <span>CineMorph 3D</span>
@@ -147,25 +147,25 @@ export const BentoGrid: React.FC = () => {
         </div>
 
         {/* System Architecture & Feature Matrix Card (4 Columns) */}
-        <div className="lg:col-span-4 rounded-3xl border border-white/10 bg-gradient-to-br from-[#121118] via-[#0c0b10] to-[#070609] p-6 shadow-2xl flex flex-col justify-between space-y-4">
+        <div className="lg:col-span-4 rounded-3xl border border-gray-200 bg-white p-6 shadow-sm flex flex-col justify-between space-y-4">
           <div>
-            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
               <div className="flex items-center gap-2.5">
-                <Cpu className="h-5 w-5 text-cyan-400" />
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider">
+                <Cpu className="h-5 w-5 text-cyan-500" />
+                <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider">
                   Engine Architecture
                 </h3>
               </div>
-              <span className="text-[10px] font-mono text-cyan-400 bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-800/40">
+              <span className="text-[10px] font-mono text-cyan-700 bg-cyan-50 px-2 py-0.5 rounded border border-cyan-200">
                 ACTIVE
               </span>
             </div>
 
             <div className="space-y-3 pt-3">
               <div className="flex items-start gap-2.5 text-xs">
-                <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
+                <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
                 <div>
-                  <div className="font-bold text-gray-200">Advanced Framing Geometry</div>
+                  <div className="font-bold text-gray-700">Advanced Framing Geometry</div>
                   <div className="text-[11px] text-gray-400">
                     Client-side ML framing rules (Rule of Thirds, Leading Lines, Frame in Frame).
                   </div>
@@ -173,9 +173,9 @@ export const BentoGrid: React.FC = () => {
               </div>
 
               <div className="flex items-start gap-2.5 text-xs">
-                <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
+                <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
                 <div>
-                  <div className="font-bold text-gray-200">Three.js 3D Curvature Screen</div>
+                  <div className="font-bold text-gray-700">Three.js 3D Curvature Screen</div>
                   <div className="text-[11px] text-gray-400">
                     Real-time WebGL theater rendering with velvet curtains & seats.
                   </div>
@@ -183,9 +183,9 @@ export const BentoGrid: React.FC = () => {
               </div>
 
               <div className="flex items-start gap-2.5 text-xs">
-                <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
+                <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
                 <div>
-                  <div className="font-bold text-gray-200">Dual-Tier Persistence</div>
+                  <div className="font-bold text-gray-700">Dual-Tier Persistence</div>
                   <div className="text-[11px] text-gray-400">
                     LocalStorage stubs with IndexedDB blob and corrupt JSON auto-repair.
                   </div>
@@ -193,9 +193,9 @@ export const BentoGrid: React.FC = () => {
               </div>
 
               <div className="flex items-start gap-2.5 text-xs">
-                <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
+                <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
                 <div>
-                  <div className="font-bold text-gray-200">10s Ticket Printing Ritual</div>
+                  <div className="font-bold text-gray-700">10s Ticket Printing Ritual</div>
                   <div className="text-[11px] text-gray-400">
                     Web Audio mechanical SFX & heads-up frame pre-processing.
                   </div>
@@ -204,9 +204,9 @@ export const BentoGrid: React.FC = () => {
             </div>
           </div>
 
-          <div className="pt-3 border-t border-white/10 flex items-center justify-between text-[11px] font-mono text-gray-400">
+          <div className="pt-3 border-t border-gray-100 flex items-center justify-between text-[11px] font-mono text-gray-400">
             <span>CLIENT PERSISTENCE</span>
-            <span className="text-emerald-400 font-bold">100% LOCAL</span>
+            <span className="text-emerald-500 font-bold">100% LOCAL</span>
           </div>
         </div>
       </div>
