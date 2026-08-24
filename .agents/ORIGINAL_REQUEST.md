@@ -1,116 +1,146 @@
 # Original User Request
 
-## 2026-08-23T15:04:27Z
+## 2026-08-24T15:04:59Z
 
-# Teamwork Project Prompt — Draft
-
-> Status: Launched
-> Goal: Craft prompt ? get user approval ? delegate to teamwork_preview
-> Requested team: Full team
-
-Omnistream is a web-based multimedia platform combining an ad-free YouTube alternative ( U-TUBE) and a local/YouTube theatrical experience player (CineMorph). It features high-quality UX and dynamic client-side ML IMAX-style real-time framing for local files. 
+You are an INDEPENDENT_FINAL_ACCEPTANCE_REVIEWER. Your mission is to execute the following 60-point compliance audit on the OmniStream project. Do not trust previous agent reports. Verify the real running application. Fix any issues you find, then run the audit again. 
 
 Working directory: d:\PROJECT\AROH Open Source\Products\OmniStream
-Integrity mode: development
+Integrity mode: benchmark
 
-## Requirements
+Here is the exact compliance matrix and rules you must follow:
 
-### R1. U-TUBE (Ad-Free YouTube Experience)
-Build a React-based YouTube clone layout (white and red theme). It must allow users to search (displaying top 3 results), paste direct YouTube links, and subscribe to channels. The home page must display the latest videos from subscribed channels (refreshing every 4 hours) and recommend 5 videos based on keyword extraction from recent searches. All video playback must be ad-free. User data (subscriptions, history) must be stored locally (LocalStorage/IndexedDB) with no backend.
+[OMNISTREAM_FINAL_FULL_SPECIFICATION_COMPLIANCE_AUDIT]
 
-### R2. CineMorph (Desktop Theatrical Experience)
-Build a desktop-only immersive video player using Three.js for 3D environment rendering (seats, curtains, curved screens). It must support 1.43:1 (IMAX GT), 1.90:1 (IMAX), and original aspect ratios. The UI should have a vintage paper theme with bright colors and theater props (camera, reels, ticket printer). It must support playing YouTube links or local video files (with a focus on local files). If internet connectivity drops, playback should fallback to a 4:3 cropped ratio without live ML calculations.
+ROLE=INDEPENDENT_FINAL_ACCEPTANCE_REVIEWER+SENIOR_PRODUCT_ARCHITECT+UIUX_CRITIC+QA_ENGINEER+SECURITY_REVIEWER+PERFORMANCE_ENGINEER+REAL_USER
 
-### R3. Advanced Framing Geometry (Client-Side ML)
-Implement a client-side real-time ML model (e.g., using TensorFlow.js) for local video files. The model must analyze frames and dynamically pan the video behind the fixed hole (screen area) to optimize framing based on Advanced Framing Geometry rules (e.g., Frame-within-a-frame, Leading lines, Rule of thirds, Screen direction). Processing must happen locally. 
+MISSION=VERIFY_THAT_THE_ACTUAL_IMPLEMENTED_OMNISTREAM_PRODUCT_MATCHES_THE_COMPLETE_REQUIREMENTS_AND_VISION_DEFINED_DURING_THIS_PROJECT.
 
-### R4. UX and State Management
-Implement a 10-second ticket printing animation when a user starts a movie in CineMorph. This acts as a loading screen to allow the client-side ML model to pre-process the initial video frames (heads up processing). The system must save movie progress (tickets) locally so users can click a torn ticket to resume exactly where they left off. Include a main minimalist bento-style landing page to navigate between U-TUBE and CineMorph.
+DO_NOT_ASSUME_IMPLEMENTATION_IS_CORRECT.
+DO_NOT_TRUST_AGENT_REPORTS.
+DO_NOT_TRUST_COMMENTS.
+DO_NOT_TRUST_CHECKBOXES.
+DO_NOT_TRUST_SCREENSHOTS_ALONE.
+VERIFY_THE_REAL_RUNNING_APPLICATION.
 
-## Acceptance Criteria
+==================================================
+01.READ_REQUIREMENTS_FIRST
+==================================================
+BEFORE_AUDITING:
+READ_THE_COMPLETE_OMNISTREAM_MASTER_VISION.
+READ_ALL_FIVE_GUARDIAN_DOCUMENTS.
+READ_ALL_REQUIREMENT_PROMPTS.
+READ_ALL_UIUX_REQUIREMENTS.
+READ_ALL_UTUBE_REQUIREMENTS.
+READ_ALL_CINEMORPH_REQUIREMENTS.
+READ_ALL_OMS_REQUIREMENTS.
+READ_ALL_FREE_FIRST_REQUIREMENTS.
+READ_ALL_SECURITY_REQUIREMENTS.
+READ_ALL_PERFORMANCE_REQUIREMENTS.
+READ_ALL_FINAL_CLARIFICATIONS.
+READ_THE_CURRENT_PROJECT_SOURCE_CODE.
+READ_CONFIGURATION.
+READ_DEPENDENCIES.
+READ_ASSETS.
+READ_ROUTES.
+READ_COMPONENTS.
+READ_MODEL_PIPELINES.
+READ_PROVIDER_ADAPTERS.
+CREATE_A_REQUIREMENT_CHECKLIST_BEFORE_TESTING.
 
-### U-TUBE Functionality
-- [ ] Searching a query fetches and displays exactly 3 relevant YouTube results.
-- [ ] Subscribed channel data and search history persist in LocalStorage across browser reloads.
+==================================================
+02.ACTUAL_PRODUCT_VERIFICATION
+==================================================
+RUN_THE_APPLICATION.
+DO_NOT_ONLY_INSPECT_CODE.
+USE_IT_AS_A_REAL_USER.
+VERIFY_EVERY_MAJOR_USER_FLOW.
+VERIFY_EVERY_PAGE.
+VERIFY_EVERY_ROUTE.
+VERIFY_EVERY_PRIMARY_BUTTON.
+VERIFY_EVERY_SECONDARY_BUTTON.
+VERIFY_EVERY_INPUT.
+VERIFY_EVERY_PLAYER_CONTROL.
+VERIFY_EVERY_MODE_SWITCH.
+VERIFY_EVERY_IMPORTANT_ERROR_STATE.
+VERIFY_EVERY_IMPORTANT_EMPTY_STATE.
 
-### CineMorph 3D Environment & Video
-- [ ] Three.js renders a recognizable theater environment with screen and seats that scale with the browser window.
-- [ ] The app successfully loads a local MP4 file and plays it within the 3D screen.
+==================================================
+03.REQUIREMENT_STATUS
+==================================================
+FOR_EVERY_REQUIREMENT_ASSIGN_EXACTLY_ONE:
+PASS
+PARTIAL
+FAIL
+NOT_APPLICABLE
+BLOCKED
 
-### Advanced Framing Geometry
-- [ ] A programmatic test or diagnostic overlay confirms the client-side ML model runs on video frames, identifies subjects/features, and outputs dynamic X/Y panning coordinates.
+NEVER_USE:
+"PROBABLY_PASS"
+"SEEMS_OK"
+"LOOKS_FINE"
+"IMPLEMENTED" WITHOUT_TESTING.
 
-### UX & State
-- [ ] Playing a CineMorph video triggers the 10-second ticket printer animation before playback begins.
-- [ ] Refreshing the page and clicking a saved ticket resumes the local video at the correct timestamp.
+FOR_EVERY_PARTIAL/FAIL/BLOCKED ITEM:
+REPORT:
+REQUIREMENT
+EXPECTED
+ACTUAL
+GAP
+SEVERITY
+CAUSE
+RECOMMENDED_FIX.
 
-## Follow-up — 2026-08-23T15:16:28Z
+==================================================
+04.CRITICALITY
+==================================================
+CRITICAL=BREAKS_CORE_PRODUCT/VISION/SECURITY/DATA/PLAYBACK.
+HIGH=MAJOR_USER_EXPERIENCE_OR_FUNCTIONALITY_FAILURE.
+MEDIUM=IMPORTANT_INCOMPLETE_BEHAVIOR.
+LOW=MINOR_IMPERFECTION.
+COSMETIC=VISUAL_POLISH_ONLY.
 
-The user has requested that you check and verify all work against the [OMNISTREAM_MASTER_GUARDIAN].pdf file located in the workspace root at all times. This document contains 5 guardian documents detailing product constitution, vision, technical constraints, UI/UX philosophy, and QA/testing rules for OmniStream. Please ensure the implementation adheres strictly to the principles in this PDF.
+[Execute the remaining 56 sections exactly as defined in the master prompt]
 
-## Follow-up — 2026-08-23T15:20:04Z
+==================================================
+56.FIX_AFTER_AUDIT
+==================================================
+DO_NOT_ONLY_REPORT_FAILURES.
+FOR_EVERY_SAFE_FIXABLE:
+FIX_IT.
+THEN:
+REBUILD
+RETEST
+RECHECK_REGRESSION.
+DO_NOT_STOP_AFTER_REPORTING.
 
-The user has added a new directive: make layers,models,llms anything needed to achive the goal. Please incorporate this into the execution plan, while ensuring that any architectural choices (like introducing LLMs or layers) still strictly comply with the constraints outlined in the [OMNISTREAM_MASTER_GUARDIAN].pdf (e.g., Guardian rules regarding LLM limits, performance budgets, and client-side processing).
+==================================================
+57.SECOND_AUDIT
+==================================================
+AFTER_FIXES:
+RUN_THE_ENTIRE_FINAL_AUDIT_AGAIN.
 
-## Follow-up — 2026-08-24T03:56:35Z
+==================================================
+59.FINAL OUTPUT
+==================================================
+PRODUCE:
+A.FINAL_ACCEPTANCE_STATUS.
+B.REQUIREMENTS_PASS_COUNT.
+C.PARTIAL_COUNT.
+D.FAIL_COUNT.
+E.BLOCKED_COUNT.
+F.CRITICAL_ISSUES.
+G.HIGH_PRIORITY_ISSUES.
+H.MEDIUM/LOW_ISSUES.
+I.FIXES_PERFORMED.
+J.ITEMS_NOT_FIXABLE_AND_REASON.
+K.ACTUAL_LIMITATIONS.
+L.PERFORMANCE_RESULTS.
+M.SECURITY_RESULTS.
+N.UIUX_RESULTS.
+O.REMAINING_RISKS.
+P.FINAL_RECOMMENDATION.
 
-Server restart occurred. Resume execution of OmniStream.
-Absolute source of truth: OMNISTREAM_MASTER_SPECS.md alongside [OMNISTREAM_MASTER_GUARDIAN].pdf.
-Explicit user instruction: make layers,models,llms anything needed to achive the goal.
-Inspect repository for code completed for Milestone 1 and resume full orchestration across all milestones.
+DO_NOT_HIDE_FAILURES.
+DO_NOT_DOWNGRADE_SEVERITY_TO_MAKE_THE_PROJECT_LOOK_COMPLETE.
 
-## Follow-up — 2026-08-24T04:04:06Z
-
-Final master directive: [OMNISTREAM_FINAL_BUILD_AGENT] located at OMNISTREAM_FINAL_BUILD_AGENT.md in workspace root.
-100-point manifest defining behavior, testing, priorities, and definition of done.
-Mode: AUTONOMOUS_PRODUCT_ENGINEER+ARCHITECT+UIUX_ENGINEER+QA+SECURITY+PERFORMANCE_ENGINEER.
-Absolute priority: FUNCTIONALITY > RELIABILITY > SECURITY > PERFORMANCE > UX > VISUAL_POLISH > EXPERIMENTAL_FEATURES.
-Apply all 100 rules to adversarial reviews and final integrity verification gates.
-
-## Follow-up — 2026-08-24T04:06:29Z
-
-Intelligence Architecture specification: OMNISTREAM_INTELLIGENCE_ARCHITECTURE.md in workspace root (and updated GEMINI.md).
-Constraints: Model/AI implementation, non-blocking off-main-thread execution, Level 0-4 fallbacks, strict rules for specialist vision models vs LLMs.
-Instruct reviewers and auditors to include OMNISTREAM_INTELLIGENCE_ARCHITECTURE.md in final audit.
-
-## Follow-up — 2026-08-24T04:19:42Z
-
-URGENT OVERRIDE: [OMNISTREAM_FINAL_REQUIREMENT_CLARIFICATION_AND_ASSUMPTION_CONTROL] located at OMNISTREAM_FINAL_REQUIREMENT_CLARIFICATION_AND_ASSUMPTION_CONTROL.md in workspace root.
-Overrides initial assumptions:
-- U-TUBE search must NOT be restricted to exactly 3 results (use small fast initial set and allow 'load more').
-- Exact behavior for app open refreshes, mode switching, 10-second ticket intro matching selected aperture, and fallback behaviors.
-- No Demo Mode rules.
-Halt final sign-off, distribute to all reviewers/challengers/auditors, re-audit, fix any violations with workers, and verify 100% satisfaction under /goal parameters before proceeding.
-
-## Follow-up — 2026-08-24T04:21:18Z
-
-OmniStream Intelligence System (OMS) Identity Standard: OMNISTREAM_OMS_IDENTITY_STANDARD.md in workspace root.
-Rules: Rigid naming and modular architectural abstraction (OMS_VISION, OMS_DETECT, OMS_TRACK, OMS_SALIENCY, OMS_FALLBACK, etc.). Bans renaming third-party models as OMS; demands strong modularity, fallback, and resource-awareness.
-Provide to remediation worker and reviewers; verify mapping to OMS abstraction layers.
-
-## Follow-up — 2026-08-24T04:26:36Z
-
-Brand assets & OMS Visual Identity integration:
-- Connect existing project assets: public/Create_a_professional_cinemati...mp4, cinemorph ai.png, public/favicon.svg.
-- Integrate public/omn_logo.jpg (OMN neon orb logo) into the UI where OMS is represented or on landing page.
-- Apply living CSS animations (pulsing, slow rotation, waveform glow) to give it an animated Siri-like intelligence core appearance.
-
-## Follow-up — 2026-08-24T04:27:35Z
-
-Terminology & Branding clarification:
-- 'Siri' was strictly a visual styling reference.
-- Remove the word 'Siri' from all code, UI labels, strings, and comments.
-- The system is solely and exclusively named **OMS** (OmniStream Intelligence System).
-
-## Follow-up — 2026-08-24T14:23:10Z
-
-Server restart & quota cleared. Revive Victory Auditor to complete final independent audit (
-pm run build and 
-px vitest run) and deliver binary verdict (VICTORY CONFIRMED / VICTORY REJECTED).
-BentoGrid and ModeCard updated with universal video format support and light theme.
-
-## Follow-up — 2026-08-24T14:27:57Z
-
-Full Audit Matrix: OMNISTREAM_FINAL_AUDIT_MATRIX.md located at workspace root.
-Covers every single feature, rule, state, and edge case from PRODUCT_IDENTITY to FINAL_AUDIT and NO_FAKE_PROCESSING.
-Victory Auditor must map its final verdict directly against this exact matrix and verify 100% keyword implementation, testing, and validation before issuing VICTORY CONFIRMED.
+Begin the audit immediately.

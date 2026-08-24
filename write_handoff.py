@@ -1,1 +1,0 @@
-with open(r" d:\PROJECT\AROH Open Source\Products\OmniStream\.agents\teamwork_preview_spec_miner_guardian\handoff.md\, \w\, encoding=\utf-8\) as f: f.write(\# Handoff Report: Guardian Specification Mining\n\n**Agent**: Guardian Spec Miner\n\)
