@@ -61,18 +61,22 @@ class AdaptiveCinemaEngine {
     const {
       currentTime,
       duration,
-      aspectRatio,
-      reframeMode,
+      aspectRatio = 'original',
+      reframeMode = 'face-priority',
       subtitlesActive = false,
-      audioPreset,
+      audioPreset = 'original',
       devicePerformance = 'balanced',
       rawConfidence = 0.92,
     } = input;
 
+    const safeCurrentTime = typeof currentTime === 'number' && Number.isFinite(currentTime) ? Math.max(0, currentTime) : 0;
+    const safeDuration = typeof duration === 'number' && Number.isFinite(duration) ? Math.max(0, duration) : 0;
+    const safeConfidence = typeof rawConfidence === 'number' && Number.isFinite(rawConfidence) ? Math.min(1.0, Math.max(0.0, rawConfidence)) : 0.92;
+
     // 1. Detect Hard Scene Cut or Seek Jump
-    const timeDelta = Math.abs(currentTime - this.lastInputTime);
+    const timeDelta = Math.abs(safeCurrentTime - this.lastInputTime);
     const isSeekOrCut = timeDelta > 1.5;
-    this.lastInputTime = currentTime;
+    this.lastInputTime = safeCurrentTime;
 
     if (isSeekOrCut) {
       this.lastSceneId++;
@@ -87,7 +91,7 @@ class AdaptiveCinemaEngine {
     let targetScale = 1.0;
     let targetTranslateY = 0;
     let targetTranslateX = 0;
-    let confidence = Math.min(1.0, Math.max(0.0, rawConfidence));
+    let confidence = safeConfidence;
     let explainabilityLabel = 'Original Directorial Composition';
 
     // Biquad calculation from base frameEngine
@@ -115,7 +119,8 @@ class AdaptiveCinemaEngine {
       targetTranslateX = 0;
     } else {
       // Derived targets based on aspect ratio & face-priority composition
-      explainabilityLabel = `Subject-Aware Presentation (${aspectRatio.toUpperCase()})`;
+      const ratioStr = String(aspectRatio || 'original').toUpperCase();
+      explainabilityLabel = `Subject-Aware Presentation (${ratioStr})`;
       if (aspectRatio === '1.43:1') {
         explainabilityLabel = 'Large Format 1.43 (Vertical Immersive Aperture)';
         targetScale = reframeMode === 'face-priority' ? 1.28 : 1.25;
@@ -143,6 +148,10 @@ class AdaptiveCinemaEngine {
     }
 
     // 3. Apply Dead Zone Hysteresis
+    if (!Number.isFinite(this.lastScale) || this.lastScale <= 0) this.lastScale = 1.0;
+    if (!Number.isFinite(this.lastTranslateY)) this.lastTranslateY = 0;
+    if (!Number.isFinite(this.lastTranslateX)) this.lastTranslateX = 0;
+
     const scaleDelta = Math.abs(targetScale - this.lastScale);
     const translateYDelta = Math.abs(targetTranslateY - this.lastTranslateY);
 
@@ -167,11 +176,18 @@ class AdaptiveCinemaEngine {
       this.lastTranslateY = nextTranslateY;
     }
 
+    if (!Number.isFinite(this.lastScale) || this.lastScale <= 0) this.lastScale = 1.0;
+    if (!Number.isFinite(this.lastTranslateY)) this.lastTranslateY = 0;
+
     // 5. Ambient Dynamic Light Low-Pass Filter (Photic Safety)
-    const targetRgb = this.computeAmbientRgb(currentTime, duration);
+    const targetRgb = this.computeAmbientRgb(safeCurrentTime, safeDuration);
     this.lastRgb.r += 0.05 * (targetRgb.r - this.lastRgb.r);
     this.lastRgb.g += 0.05 * (targetRgb.g - this.lastRgb.g);
     this.lastRgb.b += 0.05 * (targetRgb.b - this.lastRgb.b);
+
+    if (!Number.isFinite(this.lastRgb.r)) this.lastRgb.r = 12;
+    if (!Number.isFinite(this.lastRgb.g)) this.lastRgb.g = 15;
+    if (!Number.isFinite(this.lastRgb.b)) this.lastRgb.b = 30;
 
     const lowpassColor = `rgba(${Math.round(this.lastRgb.r)}, ${Math.round(this.lastRgb.g)}, ${Math.round(this.lastRgb.b)}, 0.85)`;
 
@@ -214,7 +230,7 @@ class AdaptiveCinemaEngine {
 
   private computeAmbientRgb(currentTime: number, duration: number) {
     // Smooth shifting color temperature based on playback timeline
-    const progress = duration > 0 ? currentTime / duration : 0;
+    const progress = duration > 0 ? Math.min(1, Math.max(0, currentTime / duration)) : 0;
     const r = Math.round(10 + Math.sin(progress * Math.PI * 2) * 15);
     const g = Math.round(18 + Math.cos(progress * Math.PI * 2) * 20);
     const b = Math.round(45 + Math.sin(progress * Math.PI * 4) * 25);
@@ -228,6 +244,7 @@ class AdaptiveCinemaEngine {
     this.lastTranslateY = 0;
     this.lastTranslateX = 0;
     this.lastConfidence = 1.0;
+    this.lastRgb = { r: 12, g: 15, b: 30 };
   }
 }
 

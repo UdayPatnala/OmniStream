@@ -1,11 +1,13 @@
 import { Video, Channel, SearchResult, SearchFilterType, SearchResponse } from '../types';
 import { extractYouTubeId } from './utils';
 
+export { extractYouTubeId };
+
 const BASE_URL = 'https://www.googleapis.com/youtube/v3';
 const BACKEND_URL = (import.meta as any).env?.VITE_BACKEND_URL || '';
 
 // High quality dataset of verified, 100% embeddable & playable YouTube videos (No VEVO/copyright restrictions)
-const FALLBACK_VIDEOS: Video[] = [
+export const FALLBACK_VIDEOS: Video[] = [
   {
     id: 'jfKfPfyJRdk',
     title: 'lofi hip hop radio 📚 - beats to relax/study to',

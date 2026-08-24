@@ -107,30 +107,35 @@ class CineMorphAudioEngine {
     }
   }
 
-  public applyConfig(config: AudioEQConfig) {
-    if (this.audioCtx && this.audioCtx.state === 'suspended') {
-      this.audioCtx.resume();
-    }
+  public applyConfig(config?: AudioEQConfig) {
+    if (!config) return;
+    try {
+      if (this.audioCtx && this.audioCtx.state === 'suspended') {
+        this.audioCtx.resume().catch(() => {});
+      }
 
-    const isOriginal = config.preset === 'original';
+      const isOriginal = config.preset === 'original';
 
-    if (this.bassFilter) {
-      this.bassFilter.gain.value = isOriginal ? 0 : config.bassBoost;
-    }
-    if (this.dialogueFilter) {
-      this.dialogueFilter.gain.value = isOriginal ? 0 : config.dialogueClarity;
-    }
-    if (this.trebleFilter) {
-      this.trebleFilter.gain.value = isOriginal ? 0 : config.trebleShine;
-    }
+      if (this.bassFilter && this.bassFilter.gain) {
+        this.bassFilter.gain.value = isOriginal ? 0 : (Number.isFinite(config.bassBoost) ? config.bassBoost : 0);
+      }
+      if (this.dialogueFilter && this.dialogueFilter.gain) {
+        this.dialogueFilter.gain.value = isOriginal ? 0 : (Number.isFinite(config.dialogueClarity) ? config.dialogueClarity : 0);
+      }
+      if (this.trebleFilter && this.trebleFilter.gain) {
+        this.trebleFilter.gain.value = isOriginal ? 0 : (Number.isFinite(config.trebleShine) ? config.trebleShine : 0);
+      }
 
-    if (this.compressor) {
-      this.compressor.ratio.value = (isOriginal || !config.drcLoudness) ? 1 : 12;
-      this.compressor.threshold.value = (isOriginal || !config.drcLoudness) ? 0 : -24;
-    }
+      if (this.compressor && this.compressor.ratio && this.compressor.threshold) {
+        this.compressor.ratio.value = (isOriginal || !config.drcLoudness) ? 1 : 12;
+        this.compressor.threshold.value = (isOriginal || !config.drcLoudness) ? 0 : -24;
+      }
 
-    if (this.panner) {
-      this.panner.pan.value = (isOriginal || !config.surround3D) ? 0 : 0;
+      if (this.panner && this.panner.pan) {
+        this.panner.pan.value = (isOriginal || !config.surround3D) ? 0 : 0;
+      }
+    } catch (err) {
+      console.warn('[CineMorphAudioEngine] Error applying config:', err);
     }
   }
 
@@ -146,15 +151,42 @@ class CineMorphAudioEngine {
         return { preset, bassBoost: -6, dialogueClarity: 12, trebleShine: -2, surround3D: false, drcLoudness: true };
       case 'original':
       default:
-        return { preset, bassBoost: 0, dialogueClarity: 0, trebleShine: 0, surround3D: false, drcLoudness: false };
+        return { preset: 'original', bassBoost: 0, dialogueClarity: 0, trebleShine: 0, surround3D: false, drcLoudness: false };
     }
   }
 
   public getSpectrumData(): Uint8Array {
-    if (!this.analyser) return new Uint8Array(16).fill(128);
-    const data = new Uint8Array(this.analyser.frequencyBinCount);
-    this.analyser.getByteFrequencyData(data);
-    return data;
+    if (!this.analyser || typeof this.analyser.getByteFrequencyData !== 'function') {
+      return new Uint8Array(16).fill(128);
+    }
+    try {
+      const binCount = this.analyser.frequencyBinCount || 16;
+      const data = new Uint8Array(binCount);
+      this.analyser.getByteFrequencyData(data);
+      return data;
+    } catch {
+      return new Uint8Array(16).fill(128);
+    }
+  }
+
+  public reset(): void {
+    try {
+      if (this.sourceNode) {
+        this.sourceNode.disconnect();
+        this.sourceNode = null;
+      }
+      if (this.audioCtx && this.audioCtx.state !== 'closed') {
+        this.audioCtx.close().catch(() => {});
+      }
+    } catch (e) {}
+    this.audioCtx = null;
+    this.bassFilter = null;
+    this.dialogueFilter = null;
+    this.trebleFilter = null;
+    this.compressor = null;
+    this.panner = null;
+    this.analyser = null;
+    this.isInitialized = false;
   }
 }
 

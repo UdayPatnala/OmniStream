@@ -2,6 +2,11 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Video, Channel, HistoryItem, Collection, QueueItem, SearchHistoryMetaData, BehaviorEvent, CineMorphTheme, VideoClip, RankingProfile, LocalMediaItem, FrameAspectRatio, DevicePerformanceProfile } from './types';
 
+// Re-export modular Milestone 1 state stores
+export { useUTubeStore, type UTubeVideo, type ChannelSubscription, type UTubeStoreState } from './state/useUTubeStore';
+export { useCineMorphStore, type AspectRatioMode, type FramingRuleMode, type CineMorphStoreState, type CineMorphVideoSource } from './state/useCineMorphStore';
+export { useTicketStore, type MovieTicket, type TicketStoreState } from './state/useTicketStore';
+
 interface AppState {
   theme: 'dark' | 'light' | 'system';
   setTheme: (theme: 'dark' | 'light' | 'system') => void;
@@ -460,6 +465,29 @@ export const useAppStore = create<AppState>()(
     {
       name: 'cinemorph-utube-storage',
       version: 2,
+      storage: {
+        getItem: (name) => {
+          try {
+            const ls = typeof window !== 'undefined' && window.localStorage ? window.localStorage : (globalThis as any).localStorage;
+            const raw = ls ? ls.getItem(name) : null;
+            return raw ? JSON.parse(raw) : null;
+          } catch {
+            return null;
+          }
+        },
+        setItem: (name, value) => {
+          try {
+            const ls = typeof window !== 'undefined' && window.localStorage ? window.localStorage : (globalThis as any).localStorage;
+            if (ls) ls.setItem(name, JSON.stringify(value));
+          } catch {}
+        },
+        removeItem: (name) => {
+          try {
+            const ls = typeof window !== 'undefined' && window.localStorage ? window.localStorage : (globalThis as any).localStorage;
+            if (ls) ls.removeItem(name);
+          } catch {}
+        },
+      },
       merge: (persistedState: any, currentState) => ({
         ...currentState,
         ...(persistedState || {}),

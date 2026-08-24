@@ -177,6 +177,16 @@ export function CineMorphLanding() {
       {/* Main Center Stage */}
       <div className="w-full max-w-3xl text-center space-y-6 z-10 my-auto py-6">
         <div className="space-y-3">
+          <div className="flex items-center justify-center gap-3">
+            <div className="relative w-14 h-14 rounded-full overflow-hidden p-0.5 bg-gradient-to-tr from-cyan-400 via-indigo-500 to-pink-500 shadow-xl shadow-cyan-500/30">
+              <img
+                src="/omn_logo.jpg"
+                alt="OMS Core"
+                className="w-full h-full object-cover rounded-full animate-oms-core"
+              />
+            </div>
+          </div>
+
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-bold tracking-widest uppercase shadow-lg shadow-cyan-950/40">
             <Sparkles className="w-4 h-4 text-cyan-400" />
             <span>Neural Virtual Cinema Hall</span>

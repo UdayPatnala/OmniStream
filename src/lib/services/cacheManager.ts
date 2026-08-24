@@ -7,14 +7,47 @@ import { Video } from '../../types';
 interface CacheRecord<T> {
   data: T;
   timestamp: number;
+  ttl?: number;
 }
 
 class CacheManager {
   private queryCache = new Map<string, CacheRecord<string[]>>();
   private metadataCache = new Map<string, CacheRecord<Video>>();
+  private genericCache = new Map<string, CacheRecord<any>>();
   private inFlightRequests = new Map<string, Promise<any>>();
   private readonly QUERY_TTL = 1000 * 60 * 30; // 30 mins
   private readonly METADATA_TTL = 1000 * 60 * 60 * 2; // 2 hours
+
+  // Generic Namespaced Cache Accessors
+  public set(namespace: string, key: string, value: any, ttlMs?: number): void {
+    const cacheKey = `${namespace}:${key}`;
+    this.genericCache.set(cacheKey, { data: value, timestamp: Date.now(), ttl: ttlMs });
+  }
+
+  public get(namespace: string, key: string): any | null {
+    const cacheKey = `${namespace}:${key}`;
+    const entry = this.genericCache.get(cacheKey);
+    if (!entry) return null;
+    const ttl = entry.ttl ?? this.QUERY_TTL;
+    if (Date.now() - entry.timestamp > ttl) {
+      this.genericCache.delete(cacheKey);
+      return null;
+    }
+    return entry.data;
+  }
+
+  public clear(namespace?: string): void {
+    if (!namespace) {
+      this.clearAll();
+      return;
+    }
+    const prefix = `${namespace}:`;
+    for (const k of Array.from(this.genericCache.keys())) {
+      if (k.startsWith(prefix)) {
+        this.genericCache.delete(k);
+      }
+    }
+  }
 
   // Query Cache Accessors
   public getCachedQueryCandidates(query: string): string[] | null {

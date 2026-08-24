@@ -1,0 +1,1 @@
+const fs = require('fs'); const path = require('path'); function writeHex(p, hex) { const dir = path.dirname(p); if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true }); fs.writeFileSync(p, Buffer.from(hex, 'hex').toString('utf8')); console.log('Wrote: ' + p); } module.exports = { writeHex };

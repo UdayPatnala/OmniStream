@@ -114,13 +114,20 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
           <Menu className="w-5 h-5" />
         </button>
 
-        <Link to="/" className="flex items-center gap-2 group">
-          <div className="bg-gradient-to-tr from-cyan-500 via-indigo-600 to-pink-500 p-1.5 rounded-xl flex items-center justify-center shadow-lg shadow-cyan-500/20 group-hover:scale-105 transition-transform">
-            <img src="/favicon.svg" alt="OmniStream" className="w-5 h-5 drop-shadow" />
+        <Link to="/" className="flex items-center gap-2.5 group">
+          <div className="relative w-8 h-8 rounded-full overflow-hidden p-0.5 bg-gradient-to-tr from-cyan-400 via-indigo-500 to-pink-500 shadow-lg shadow-cyan-500/30 group-hover:scale-110 transition-transform">
+            <img
+              src="/omn_logo.jpg"
+              alt="OMS Intelligence Core"
+              className="w-full h-full object-cover rounded-full animate-oms-core"
+            />
           </div>
           <div className="flex flex-col">
-            <span className="text-lg font-black tracking-tight text-white font-sans bg-gradient-to-r from-white via-cyan-100 to-purple-300 bg-clip-text text-transparent">
+            <span className="text-lg font-black tracking-tight text-white font-sans bg-gradient-to-r from-white via-cyan-100 to-purple-300 bg-clip-text text-transparent flex items-center gap-1">
               Omni<span className="text-cyan-400">Stream</span>
+              <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 tracking-wider">
+                OMS
+              </span>
             </span>
           </div>
         </Link>

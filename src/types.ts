@@ -6,6 +6,7 @@ export interface Video {
   channelTitle: string;
   publishedAt: string;
   thumbnails: {
+    default?: string;
     medium: string;
     high: string;
   };

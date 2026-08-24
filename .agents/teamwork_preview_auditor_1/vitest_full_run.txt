@@ -1,0 +1,192 @@
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.11 [39m[90md:/PROJECT/AROH Open Source/Products/OmniStream[39m
+
+(node:285316) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:284996) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:285272) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+ [31m❯[39m src/tests/tier5_adversarial/storage-adversarial-recovery.test.ts [2m([22m[2m0 test[22m[2m)[22m
+ [31m❯[39m src/tests/tier2-boundaries/empty-malformed-search.test.ts [2m([22m[2m0 test[22m[2m)[22m
+ [31m❯[39m src/tests/tier4-journeys/journey2-cinemorph-movie-night.test.ts [2m([22m[2m0 test[22m[2m)[22m
+(node:285344) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:285076) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:285104) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:285044) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:284976) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:285096) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:285036) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:285156) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+ [31m❯[39m src/tests/tier1-features/ticket-save-resume.test.ts [2m([22m[2m0 test[22m[2m)[22m
+(node:285016) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+ [31m❯[39m src/tests/tier1-features/ticket-animation-heads-up.test.ts [2m([22m[2m0 test[22m[2m)[22m
+ [31m❯[39m src/tests/tier5_adversarial/three-webgl-context-lifecycle-adversarial.test.ts [2m([22m[2m0 test[22m[2m)[22m
+ [31m❯[39m src/tests/tier1-features/utube-search-top3.test.ts [2m([22m[2m0 test[22m[2m)[22m
+ [31m❯[39m src/tests/tier5_adversarial/ml-framing-stress.test.ts [2m([22m[2m0 test[22m[2m)[22m
+ [31m❯[39m src/tests/tier5_adversarial/aspect-ratio-stress.test.ts [2m([22m[2m0 test[22m[2m)[22m
+ [31m❯[39m src/tests/tier5_adversarial/ticket-animation-interruption-adversarial.test.ts [2m([22m[2m0 test[22m[2m)[22m
+ [31m❯[39m src/tests/tier5_adversarial/offline-online-transitions.test.ts [2m([22m[2m0 test[22m[2m)[22m
+ [31m❯[39m src/test/bento.test.tsx [2m([22m[2m0 test[22m[2m)[22m
+(node:285180) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+ [31m❯[39m src/test/useUTubeStore.test.ts [2m([22m[2m0 test[22m[2m)[22m
+(node:285216) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+ [31m❯[39m src/tests/tier1-features/subscriptions-persistence.test.ts [2m([22m[2m0 test[22m[2m)[22m
+(node:285136) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+ [31m❯[39m src/tests/tier5_adversarial/webaudio-dsp-fallback.test.ts [2m([22m[2m0 test[22m[2m)[22m
+(node:286388) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:286052) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+ [31m❯[39m src/tests/tier1-features/keyword-recommendations.test.ts [2m([22m[2m0 test[22m[2m)[22m
+(node:285852) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+ [31m❯[39m src/tests/tier3-combinations/search-subscribe-recommendations-ticket.test.ts [2m([22m[2m0 test[22m[2m)[22m
+ [31m❯[39m src/test/smoke.test.ts [2m([22m[2m0 test[22m[2m)[22m
+(node:285996) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:286040) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:284324) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+ [31m❯[39m src/tests/tier1-features/local-storage-persistence.test.ts [2m([22m[2m0 test[22m[2m)[22m
+(node:285964) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+ [31m❯[39m src/tests/tier1-features/three-theater-scaling.test.ts [2m([22m[2m0 test[22m[2m)[22m
+(node:286432) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+ [31m❯[39m src/test/useTicketStore.test.ts [2m([22m[2m0 test[22m[2m)[22m
+ [31m❯[39m src/test/storageService.test.ts [2m([22m[2m0 test[22m[2m)[22m
+(node:284532) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+ [31m❯[39m src/tests/tier1-features/direct-url-playback.test.ts [2m([22m[2m0 test[22m[2m)[22m
+(node:286080) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+ [31m❯[39m src/tests/tier3-combinations/offline-cut-during-ticket-animation.test.ts [2m([22m[2m0 test[22m[2m)[22m
+ [31m❯[39m src/tests/tier1-features/cache-4hour-refresh.test.ts [2m([22m[2m0 test[22m[2m)[22m
+(node:285816) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:282632) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+ [31m❯[39m src/test/useCineMorphStore.test.ts [2m([22m[2m0 test[22m[2m)[22m
+ [31m❯[39m src/tests/tier2-boundaries/rapid-aspect-ratio-switches.test.ts [2m([22m[2m0 test[22m[2m)[22m
+(node:280236) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:281956) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:282956) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+ [31m❯[39m src/tests/tier2-boundaries/invalid-youtube-urls.test.ts [2m([22m[2m0 test[22m[2m)[22m
+ [31m❯[39m src/tests/tier4-journeys/journey4-creator-framing-audit.test.ts [2m([22m[2m0 test[22m[2m)[22m
+ [31m❯[39m src/tests/tier2-boundaries/offline-network-cut.test.ts [2m([22m[2m0 test[22m[2m)[22m
+(node:282880) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:283480) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:283536) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+ [31m❯[39m src/tests/tier2-boundaries/missing-local-video-metadata.test.ts [2m([22m[2m0 test[22m[2m)[22m
+(node:284788) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+ [31m❯[39m src/tests/tier1-features/ml-framing-geometry.test.ts [2m([22m[2m0 test[22m[2m)[22m
+ [31m❯[39m src/tests/tier3-combinations/search-history-recommendations-collections-queue.test.ts [2m([22m[2m0 test[22m[2m)[22m
+(node:285764) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+ [31m❯[39m src/tests/tier5_adversarial/torn-ticket-corrupt-timecodes-adversarial.test.ts [2m([22m[2m0 test[22m[2m)[22m
+ [31m❯[39m src/tests/tier2-boundaries/corrupt-storage-payloads.test.ts [2m([22m[2m0 test[22m[2m)[22m
+(node:285440) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:285460) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:285196) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:284784) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+ [31m❯[39m src/tests/tier3-combinations/local-file-ml-aspect-ratio-ticket.test.ts [2m([22m[2m0 test[22m[2m)[22m
+(node:284980) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+ [31m❯[39m src/tests/tier4-journeys/journey3-airgapped-offline-playback.test.ts [2m([22m[2m0 test[22m[2m)[22m
+ [31m❯[39m src/tests/tier4-journeys/journey1-discovery-onboarding.test.ts [2m([22m[2m0 test[22m[2m)[22m
+ [31m❯[39m src/tests/tier1-features/aspect-ratios-framing.test.ts [2m([22m[2m0 test[22m[2m)[22m
+ [31m❯[39m src/tests/tier5_adversarial/utube-recommendations-cache-adversarial.test.ts [2m([22m[2m0 test[22m[2m)[22m
+(node:285836) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+ [31m❯[39m src/tests/tier3-combinations/youtube-url-channel-theater-theme.test.ts [2m([22m[2m0 test[22m[2m)[22m
+
+[31m⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Suites 41 [49m[22m[31m⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m src/test/bento.test.tsx[2m [ src/test/bento.test.tsx ][22m
+[41m[1m FAIL [22m[49m src/test/smoke.test.ts[2m [ src/test/smoke.test.ts ][22m
+[41m[1m FAIL [22m[49m src/test/storageService.test.ts[2m [ src/test/storageService.test.ts ][22m
+[41m[1m FAIL [22m[49m src/test/useCineMorphStore.test.ts[2m [ src/test/useCineMorphStore.test.ts ][22m
+[41m[1m FAIL [22m[49m src/test/useTicketStore.test.ts[2m [ src/test/useTicketStore.test.ts ][22m
+[41m[1m FAIL [22m[49m src/test/useUTubeStore.test.ts[2m [ src/test/useUTubeStore.test.ts ][22m
+[41m[1m FAIL [22m[49m src/tests/tier1-features/aspect-ratios-framing.test.ts[2m [ src/tests/tier1-features/aspect-ratios-framing.test.ts ][22m
+[41m[1m FAIL [22m[49m src/tests/tier1-features/cache-4hour-refresh.test.ts[2m [ src/tests/tier1-features/cache-4hour-refresh.test.ts ][22m
+[41m[1m FAIL [22m[49m src/tests/tier1-features/direct-url-playback.test.ts[2m [ src/tests/tier1-features/direct-url-playback.test.ts ][22m
+[41m[1m FAIL [22m[49m src/tests/tier1-features/keyword-recommendations.test.ts[2m [ src/tests/tier1-features/keyword-recommendations.test.ts ][22m
+[41m[1m FAIL [22m[49m src/tests/tier1-features/local-storage-persistence.test.ts[2m [ src/tests/tier1-features/local-storage-persistence.test.ts ][22m
+[41m[1m FAIL [22m[49m src/tests/tier1-features/ml-framing-geometry.test.ts[2m [ src/tests/tier1-features/ml-framing-geometry.test.ts ][22m
+[41m[1m FAIL [22m[49m src/tests/tier1-features/subscriptions-persistence.test.ts[2m [ src/tests/tier1-features/subscriptions-persistence.test.ts ][22m
+[41m[1m FAIL [22m[49m src/tests/tier1-features/three-theater-scaling.test.ts[2m [ src/tests/tier1-features/three-theater-scaling.test.ts ][22m
+[41m[1m FAIL [22m[49m src/tests/tier1-features/ticket-animation-heads-up.test.ts[2m [ src/tests/tier1-features/ticket-animation-heads-up.test.ts ][22m
+[41m[1m FAIL [22m[49m src/tests/tier1-features/ticket-save-resume.test.ts[2m [ src/tests/tier1-features/ticket-save-resume.test.ts ][22m
+[41m[1m FAIL [22m[49m src/tests/tier1-features/utube-search-top3.test.ts[2m [ src/tests/tier1-features/utube-search-top3.test.ts ][22m
+[41m[1m FAIL [22m[49m src/tests/tier2-boundaries/corrupt-storage-payloads.test.ts[2m [ src/tests/tier2-boundaries/corrupt-storage-payloads.test.ts ][22m
+[41m[1m FAIL [22m[49m src/tests/tier2-boundaries/empty-malformed-search.test.ts[2m [ src/tests/tier2-boundaries/empty-malformed-search.test.ts ][22m
+[41m[1m FAIL [22m[49m src/tests/tier2-boundaries/invalid-youtube-urls.test.ts[2m [ src/tests/tier2-boundaries/invalid-youtube-urls.test.ts ][22m
+[41m[1m FAIL [22m[49m src/tests/tier2-boundaries/missing-local-video-metadata.test.ts[2m [ src/tests/tier2-boundaries/missing-local-video-metadata.test.ts ][22m
+[41m[1m FAIL [22m[49m src/tests/tier2-boundaries/offline-network-cut.test.ts[2m [ src/tests/tier2-boundaries/offline-network-cut.test.ts ][22m
+[41m[1m FAIL [22m[49m src/tests/tier2-boundaries/rapid-aspect-ratio-switches.test.ts[2m [ src/tests/tier2-boundaries/rapid-aspect-ratio-switches.test.ts ][22m
+[41m[1m FAIL [22m[49m src/tests/tier3-combinations/local-file-ml-aspect-ratio-ticket.test.ts[2m [ src/tests/tier3-combinations/local-file-ml-aspect-ratio-ticket.test.ts ][22m
+[41m[1m FAIL [22m[49m src/tests/tier3-combinations/offline-cut-during-ticket-animation.test.ts[2m [ src/tests/tier3-combinations/offline-cut-during-ticket-animation.test.ts ][22m
+[41m[1m FAIL [22m[49m src/tests/tier3-combinations/search-history-recommendations-collections-queue.test.ts[2m [ src/tests/tier3-combinations/search-history-recommendations-collections-queue.test.ts ][22m
+[41m[1m FAIL [22m[49m src/tests/tier3-combinations/search-subscribe-recommendations-ticket.test.ts[2m [ src/tests/tier3-combinations/search-subscribe-recommendations-ticket.test.ts ][22m
+[41m[1m FAIL [22m[49m src/tests/tier3-combinations/youtube-url-channel-theater-theme.test.ts[2m [ src/tests/tier3-combinations/youtube-url-channel-theater-theme.test.ts ][22m
+[41m[1m FAIL [22m[49m src/tests/tier4-journeys/journey1-discovery-onboarding.test.ts[2m [ src/tests/tier4-journeys/journey1-discovery-onboarding.test.ts ][22m
+[41m[1m FAIL [22m[49m src/tests/tier4-journeys/journey2-cinemorph-movie-night.test.ts[2m [ src/tests/tier4-journeys/journey2-cinemorph-movie-night.test.ts ][22m
+[41m[1m FAIL [22m[49m src/tests/tier4-journeys/journey3-airgapped-offline-playback.test.ts[2m [ src/tests/tier4-journeys/journey3-airgapped-offline-playback.test.ts ][22m
+[41m[1m FAIL [22m[49m src/tests/tier4-journeys/journey4-creator-framing-audit.test.ts[2m [ src/tests/tier4-journeys/journey4-creator-framing-audit.test.ts ][22m
+[41m[1m FAIL [22m[49m src/tests/tier5_adversarial/aspect-ratio-stress.test.ts[2m [ src/tests/tier5_adversarial/aspect-ratio-stress.test.ts ][22m
+[41m[1m FAIL [22m[49m src/tests/tier5_adversarial/ml-framing-stress.test.ts[2m [ src/tests/tier5_adversarial/ml-framing-stress.test.ts ][22m
+[41m[1m FAIL [22m[49m src/tests/tier5_adversarial/offline-online-transitions.test.ts[2m [ src/tests/tier5_adversarial/offline-online-transitions.test.ts ][22m
+[41m[1m FAIL [22m[49m src/tests/tier5_adversarial/storage-adversarial-recovery.test.ts[2m [ src/tests/tier5_adversarial/storage-adversarial-recovery.test.ts ][22m
+[41m[1m FAIL [22m[49m src/tests/tier5_adversarial/three-webgl-context-lifecycle-adversarial.test.ts[2m [ src/tests/tier5_adversarial/three-webgl-context-lifecycle-adversarial.test.ts ][22m
+[41m[1m FAIL [22m[49m src/tests/tier5_adversarial/ticket-animation-interruption-adversarial.test.ts[2m [ src/tests/tier5_adversarial/ticket-animation-interruption-adversarial.test.ts ][22m
+[41m[1m FAIL [22m[49m src/tests/tier5_adversarial/torn-ticket-corrupt-timecodes-adversarial.test.ts[2m [ src/tests/tier5_adversarial/torn-ticket-corrupt-timecodes-adversarial.test.ts ][22m
+[41m[1m FAIL [22m[49m src/tests/tier5_adversarial/utube-recommendations-cache-adversarial.test.ts[2m [ src/tests/tier5_adversarial/utube-recommendations-cache-adversarial.test.ts ][22m
+[41m[1m FAIL [22m[49m src/tests/tier5_adversarial/webaudio-dsp-fallback.test.ts[2m [ src/tests/tier5_adversarial/webaudio-dsp-fallback.test.ts ][22m
+[31m[1mError[22m: Vitest failed to find the runner. One of the following is possible:
+- "vitest" is imported directly without running "vitest" command
+- "vitest" is imported inside "globalSetup" (to fix this, use "setupFiles" instead, because "globalSetup" runs in a different context)
+- "vitest" is imported inside Vite / Vitest config file
+- Otherwise, it might be a Vitest bug. Please report it to https://github.com/vitest-dev/vitest/issues
+[39m
+[36m [2m❯[22m src/tests/setup.ts:[2m162:1[22m[39m
+    [90m160|[39m }
+    [90m161|[39m
+    [90m162|[39m [34mbeforeEach[39m(() [33m=>[39m {
+    [90m   |[39m [31m^[39m
+    [90m163|[39m   mockLocalStorage[33m.[39m[34mclear[39m()[33m;[39m
+    [90m164|[39m   mockSessionStorage[33m.[39m[34mclear[39m()[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/41]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m41 failed[39m[22m[90m (41)[39m
+[2m      Tests [22m [2mno tests[22m
+[2m   Start at [22m 09:48:10
+[2m   Duration [22m 134.48s[2m (transform 3.55s, setup 0ms, import 0ms, tests 0ms, environment 741.52s)[22m
+

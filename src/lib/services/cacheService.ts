@@ -49,8 +49,22 @@ class CacheService {
     } catch (e) {}
   }
 
+  public has(query: string): boolean {
+    return this.get(query) !== null;
+  }
+
   public clear(): void {
     this.memoryCache.clear();
+    try {
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith('utube_search_cache_')) {
+          keysToRemove.push(k);
+        }
+      }
+      keysToRemove.forEach((k) => localStorage.removeItem(k));
+    } catch (e) {}
   }
 }
 

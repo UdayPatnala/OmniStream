@@ -28,7 +28,17 @@ export class LocalVideoAnalyzer {
    * Analyzes an active HTML5 Video Element frame
    */
   public analyzeVideoFrame(videoEl: HTMLVideoElement, fileKey?: string): LocalVideoAnalysis | null {
-    if (!this.ctx || !this.canvas || videoEl.readyState < 2 || videoEl.videoWidth === 0) {
+    if (
+      !this.ctx ||
+      !this.canvas ||
+      !videoEl ||
+      typeof videoEl.readyState !== 'number' ||
+      videoEl.readyState < 2 ||
+      !Number.isFinite(videoEl.videoWidth) ||
+      videoEl.videoWidth <= 0 ||
+      !Number.isFinite(videoEl.videoHeight) ||
+      videoEl.videoHeight <= 0
+    ) {
       return null;
     }
 
