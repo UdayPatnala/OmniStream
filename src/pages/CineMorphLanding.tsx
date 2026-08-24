@@ -286,7 +286,7 @@ export function CineMorphLanding() {
                         source: ticket.sourceUrl,
                         isLocal: ticket.isLocal
                       });
-                      navigate(ticket.isLocal ? /theater/ : /theater/);
+                      navigate(ticket.isLocal ? `/theater/${ticket.ticketId}` : `/theater/${encodeURIComponent(ticket.sourceUrl)}`);
                     }
                   }}
                   className="group relative bg-white border border-amber-200 hover:border-amber-400 p-3 rounded-2xl flex items-center gap-4 cursor-pointer transition-all shadow-sm hover:shadow-md"

@@ -75,8 +75,12 @@ export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
                 : "text-gray-700 hover:bg-gray-50"
             )}
           >
-            <item.icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-red-600' : ''}`} />
-            <span className="truncate">{item.label}</span>
+            {({ isActive }) => (
+              <>
+                <item.icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-red-600' : ''}`} />
+                <span className="truncate">{item.label}</span>
+              </>
+            )}
           </NavLink>
         ))}
       </div>
@@ -99,8 +103,12 @@ export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
                 : "text-gray-700 hover:bg-gray-50"
             )}
           >
-            <item.icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-red-600' : ''}`} />
-            <span className="truncate">{item.label}</span>
+            {({ isActive }) => (
+              <>
+                <item.icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-red-600' : ''}`} />
+                <span className="truncate">{item.label}</span>
+              </>
+            )}
           </NavLink>
         ))}
       </div>
@@ -150,8 +158,12 @@ export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
                 : "text-gray-700 hover:bg-gray-50"
             )}
           >
-            <item.icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-red-600' : ''}`} />
-            <span className="truncate text-xs">{item.label}</span>
+            {({ isActive }) => (
+              <>
+                <item.icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-red-600' : ''}`} />
+                <span className="truncate text-xs">{item.label}</span>
+              </>
+            )}
           </NavLink>
         ))}
       </div>
@@ -166,8 +178,12 @@ export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
               : "text-gray-700 hover:bg-gray-50"
           )}
         >
-          <Settings className={`w-5 h-5 shrink-0 ${isActive ? 'text-red-600' : ''}`} />
-          <span className="truncate">Settings</span>
+          {({ isActive }) => (
+            <>
+              <Settings className={`w-5 h-5 shrink-0 ${isActive ? 'text-red-600' : ''}`} />
+              <span className="truncate">Settings</span>
+            </>
+          )}
         </NavLink>
       </div>
     </aside>

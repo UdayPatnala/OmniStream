@@ -388,6 +388,42 @@ export function SettingsPage() {
             Clear Watch History
           </button>
         </div>
+
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-2 border-t border-white/5">
+          <div>
+            <h3 className="font-medium text-[#E6E1E5]">Clear Collections & Playlists</h3>
+            <p className="text-xs text-[#938F99]">Remove all saved user playlists, favorites, and queues.</p>
+          </div>
+          <button 
+            onClick={() => {
+              if (confirm('Are you sure you want to clear all collections and playlists?')) {
+                useAppStore.setState({ collections: [] });
+              }
+            }}
+            className="px-6 py-2.5 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-xl text-sm font-medium transition-colors"
+          >
+            Clear Collections
+          </button>
+        </div>
+
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-2 border-t border-white/5">
+          <div>
+            <h3 className="font-medium text-red-400">Reset All Local Data</h3>
+            <p className="text-xs text-[#938F99]">Wipe local storage cache, tickets, subscriptions, and reset to defaults.</p>
+          </div>
+          <button 
+            onClick={() => {
+              if (confirm('DANGER: This will wipe all local data, subscriptions, history, and tickets. Continue?')) {
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.reload();
+              }
+            }}
+            className="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-bold transition-colors shadow-lg shadow-red-600/20"
+          >
+            Reset Everything
+          </button>
+        </div>
       </div>
 
       {/* About Application */}
