@@ -780,15 +780,16 @@ export function CineMorphTheater() {
 
       {/* ── The Cinema Screen Container ── */}
       <div
-        className={`relative transition-all duration-700 ${
-          isFullscreen
-            ? 'max-h-[90vh] max-w-[98vw]'
-            : frameAspectRatio === '4.3:1'
-            ? 'max-w-[98vw] max-h-[84vh] h-full'
-            : 'max-w-[94vw] max-h-[78vh] h-full'
-        } flex items-center justify-center z-10 overflow-hidden shadow-2xl border border-amber-900/10 bg-black`}
+        className="relative transition-all duration-700 w-full flex items-center justify-center z-10 overflow-hidden shadow-2xl border border-amber-900/10 bg-black"
         style={{
           aspectRatio: frameStyle.aspectRatioStyle,
+          width: '100%',
+          maxWidth: isFullscreen
+            ? `min(98vw, calc(92vh * (${frameStyle.aspectRatioStyle})))`
+            : frameAspectRatio === '4.3:1'
+            ? `min(98vw, calc(84vh * (${frameStyle.aspectRatioStyle})))`
+            : `min(92vw, calc(78vh * (${frameStyle.aspectRatioStyle})))`,
+          maxHeight: isFullscreen ? '92vh' : frameAspectRatio === '4.3:1' ? '84vh' : '78vh',
           filter: presentationMode === 'cinema' ? 'brightness(1.03) contrast(1.02)' : 'none',
           borderRadius: presentationMode === 'cinema' ? '6px 6px 36px 36px / 6px 6px 12px 12px' : '8px',
           transform: presentationMode === 'cinema' 
@@ -800,7 +801,7 @@ export function CineMorphTheater() {
         }}
       >
         <div
-          className="w-full h-full transition-transform duration-500 relative"
+          className="w-full h-full transition-transform duration-500 relative overflow-hidden"
           style={{
             transform: presentationMode === 'cinema' ? frameStyle.videoScaleTransform : 'none',
           }}
@@ -859,7 +860,7 @@ export function CineMorphTheater() {
               autoPlay
               playsInline
               preload="auto"
-              className="w-full h-full object-cover"
+              className="absolute inset-0 w-full h-full object-cover"
               onTimeUpdate={() => {
                 if (localVideoRef.current && !seeking) {
                   const cur = localVideoRef.current.currentTime;
@@ -901,7 +902,7 @@ export function CineMorphTheater() {
               title={video?.title || 'OmniStream CineMorph Cinema'}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               allowFullScreen
-              className="w-full h-full border-0"
+              className="absolute inset-0 w-full h-full border-0"
               onLoad={() => {
                 setTheaterState('playing');
                 setPlaying(true);
