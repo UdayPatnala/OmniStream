@@ -1,10 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  Sparkles, ArrowRight, Play, Film, Clock, Volume2, 
-  Maximize2, Zap, HardDrive, UploadCloud, Search, 
-  Compass, ShieldCheck, FileVideo, RefreshCw, X, FolderHeart, ChevronRight,
-  Clapperboard, Ticket, Disc
+  Sparkles, ArrowRight, Play, Film, Volume2, 
+  Maximize2, HardDrive, UploadCloud, RefreshCw, X, Ticket, Disc, Clapperboard
 } from 'lucide-react';
 import { useAppStore } from '../store';
 import { playbackService } from '../lib/services/playbackService';
@@ -117,31 +115,31 @@ export function CineMorphLanding() {
     .slice(0, 4);
 
   return (
-    <div className="min-h-screen w-full bg-[#f8f5f0] text-[#3d332a] flex flex-col items-center justify-between p-4 sm:p-8 relative overflow-hidden select-none font-serif">
-      {/* Dynamic Ambient Vintage Spotlights */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-gradient-to-tr from-amber-700/10 via-amber-600/5 to-amber-900/10 rounded-full blur-[160px] pointer-events-none" />
-      <div className="absolute bottom-10 left-10 w-[400px] h-[300px] bg-amber-800/10 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute top-10 right-10 w-[400px] h-[300px] bg-red-900/5 rounded-full blur-[120px] pointer-events-none" />
+    <div className="min-h-screen w-full bg-cinemorph-bg text-cinemorph-text flex flex-col items-center justify-between p-4 sm:p-8 relative overflow-hidden select-none font-cinematic">
+      {/* Dynamic Ambient Spotlights using Brand colors */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-gradient-to-tr from-cinemorph-primary/10 via-cinemorph-secondary/5 to-cinemorph-primary/8 rounded-full blur-[160px] pointer-events-none" />
+      <div className="absolute bottom-10 left-10 w-[400px] h-[300px] bg-cinemorph-primary/5 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-10 right-10 w-[400px] h-[300px] bg-cinemorph-secondary/5 rounded-full blur-[120px] pointer-events-none" />
 
-      {/* Floating Vintage Cinema Props */}
+      {/* Floating Cinematic Props */}
       <div className="absolute top-36 right-8 sm:right-24 pointer-events-none z-0 opacity-40">
-        <div className="flex items-center gap-2 bg-amber-100/50 border border-amber-900/10 px-3 py-1.5 rounded-2xl backdrop-blur-md shadow-sm">
-          <Disc className="w-6 h-6 text-amber-800 animate-[spin_12s_linear_infinite]" />
-          <span className="text-[10px] font-bold text-amber-900 tracking-widest uppercase">35mm Film Reel</span>
+        <div className="flex items-center gap-2 bg-cinemorph-surface border border-cinemorph-border px-3 py-1.5 rounded-2xl backdrop-blur-md shadow-sm">
+          <Disc className="w-6 h-6 text-cinemorph-primary animate-[spin_12s_linear_infinite]" />
+          <span className="text-[10px] font-bold text-cinemorph-text-secondary tracking-widest uppercase">35mm Film Reel</span>
         </div>
       </div>
 
       <div className="absolute bottom-20 left-12 pointer-events-none z-0 opacity-40 hidden md:block">
-        <div className="flex items-center gap-2 bg-amber-100/50 border border-amber-900/10 px-3 py-1.5 rounded-2xl backdrop-blur-md shadow-sm">
-          <Ticket className="w-5 h-5 text-amber-800" />
-          <span className="text-[10px] font-bold text-amber-900 tracking-widest uppercase">Theater Ticket</span>
+        <div className="flex items-center gap-2 bg-cinemorph-surface border border-cinemorph-border px-3 py-1.5 rounded-2xl backdrop-blur-md shadow-sm">
+          <Ticket className="w-5 h-5 text-cinemorph-primary" />
+          <span className="text-[10px] font-bold text-cinemorph-text-secondary tracking-widest uppercase">Theater Ticket</span>
         </div>
       </div>
 
       <div className="absolute bottom-28 right-16 pointer-events-none z-0 opacity-50">
-        <div className="flex items-center gap-2 bg-amber-100/50 border border-amber-900/10 px-3 py-1.5 rounded-2xl backdrop-blur-md shadow-sm">
-          <Clapperboard className="w-5 h-5 text-amber-800" />
-          <span className="text-[10px] font-bold text-amber-900 tracking-widest uppercase font-mono">SCENE #01</span>
+        <div className="flex items-center gap-2 bg-cinemorph-surface border border-cinemorph-border px-3 py-1.5 rounded-2xl backdrop-blur-md shadow-sm">
+          <Clapperboard className="w-5 h-5 text-cinemorph-primary" />
+          <span className="text-[10px] font-bold text-cinemorph-text-secondary tracking-widest uppercase font-mono">SCENE #01</span>
         </div>
       </div>
 
@@ -151,46 +149,46 @@ export function CineMorphLanding() {
           <OMSLogo variant="light" size="xl" animated={true} />
         </div>
 
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-900 text-amber-50 text-[10px] font-bold tracking-[0.2em] uppercase border border-amber-800 shadow-sm mb-6">
-          <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cinemorph-primary text-white text-[10px] font-bold tracking-[0.2em] uppercase border border-cinemorph-primary shadow-sm mb-6">
+          <Sparkles className="w-3.5 h-3.5 text-cinemorph-secondary" />
           <span>Cinematic Immersion Engine</span>
-          <Film className="w-3.5 h-3.5 text-amber-400" />
+          <Film className="w-3.5 h-3.5 text-cinemorph-secondary" />
         </div>
 
-        <h1 className="text-5xl sm:text-7xl font-black tracking-widest text-amber-950 text-center mb-6 drop-shadow-sm font-cinematic-title uppercase">
-          Cine<span className="text-amber-700">Morph</span>
+        <h1 className="text-5xl sm:text-7xl font-black tracking-widest text-cinemorph-text text-center mb-6 drop-shadow-sm font-cinematic-title uppercase">
+          Cine<span className="text-cinemorph-secondary">Morph</span>
         </h1>
         
-        <p className="text-center text-amber-900/70 max-w-xl text-base sm:text-lg mb-12 font-medium tracking-wide font-cinematic">
+        <p className="text-center text-cinemorph-text-secondary max-w-xl text-base sm:text-lg mb-12 font-medium tracking-wide leading-relaxed">
           Step into a grand theatrical environment with opening curtains, vintage acoustics, and dynamic spatial framing.
         </p>
 
         {/* Feature Badges */}
         <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 mb-12">
-          <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-50 border border-amber-200 shadow-sm">
-            <Maximize2 className="w-4 h-4 text-amber-700" />
-            <span className="text-xs font-bold text-amber-900 tracking-wider">Screen Behind Hole</span>
+          <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-cinemorph-card border border-cinemorph-border shadow-sm">
+            <Maximize2 className="w-4 h-4 text-cinemorph-primary" />
+            <span className="text-xs font-bold text-cinemorph-text tracking-wider">Screen Behind Hole</span>
           </div>
-          <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-50 border border-amber-200 shadow-sm">
-            <Volume2 className="w-4 h-4 text-amber-700" />
-            <span className="text-xs font-bold text-amber-900 tracking-wider">Spatial Acoustics</span>
+          <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-cinemorph-card border border-cinemorph-border shadow-sm">
+            <Volume2 className="w-4 h-4 text-cinemorph-primary" />
+            <span className="text-xs font-bold text-cinemorph-text tracking-wider">Spatial Acoustics</span>
           </div>
-          <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-50 border border-amber-200 shadow-sm">
-            <Film className="w-4 h-4 text-amber-700" />
-            <span className="text-xs font-bold text-amber-900 tracking-wider">100% Private Local Media</span>
+          <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-cinemorph-card border border-cinemorph-border shadow-sm">
+            <Film className="w-4 h-4 text-cinemorph-primary" />
+            <span className="text-xs font-bold text-cinemorph-text tracking-wider">100% Private Local Media</span>
           </div>
         </div>
 
         {/* Action Form */}
-        <div className="w-full max-w-2xl bg-white border border-amber-200 rounded-[2rem] p-3 shadow-2xl shadow-amber-900/10 flex flex-col md:flex-row gap-3">
+        <div className="w-full max-w-2xl bg-cinemorph-card border border-cinemorph-border rounded-[2rem] p-3 shadow-2xl shadow-cinemorph-primary/5 flex flex-col md:flex-row gap-3">
           
-          <div className="flex bg-amber-50 p-1 rounded-full border border-amber-200 shadow-inner">
+          <div className="flex bg-cinemorph-surface p-1 rounded-full border border-cinemorph-border shadow-inner shrink-0">
             <button
               onClick={() => setActiveSourceTab('youtube')}
-              className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-2.5 rounded-full text-xs font-bold transition-all ${
+              className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-2.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
                 activeSourceTab === 'youtube'
-                  ? 'bg-amber-700 text-white shadow-md'
-                  : 'text-amber-800 hover:text-amber-950 hover:bg-amber-100'
+                  ? 'bg-cinemorph-primary text-white shadow-md'
+                  : 'text-cinemorph-text-secondary hover:text-cinemorph-text hover:bg-cinemorph-surface'
               }`}
             >
               <Play className="w-4 h-4" />
@@ -198,10 +196,10 @@ export function CineMorphLanding() {
             </button>
             <button
               onClick={() => setActiveSourceTab('local')}
-              className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-2.5 rounded-full text-xs font-bold transition-all ${
+              className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-2.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
                 activeSourceTab === 'local'
-                  ? 'bg-amber-700 text-white shadow-md'
-                  : 'text-amber-800 hover:text-amber-950 hover:bg-amber-100'
+                  ? 'bg-cinemorph-primary text-white shadow-md'
+                  : 'text-cinemorph-text-secondary hover:text-cinemorph-text hover:bg-cinemorph-surface'
               }`}
             >
               <HardDrive className="w-4 h-4" />
@@ -209,21 +207,21 @@ export function CineMorphLanding() {
             </button>
           </div>
 
-          <div className="flex-1 relative">
+          <div className="flex-1 relative min-h-[48px]">
             {activeSourceTab === 'youtube' ? (
-              <form onSubmit={handleEnterCinema} className="h-full relative flex items-center w-full bg-amber-50 rounded-full border border-amber-200 focus-within:border-amber-500 focus-within:ring-2 focus-within:ring-amber-200 transition-all shadow-inner">
+              <form onSubmit={handleEnterCinema} className="h-full relative flex items-center w-full bg-cinemorph-surface rounded-full border border-cinemorph-border focus-within:border-cinemorph-primary focus-within:ring-2 focus-within:ring-cinemorph-secondary/20 transition-all shadow-inner">
                 <input
                   type="text"
                   placeholder="Paste YouTube Link or Search..."
                   value={inputUrl}
                   onChange={(e) => setInputUrl(e.target.value)}
-                  className="w-full bg-transparent text-amber-950 placeholder-amber-900/50 py-3 pl-6 pr-32 text-sm focus:outline-none font-sans font-medium"
+                  className="w-full bg-transparent text-cinemorph-text placeholder-cinemorph-text-muted py-3 pl-6 pr-32 text-sm focus:outline-none font-sans font-medium"
                   autoFocus
                 />
                 <button
                   type="submit"
                   disabled={!inputUrl.trim() || loading}
-                  className="absolute right-1.5 top-1.5 bottom-1.5 bg-amber-700 hover:bg-amber-800 disabled:opacity-50 text-white px-5 rounded-full text-[11px] font-black tracking-widest uppercase flex items-center gap-2 transition-colors shadow-sm"
+                  className="absolute right-1.5 top-1.5 bottom-1.5 bg-cinemorph-primary hover:bg-cinemorph-primary/95 disabled:opacity-50 text-white px-5 rounded-full text-[11px] font-black tracking-widest uppercase flex items-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm cursor-pointer"
                 >
                   {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : 'Enter'}
                   {!loading && <ArrowRight className="w-3.5 h-3.5" />}
@@ -232,7 +230,7 @@ export function CineMorphLanding() {
             ) : (
               <div 
                 className={`h-full relative flex items-center justify-center w-full rounded-full border-2 border-dashed transition-all cursor-pointer ${
-                  dragOver ? 'border-amber-600 bg-amber-100' : 'border-amber-300 bg-amber-50 hover:border-amber-500 hover:bg-amber-100/50'
+                  dragOver ? 'border-cinemorph-primary bg-cinemorph-surface' : 'border-cinemorph-border bg-cinemorph-card hover:border-cinemorph-primary hover:bg-cinemorph-surface/50'
                 }`}
                 onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
                 onDragLeave={() => setDragOver(false)}
@@ -250,8 +248,8 @@ export function CineMorphLanding() {
                     }
                   }}
                 />
-                <div className="flex items-center gap-3 text-amber-800">
-                  <UploadCloud className={`w-5 h-5 ${dragOver ? 'animate-bounce text-amber-600' : ''}`} />
+                <div className="flex items-center gap-3 text-cinemorph-text-secondary">
+                  <UploadCloud className={`w-5 h-5 ${dragOver ? 'text-cinemorph-primary animate-bounce' : ''}`} />
                   <span className="text-sm font-bold tracking-wide font-sans">
                     {dragOver ? 'Drop file to play' : 'Click or drop media file here'}
                   </span>
@@ -272,8 +270,8 @@ export function CineMorphLanding() {
         {tickets.length > 0 && (
           <div className="w-full max-w-2xl mt-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
             <div className="flex items-center gap-2 mb-4 px-2">
-              <Ticket className="w-4 h-4 text-amber-700" />
-              <h3 className="text-xs font-bold text-amber-900 tracking-[0.2em] uppercase">My Stubs</h3>
+              <Ticket className="w-4 h-4 text-cinemorph-primary" />
+              <h3 className="text-xs font-bold text-cinemorph-primary tracking-[0.2em] uppercase">My Stubs</h3>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {tickets.slice(0, 4).map(ticket => (
@@ -290,14 +288,14 @@ export function CineMorphLanding() {
                       navigate(ticket.isLocal ? `/theater/${ticket.ticketId}` : `/theater/${encodeURIComponent(ticket.sourceUrl)}`);
                     }
                   }}
-                  className="group relative bg-white border border-amber-200 hover:border-amber-400 p-3 rounded-2xl flex items-center gap-4 cursor-pointer transition-all shadow-sm hover:shadow-md"
+                  className="group relative bg-cinemorph-card border border-cinemorph-border hover:border-cinemorph-primary p-3 rounded-2xl flex items-center gap-4 cursor-pointer transition-all shadow-sm hover:shadow-md"
                 >
-                  <div className="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center border border-amber-100 group-hover:scale-105 transition-transform">
-                    {ticket.isLocal ? <HardDrive className="w-5 h-5 text-amber-700" /> : <Film className="w-5 h-5 text-amber-700" />}
+                  <div className="w-12 h-12 bg-cinemorph-surface rounded-xl flex items-center justify-center border border-cinemorph-border group-hover:scale-105 transition-transform">
+                    {ticket.isLocal ? <HardDrive className="w-5 h-5 text-cinemorph-primary" /> : <Film className="w-5 h-5 text-cinemorph-primary" />}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h4 className="text-sm font-bold text-amber-950 truncate">{ticket.movieTitle}</h4>
-                    <p className="text-[10px] font-mono text-amber-700 mt-1">{ticket.seatAssignment}</p>
+                    <h4 className="text-sm font-bold text-cinemorph-text truncate">{ticket.movieTitle}</h4>
+                    <p className="text-[10px] font-mono text-cinemorph-text-secondary mt-1">{ticket.seatAssignment}</p>
                   </div>
                 </div>
               ))}
@@ -307,9 +305,9 @@ export function CineMorphLanding() {
 
       </div>
 
-      <div className="absolute bottom-6 font-mono text-[10px] text-amber-900/40 tracking-[0.3em] uppercase flex items-center gap-3 font-bold">
+      <div className="absolute bottom-6 font-mono text-[10px] text-cinemorph-text-muted tracking-[0.3em] uppercase flex items-center gap-3 font-bold">
         <span>OmniStream V2.0</span>
-        <span className="w-1 h-1 rounded-full bg-amber-900/40" />
+        <span className="w-1 h-1 rounded-full bg-cinemorph-text-muted" />
         <span>Intelligence Architecture</span>
       </div>
     </div>
