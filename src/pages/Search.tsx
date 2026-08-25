@@ -20,6 +20,9 @@ export function Search() {
   const navigate = useNavigate();
   
   const [activeFilter, setActiveFilter] = useState<SearchFilterType>('all');
+  const [uploadDateFilter, setUploadDateFilter] = useState<'all' | 'today' | 'week' | 'month'>('all');
+  const [durationFilter, setDurationFilter] = useState<'all' | 'short' | 'long'>('all');
+  const [sortBy, setSortBy] = useState<'relevance' | 'date' | 'viewCount'>('relevance');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [nextPageToken, setNextPageToken] = useState<string | undefined>();
   const [loading, setLoading] = useState(false);
@@ -64,6 +67,23 @@ export function Search() {
     }
   };
 
+  const filteredResults = results.filter(item => {
+    if (uploadDateFilter !== 'all' && item.publishedAt) {
+      const pubTime = new Date(item.publishedAt).getTime();
+      const now = Date.now();
+      const diffHours = (now - pubTime) / (1000 * 60 * 60);
+      if (uploadDateFilter === 'today' && diffHours > 24) return false;
+      if (uploadDateFilter === 'week' && diffHours > 24 * 7) return false;
+      if (uploadDateFilter === 'month' && diffHours > 24 * 30) return false;
+    }
+    return true;
+  }).sort((a, b) => {
+    if (sortBy === 'date' && a.publishedAt && b.publishedAt) {
+      return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
+    }
+    return 0;
+  });
+
   if (!query) {
     return (
       <div className="flex flex-col items-center justify-center h-[50vh] text-[#aaaaaa]">
@@ -73,7 +93,7 @@ export function Search() {
     );
   }
 
-  const topMatch = results.length > 0 ? results[0] : null;
+  const topMatch = filteredResults.length > 0 ? filteredResults[0] : null;
 
   return (
     <div className="space-y-6 py-2 max-w-[1700px] mx-auto">
@@ -99,7 +119,7 @@ export function Search() {
 
           <button
             onClick={handleInstantAutoPlayHero}
-            className="w-full md:w-auto px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-purple-600 hover:from-amber-400 hover:to-purple-500 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-xl shadow-purple-950/50 flex items-center justify-center gap-2 shrink-0"
+            className="w-full md:w-auto px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-purple-600 hover:from-amber-400 hover:to-purple-500 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-xl shadow-purple-950/50 flex items-center justify-center gap-2 shrink-0 cursor-pointer"
           >
             <Play className="w-4 h-4 fill-current" /> Instant In-App Playback
           </button>
@@ -116,7 +136,7 @@ export function Search() {
               <button
                 key={tab.type}
                 onClick={() => setActiveFilter(tab.type)}
-                className={`px-3.5 py-1 rounded-lg text-xs font-semibold transition-colors ${
+                className={`px-3.5 py-1 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
                   activeFilter === tab.type
                     ? 'bg-white text-black font-bold'
                     : 'bg-[#272727] text-[#f1f1f1] hover:bg-[#3f3f3f]'
@@ -133,8 +153,9 @@ export function Search() {
           <span className="font-bold text-gray-300">Filters:</span>
           
           <select 
-            className="bg-[#1f1e29] border border-white/10 text-xs text-gray-200 rounded-lg px-2.5 py-1 focus:outline-none focus:border-cyan-500"
-            defaultValue="all"
+            className="bg-[#1f1e29] border border-white/10 text-xs text-gray-200 rounded-lg px-2.5 py-1 focus:outline-none focus:border-cyan-500 cursor-pointer"
+            value={uploadDateFilter}
+            onChange={(e) => setUploadDateFilter(e.target.value as any)}
           >
             <option value="all">Any Upload Date</option>
             <option value="today">Today</option>
@@ -143,8 +164,9 @@ export function Search() {
           </select>
 
           <select 
-            className="bg-[#1f1e29] border border-white/10 text-xs text-gray-200 rounded-lg px-2.5 py-1 focus:outline-none focus:border-cyan-500"
-            defaultValue="all"
+            className="bg-[#1f1e29] border border-white/10 text-xs text-gray-200 rounded-lg px-2.5 py-1 focus:outline-none focus:border-cyan-500 cursor-pointer"
+            value={durationFilter}
+            onChange={(e) => setDurationFilter(e.target.value as any)}
           >
             <option value="all">Any Duration</option>
             <option value="short">Short (&lt; 4 mins)</option>
@@ -152,8 +174,9 @@ export function Search() {
           </select>
 
           <select 
-            className="bg-[#1f1e29] border border-white/10 text-xs text-gray-200 rounded-lg px-2.5 py-1 focus:outline-none focus:border-cyan-500"
-            defaultValue="relevance"
+            className="bg-[#1f1e29] border border-white/10 text-xs text-gray-200 rounded-lg px-2.5 py-1 focus:outline-none focus:border-cyan-500 cursor-pointer"
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as any)}
           >
             <option value="relevance">Sort by Relevance</option>
             <option value="date">Sort by Date</option>
@@ -166,7 +189,7 @@ export function Search() {
         {loading ? (
           Array.from({ length: 12 }).map((_, i) => <VideoCardSkeleton key={i} />)
         ) : (
-          results.map((item, idx) => (
+          filteredResults.map((item, idx) => (
             <VideoCard key={`${item.id}-${idx}`} video={item} />
           ))
         )}
@@ -177,7 +200,7 @@ export function Search() {
           <button
             onClick={loadMore}
             disabled={loadingMore}
-            className="px-6 py-2.5 bg-[#272727] hover:bg-[#3f3f3f] text-white font-semibold text-sm rounded-full transition-colors flex items-center gap-2"
+            className="px-6 py-2.5 bg-[#272727] hover:bg-[#3f3f3f] text-white font-semibold text-sm rounded-full transition-colors flex items-center gap-2 cursor-pointer"
           >
             {loadingMore && <Loader2 className="w-4 h-4 animate-spin" />}
             {loadingMore ? 'Loading...' : 'Load More Results'}

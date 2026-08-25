@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useAppStore } from '../store';
 import { useTicketStore } from '../state/useTicketStore';
 import { Info, ShieldCheck, Heart, Sparkles, Sliders } from 'lucide-react';
@@ -21,13 +22,26 @@ export function SettingsPage() {
     ecoMode, setEcoMode
   } = useAppStore();
 
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3500);
+  };
+
   const metrics = typeof window !== 'undefined' ? {
     cores: navigator.hardwareConcurrency || 4,
     memory: (navigator as any).deviceMemory || 4,
   } : { cores: 4, memory: 4 };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-8 py-4 pb-12">
+    <div className="max-w-2xl mx-auto space-y-8 py-4 pb-12 relative">
+      {/* Dynamic In-App Toast */}
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 z-50 px-4 py-2.5 rounded-2xl bg-zinc-900/95 border border-amber-500/30 text-amber-200 text-xs font-bold shadow-2xl backdrop-blur-xl animate-in fade-in slide-in-from-bottom-2">
+          {toastMessage}
+        </div>
+      )}
       <div>
         <h1 className="text-2xl font-semibold mb-2 text-[#E6E1E5]">Settings</h1>
         <p className="text-[#938F99]">Manage your U Tube preferences and personal application configuration.</p>
@@ -344,12 +358,12 @@ export function SettingsPage() {
                         if (imported.tickets && Array.isArray(imported.tickets)) {
                           useTicketStore.setState({ tickets: imported.tickets });
                         }
-                        alert('Data restored successfully!');
+                        showToast('✅ Data restored successfully from backup!');
                       } else {
-                        alert('Invalid backup format.');
+                        showToast('⚠️ Invalid backup file format.');
                       }
                     } catch (err) {
-                      alert('Failed to parse JSON file.');
+                      showToast('❌ Failed to parse JSON backup file.');
                     }
                   };
                   reader.readAsText(file);
@@ -367,11 +381,10 @@ export function SettingsPage() {
           </div>
           <button 
             onClick={() => {
-              if (confirm('Clear search query history?')) {
-                clearSearchHistory();
-              }
+              clearSearchHistory();
+              showToast('🧹 Search history cleared');
             }}
-            className="px-6 py-2.5 bg-white/5 text-[#E6E1E5] hover:bg-white/10 rounded-xl text-sm font-medium transition-colors"
+            className="px-6 py-2.5 bg-white/5 text-[#E6E1E5] hover:bg-white/10 rounded-xl text-sm font-medium transition-colors cursor-pointer"
           >
             Clear Search History
           </button>
@@ -384,11 +397,10 @@ export function SettingsPage() {
           </div>
           <button 
             onClick={() => {
-              if (confirm('Are you sure you want to clear your watch history?')) {
-                clearHistory();
-              }
+              clearHistory();
+              showToast('🧹 Watch history cleared');
             }}
-            className="px-6 py-2.5 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-xl text-sm font-medium transition-colors"
+            className="px-6 py-2.5 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-xl text-sm font-medium transition-colors cursor-pointer"
           >
             Clear Watch History
           </button>
@@ -401,11 +413,10 @@ export function SettingsPage() {
           </div>
           <button 
             onClick={() => {
-              if (confirm('Are you sure you want to clear all collections and playlists?')) {
-                useAppStore.setState({ collections: [] });
-              }
+              useAppStore.setState({ collections: [] });
+              showToast('🧹 Collections and playlists cleared');
             }}
-            className="px-6 py-2.5 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-xl text-sm font-medium transition-colors"
+            className="px-6 py-2.5 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-xl text-sm font-medium transition-colors cursor-pointer"
           >
             Clear Collections
           </button>
@@ -418,13 +429,14 @@ export function SettingsPage() {
           </div>
           <button 
             onClick={() => {
-              if (confirm('DANGER: This will wipe all local data, subscriptions, history, and tickets. Continue?')) {
+              showToast('⚠️ Resetting local workspace & storage...');
+              setTimeout(() => {
                 localStorage.clear();
                 sessionStorage.clear();
                 window.location.reload();
-              }
+              }, 1200);
             }}
-            className="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-bold transition-colors shadow-lg shadow-red-600/20"
+            className="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-bold transition-colors shadow-lg shadow-red-600/20 cursor-pointer"
           >
             Clear All Local Data
           </button>

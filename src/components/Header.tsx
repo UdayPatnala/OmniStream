@@ -19,6 +19,7 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showThemeMenu, setShowThemeMenu] = useState(false);
   const [pipelineState, setPipelineState] = useState<PlaybackState>('IDLE');
+  const [isListening, setIsListening] = useState(false);
   const navigate = useNavigate();
 
   const { 
@@ -30,6 +31,46 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
     setInstantAutoPlay,
     setRootLandingPreference,
   } = useAppStore();
+
+  const startVoiceSearch = () => {
+    if (typeof window === 'undefined') return;
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      const fallbackQuery = 'IMAX 4K Cinematic Trailers';
+      setQuery(fallbackQuery);
+      handleSearch(undefined, fallbackQuery);
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'en-US';
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+
+      setIsListening(true);
+      recognition.onstart = () => {
+        setIsListening(true);
+      };
+      recognition.onresult = (event: any) => {
+        const transcript = event.results?.[0]?.[0]?.transcript;
+        if (transcript) {
+          setQuery(transcript);
+          handleSearch(undefined, transcript);
+        }
+        setIsListening(false);
+      };
+      recognition.onerror = () => {
+        setIsListening(false);
+      };
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+      recognition.start();
+    } catch (e) {
+      setIsListening(false);
+    }
+  };
 
   useEffect(() => {
     return playbackStateMachine.subscribe((state) => {
@@ -245,11 +286,16 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
 
         {/* Voice Search Button */}
         <button 
-          className="w-9 h-9 rounded-full bg-gray-50 hover:bg-gray-100 flex items-center justify-center text-gray-600 hover:text-red-600 transition-colors shrink-0 border border-gray-300"
-          aria-label="Search with voice"
-          onClick={() => alert('CineMorph Voice Engine Ready')}
+          className={`w-9 h-9 rounded-full flex items-center justify-center transition-all shrink-0 border cursor-pointer ${
+            isListening 
+              ? 'bg-red-500 text-white border-red-600 shadow-[0_0_12px_rgba(239,68,68,0.8)] animate-pulse' 
+              : 'bg-gray-50 hover:bg-gray-100 text-gray-600 hover:text-red-600 border-gray-300'
+          }`}
+          aria-label={isListening ? 'Listening to voice...' : 'Search with voice'}
+          title={isListening ? 'Listening...' : 'Voice Search'}
+          onClick={startVoiceSearch}
         >
-          <Mic className="w-4 h-4" />
+          <Mic className={`w-4 h-4 ${isListening ? 'animate-bounce' : ''}`} />
         </button>
       </div>
 
