@@ -19,7 +19,7 @@ import {
   Film, Monitor, ArrowLeft, RotateCcw, ChevronRight,
   Sparkles, HelpCircle, X, Keyboard, Sliders, Maximize2,
   Sun, FileText, Check, HardDrive, Armchair,
-  Eye, RefreshCw, Layers, Zap, Captions, Gauge, Languages
+  Eye, RefreshCw, Layers, Zap, Captions, Gauge, Languages, Tv
 } from 'lucide-react';
 import { 
   audioEngine, 
@@ -598,6 +598,27 @@ export function CineMorphTheater() {
     setPresentationMode(next);
     setCinemaMode(next === 'cinema');
     showToast(next === 'cinema' ? '🎬 Cinema Presentation Activated' : '📺 Standard Mode Activated');
+  };
+
+  const handoffToUTube = () => {
+    if (activeVideo) {
+      useTicketStore.getState().saveTicketProgress({
+        movieTitle: activeVideo.title,
+        sourceUrl: activeVideo.id,
+        isLocal: false,
+        durationSeconds: duration,
+        timestampSeconds: played * duration,
+        aspectRatio: '1.90:1',
+        framingRule: 'auto',
+      });
+      showToast('📺 Switching to U-Tube Standard Player...');
+      navigate(`/watch/${activeVideo.id}`, {
+        state: {
+          startTime: played * duration,
+          autoPlay: theaterState === 'playing',
+        },
+      });
+    }
   };
 
   const exitTheater = () => {
@@ -1247,6 +1268,17 @@ export function CineMorphTheater() {
                 <ArrowLeft className="w-4 h-4" />
               </button>
 
+              {activeVideo && !isLocalMedia && (
+                <button
+                  onClick={handoffToUTube}
+                  className="hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-xl bg-red-600/20 hover:bg-red-600/30 text-red-300 border border-red-500/30 text-[11px] font-bold transition-all cursor-pointer"
+                  title="Switch to U-Tube Standard Web Player"
+                >
+                  <Tv className="w-3.5 h-3.5" />
+                  <span>U-Tube</span>
+                </button>
+              )}
+
               <button
                 onClick={togglePlay}
                 className="p-2.5 rounded-full bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-500/30 transition-all shadow-md active:scale-95"
@@ -1588,6 +1620,16 @@ export function CineMorphTheater() {
                 <span>Glow: {glowIntensity.toUpperCase()}</span>
               </button>
             </div>
+
+            {activeVideo && !isLocalMedia && (
+              <button
+                onClick={() => { setShowStudioDrawer(false); handoffToUTube(); }}
+                className="w-full py-2.5 px-3 rounded-xl bg-red-600/20 hover:bg-red-600/30 border border-red-500/40 text-xs font-bold text-red-200 flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm"
+              >
+                <Tv className="w-4 h-4 text-red-400" />
+                <span>Switch to U-Tube Player (Preserve Time)</span>
+              </button>
+            )}
 
             <button
               onClick={() => { setShowStudioDrawer(false); setShowShortcuts(true); }}

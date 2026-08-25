@@ -41,12 +41,6 @@ function RootRouter() {
   return <BentoGrid />;
 }
 
-// Picks V1 Watch page or V2 Theater based on active version mode
-function WatchRouter() {
-  const versionMode = useAppStore((s) => s.versionMode);
-  return versionMode === 'v2' ? <CineMorphTheater /> : <Watch />;
-}
-
 export default function App() {
   const refreshFeedIfNeeded = useUTubeStore((s) => s.refreshFeedIfNeeded);
 
@@ -73,7 +67,7 @@ export default function App() {
           <Route path="/theater/:id" element={<CineMorphTheater />} />
           <Route path="/search" element={<Search />} />
           <Route path="/shorts" element={<Home />} />
-          <Route path="/watch/:id" element={<WatchRouter />} />
+          <Route path="/watch/:id" element={<Watch />} />
           <Route path="/subscriptions" element={<Subscriptions />} />
           <Route path="/collections" element={<Collections />} />
           <Route path="/history" element={<History />} />

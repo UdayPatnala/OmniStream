@@ -4,11 +4,9 @@ import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { useAppStore } from '../store';
 import { BottomNav } from './BottomNav';
-import { GlobalPlayer } from './GlobalPlayer';
-import { CineMorphLanding } from '../pages/CineMorphLanding';
 
 export function Layout({ children }: { children: ReactNode }) {
-  const { theme, versionMode, rootLandingPreference } = useAppStore();
+  const { theme, rootLandingPreference } = useAppStore();
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
   
@@ -27,8 +25,7 @@ export function Layout({ children }: { children: ReactNode }) {
     location.pathname === '/gateway' ||
     location.pathname === '/cinemorph' ||
     location.pathname.startsWith('/theater/') ||
-    (location.pathname === '/' && rootLandingPreference === 'ask') ||
-    (versionMode === 'v2' && (location.pathname === '/' || location.pathname.startsWith('/watch/')));
+    (location.pathname === '/' && rootLandingPreference === 'ask');
 
   if (isFullViewport) {
     return (
@@ -38,8 +35,7 @@ export function Layout({ children }: { children: ReactNode }) {
     );
   }
 
-
-  // V1 Standard U-Tube Media Workspace
+  // Standard U-Tube Media Workspace
   return (
     <div className="flex flex-col h-screen w-full max-w-full bg-gray-50 text-gray-900 font-sans overflow-hidden select-none relative">
       <Header toggleSidebar={() => setCollapsed(!collapsed)} />
@@ -48,7 +44,6 @@ export function Layout({ children }: { children: ReactNode }) {
         <Sidebar collapsed={collapsed} />
         
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
-          <GlobalPlayer />
           <main className="flex-1 overflow-y-auto scroll-smooth pb-20 md:pb-8 px-4 md:px-8 py-4 bg-gray-50" id="scroll-container">
             {children}
           </main>

@@ -1,41 +1,47 @@
-import { useEffect, useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
+import {
+  ThumbsUp,
+  ThumbsDown,
+  Share2,
+  FolderPlus,
+  Check,
+  Film,
+  Sparkles,
+  MessageSquare,
+  ChevronDown,
+  ChevronUp,
+  Clock,
+  MoreHorizontal,
+  Bookmark,
+} from 'lucide-react';
 import { getVideosByIds, getChannelDetails, getRelatedVideos } from '../lib/youtube';
-import { generateAISummary, extractVideoScript, askCineMorphAI } from '../lib/cinemorph';
-import { Video, Channel, AISummary, VideoScriptChunk, AIChatMessage } from '../types';
+import { Video, Channel } from '../types';
 import { useAppStore } from '../store';
+import { useTicketStore } from '../state/useTicketStore';
 import { formatViews, formatTimeAgo } from '../lib/utils';
-import { ThumbsUp, ThumbsDown, Share2, FolderPlus, Plus, Check, Sparkles, Sun, Maximize2, Send, MessageSquare, FileText, Film, Copy, Gauge } from 'lucide-react';
-import { CineMorphTopBar } from '../components/CineMorphTopBar';
-import { CineMorphAudioStudioModal } from '../components/CineMorphAudioStudioModal';
-import { CineMorphAIStudio } from '../components/CineMorphAIStudio';
+import { UTubePlayer } from '../components/player/UTubePlayer';
 
 export function Watch() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { 
-    activeVideo, 
-    setActiveVideo, 
-    subscriptions, 
-    subscribe, 
-    unsubscribe, 
-    collections, 
-    createCollection, 
+  const location = useLocation();
+
+  const {
+    activeVideo,
+    setActiveVideo,
+    subscriptions,
+    subscribe,
+    unsubscribe,
+    collections,
+    createCollection,
     addVideoToCollection,
-    ambientGlow,
-    toggleAmbientGlow,
-    cinemaMode,
-    setCinemaMode,
-    playbackSpeed,
-    setPlaybackSpeed,
-    setVersionMode,
-    addToWatchLater,
-    isInWatchLater,
     toggleLikeVideo,
     isLikedVideo,
-    saveWatchPosition
+    addToWatchLater,
+    isInWatchLater,
   } = useAppStore();
-  
+
   const [video, setVideo] = useState<Video | null>(activeVideo?.id === id ? activeVideo : null);
   const [channel, setChannel] = useState<Channel | null>(null);
   const [related, setRelated] = useState<Video[]>([]);
@@ -43,31 +49,47 @@ export function Watch() {
   const [newColName, setNewColName] = useState('');
   const [showCreateCol, setShowCreateCol] = useState(false);
   const [descExpanded, setDescExpanded] = useState(false);
-  const [liked, setLiked] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [theaterLayout, setTheaterLayout] = useState(false);
+  const [commentInput, setCommentInput] = useState('');
+  const [comments, setComments] = useState<
+    Array<{ id: string; author: string; avatar: string; text: string; time: string; likes: number }>
+  >([
+    {
+      id: 'c1',
+      author: 'Cinematic Explorer',
+      avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100',
+      text: 'The color grading and direct sound mixing on this release are absolutely phenomenal.',
+      time: '2 hours ago',
+      likes: 42,
+    },
+    {
+      id: 'c2',
+      author: 'Studio Sound Lab',
+      avatar: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=100',
+      text: 'Amazing visual presentation! The ad-free stream loaded instantly.',
+      time: '5 hours ago',
+      likes: 18,
+    },
+  ]);
 
-  // CineMorph AI Studio States
-  const [activeTab, setActiveTab] = useState<'ai-copilot' | 'script' | 'related'>('ai-copilot');
-  const [aiSummary, setAiSummary] = useState<AISummary | null>(null);
-  const [scriptChunks, setScriptChunks] = useState<VideoScriptChunk[]>([]);
-  const [chatMessages, setChatMessages] = useState<AIChatMessage[]>([]);
-  const [userQuery, setUserQuery] = useState('');
-  const [aiThinking, setAiThinking] = useState(false);
+  // Initial playback time if transferred from CineMorph or history
+  const initialStartTime = (location.state as any)?.startTime || 0;
 
   useEffect(() => {
     if (!id) return;
-    
+
     const initialVideoObj: Video = {
       id,
       title: activeVideo?.id === id ? activeVideo.title : 'Loading video...',
-      description: activeVideo?.id === id ? activeVideo.description : 'Streaming live in CineMorph AI.',
+      description: activeVideo?.id === id ? activeVideo.description : 'Streaming ad-free on U-Tube.',
       channelId: activeVideo?.channelId || '',
       channelTitle: activeVideo?.channelTitle || 'YouTube Creator',
       publishedAt: activeVideo?.publishedAt || new Date().toISOString(),
       thumbnails: {
         medium: `https://i.ytimg.com/vi/${id}/mqdefault.jpg`,
         high: `https://i.ytimg.com/vi/${id}/hqdefault.jpg`,
-      }
+      },
     };
 
     setVideo(initialVideoObj);
@@ -82,30 +104,20 @@ export function Watch() {
           const v = videos[0];
           setVideo(v);
           setActiveVideo(v);
-          setAiSummary(generateAISummary(v));
-          setScriptChunks(extractVideoScript(v));
-          setChatMessages([
-            {
-              id: 'init-1',
-              sender: 'assistant',
-              text: `✨ Hello! I am **CineMorph AI**. Ask me anything about "${v.title}" or click any transcript timestamp to jump to that moment!`,
-              timestamp: Date.now()
-            }
-          ]);
           if (v.channelId) {
             const chan = await getChannelDetails(v.channelId);
             setChannel(chan);
           }
         }
-      } catch (err: any) {
-        // Silent fallback
+      } catch (err) {
+        // Fallback gracefully
       }
     }
 
     async function fetchRelatedData() {
       try {
         const rels = await getRelatedVideos(id!);
-        setRelated(rels.filter(r => r.id !== id));
+        setRelated(rels.filter((r) => r.id !== id));
       } catch (e) {}
     }
 
@@ -113,14 +125,35 @@ export function Watch() {
     fetchRelatedData();
   }, [id]);
 
-  const isSubscribed = subscriptions.some(s => s.id === video?.channelId);
+  const isSubscribed = subscriptions.some((s) => s.id === video?.channelId);
+  const isLiked = video ? isLikedVideo(video.id) : false;
+  const inWatchLater = video ? isInWatchLater(video.id) : false;
 
   const handleToggleSubscribe = () => {
-    if (!channel) return;
+    if (!channel && !video) return;
+    const chanToSub: Channel = channel || {
+      id: video!.channelId,
+      title: video!.channelTitle,
+      description: '',
+      thumbnails: {
+        default: video!.thumbnails.medium,
+        medium: video!.thumbnails.medium,
+        high: video!.thumbnails.high,
+      },
+    };
+
     if (isSubscribed) {
-      unsubscribe(channel.id);
+      unsubscribe(chanToSub.id);
     } else {
-      subscribe(channel);
+      subscribe(chanToSub);
+    }
+  };
+
+  const handleCopyShare = () => {
+    if (typeof window !== 'undefined') {
+      navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     }
   };
 
@@ -133,260 +166,386 @@ export function Watch() {
     }
   };
 
-  const handleSendAIChat = async (e: React.FormEvent) => {
+  const handleAddComment = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!userQuery.trim() || !video) return;
-
-    const query = userQuery.trim();
-    setUserQuery('');
-    const userMsg: AIChatMessage = {
-      id: Date.now().toString(),
-      sender: 'user',
-      text: query,
-      timestamp: Date.now()
-    };
-
-    setChatMessages(prev => [...prev, userMsg]);
-    setAiThinking(true);
-
-    const aiReplyText = await askCineMorphAI(query, video, chatMessages);
-    
-    setAiThinking(false);
-    setChatMessages(prev => [
-      ...prev,
+    if (!commentInput.trim()) return;
+    setComments([
       {
-        id: (Date.now() + 1).toString(),
-        sender: 'assistant',
-        text: aiReplyText,
-        timestamp: Date.now()
-      }
+        id: Date.now().toString(),
+        author: 'You',
+        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100',
+        text: commentInput.trim(),
+        time: 'Just now',
+        likes: 0,
+      },
+      ...comments,
     ]);
+    setCommentInput('');
   };
-  const copySummary = () => {
-    if (!aiSummary) return;
-    navigator.clipboard.writeText(`${aiSummary.executiveSummary}\n\nKey Takeaways:\n${aiSummary.keyTakeaways.join('\n')}`);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+
+  const handleOpenInCineMorph = () => {
+    if (!video) return;
+    useTicketStore.getState().saveTicketProgress({
+      movieTitle: video.title,
+      sourceUrl: video.id,
+      isLocal: false,
+      timestampSeconds: 0,
+      durationSeconds: 600,
+      aspectRatio: '1.90:1',
+      framingRule: 'auto',
+    });
+    navigate(`/theater/${video.id}`);
   };
+
+  if (!video) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="w-8 h-8 rounded-full border-2 border-red-600 border-t-transparent animate-spin" />
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-[1750px] mx-auto space-y-4 py-2 select-none">
-      {/* CineMorph Top Control Toolbar */}
-      <CineMorphTopBar />
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column: Player Metadata & Details (70% width) */}
-        <div className="lg:col-span-2 space-y-4">
-          {/* Main Video Player Container */}
-          <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-black border border-white/10 shadow-2xl group">
-            {ambientGlow && (
-              <div 
-                className="absolute -inset-4 bg-gradient-to-tr from-cyan-500/20 via-purple-500/20 to-pink-500/20 rounded-3xl blur-2xl pointer-events-none -z-10 opacity-70 group-hover:opacity-100 transition-opacity duration-500" 
-              />
-            )}
-            <iframe
-              id="watch-youtube-player"
-              src={`https://www.youtube-nocookie.com/embed/${id}?autoplay=1&enablejsapi=1&origin=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : '')}&rel=0&playsinline=1`}
-              title={video?.title || 'YouTube Video Player'}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              allowFullScreen
-              className="w-full h-full border-0"
-            />
-          </div>
+    <div className="w-full max-w-[1700px] mx-auto space-y-5 pb-12 font-sans select-none">
+      {/* ── Main Watch Content (Player + Sidebar) ── */}
+      <div
+        className={`grid gap-6 ${
+          theaterLayout ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-3'
+        }`}
+      >
+        {/* Left / Main Column: Dedicated U-Tube Player & Metadata */}
+        <div className={`${theaterLayout ? 'w-full max-w-6xl mx-auto' : 'lg:col-span-2'} space-y-4`}>
+          {/* U-Tube Dedicated Web Video Player */}
+          <UTubePlayer
+            video={video}
+            initialTime={initialStartTime}
+            theaterMode={theaterLayout}
+            onToggleTheaterMode={() => setTheaterLayout(!theaterLayout)}
+            onNext={() => {
+              if (related.length > 0) {
+                navigate(`/watch/${related[0].id}`);
+              }
+            }}
+          />
 
           {/* Video Title */}
-          <h1 className="text-xl md:text-2xl font-black text-[#f1f1f1] leading-snug tracking-tight">
-            {video?.title || activeVideo?.title || 'Loading video title...'}
+          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-slate-900 leading-snug tracking-tight">
+            {video.title}
           </h1>
 
-          {/* Channel Row & Action Buttons */}
-          <div className="flex flex-wrap items-center justify-between gap-4 pt-1 pb-3 border-b border-white/10">
-            {/* Channel Info */}
+          {/* Channel Row & Action Bar */}
+          <div className="flex flex-wrap items-center justify-between gap-4 pt-1 pb-3 border-b border-slate-200/80">
+            {/* Channel Info & Subscribe */}
             <div className="flex items-center gap-3">
-              {video?.channelId ? (
-                <Link to={`/channel/${video.channelId}`} className="w-10 h-10 rounded-full overflow-hidden bg-[#272727] shrink-0 ring-2 ring-indigo-500/40">
-                  <img 
-                    src={channel?.thumbnails?.medium || video?.thumbnails?.medium} 
-                    alt={video?.channelTitle} 
-                    className="w-full h-full object-cover" 
-                  />
-                </Link>
-              ) : (
-                <div className="w-10 h-10 rounded-full bg-[#272727] shrink-0" />
-              )}
-              
+              <Link
+                to={video.channelId ? `/channel/${video.channelId}` : '#'}
+                className="w-10 h-10 rounded-full overflow-hidden bg-slate-200 shrink-0 border border-slate-200 hover:opacity-90 transition-opacity"
+              >
+                <img
+                  src={channel?.thumbnails?.medium || video.thumbnails.medium}
+                  alt={video.channelTitle}
+                  className="w-full h-full object-cover"
+                />
+              </Link>
+
               <div className="flex flex-col">
-                {video?.channelId ? (
-                  <Link to={`/channel/${video.channelId}`} className="font-bold text-sm text-[#f1f1f1] hover:underline truncate max-w-[200px]">
-                    {video?.channelTitle}
-                  </Link>
-                ) : (
-                  <span className="font-bold text-sm text-[#f1f1f1]">
-                    {video?.channelTitle || 'YouTube Creator'}
-                  </span>
-                )}
-                <span className="text-xs text-[#aaaaaa]">
-                  {channel?.subscriberCount ? `${formatViews(channel.subscriberCount)} subscribers` : '1.2M subscribers'}
+                <Link
+                  to={video.channelId ? `/channel/${video.channelId}` : '#'}
+                  className="font-bold text-sm text-slate-900 hover:underline truncate max-w-[200px]"
+                >
+                  {video.channelTitle}
+                </Link>
+                <span className="text-xs text-slate-500 font-medium">
+                  {channel?.subscriberCount
+                    ? `${formatViews(channel.subscriberCount)} subscribers`
+                    : 'Verified Channel'}
                 </span>
               </div>
 
-              {channel && (
-                <button 
-                  onClick={handleToggleSubscribe}
-                  className={`ml-4 px-4 py-2 rounded-full text-xs font-bold transition-all shadow-md ${
-                    isSubscribed 
-                      ? 'bg-white/10 text-white hover:bg-white/20' 
-                      : 'bg-gradient-to-r from-indigo-500 to-violet-600 text-white hover:opacity-90'
-                  }`}
-                >
-                  {isSubscribed ? 'Subscribed' : 'Subscribe'}
-                </button>
-              )}
+              <button
+                onClick={handleToggleSubscribe}
+                className={`ml-2 sm:ml-4 px-4 py-2 rounded-full text-xs font-bold transition-all shadow-sm cursor-pointer ${
+                  isSubscribed
+                    ? 'bg-slate-200 text-slate-800 hover:bg-slate-300'
+                    : 'bg-red-600 hover:bg-red-700 text-white shadow-red-600/20'
+                }`}
+              >
+                {isSubscribed ? 'Subscribed' : 'Subscribe'}
+              </button>
             </div>
 
-            {/* Action Pills */}
+            {/* Action Pills (Like, Share, Watch Later, Save, CineMorph Handoff) */}
             <div className="flex items-center gap-2 flex-wrap">
-              {/* Open in CineMorph Cinema (V2) */}
-              <button 
-                onClick={() => {
-                  setVersionMode('v2');
-                  navigate(`/theater/${id}`);
-                }}
-                className="flex items-center gap-1.5 px-4 py-1.5 bg-gradient-to-r from-cyan-600 via-indigo-600 to-purple-600 hover:from-cyan-500 hover:to-purple-500 text-white rounded-full text-xs font-bold transition-all shadow-md shadow-cyan-500/20"
-                title="Transfer stream to 2.5D Virtual Movie Theater"
+              {/* Like / Dislike Pill */}
+              <div className="flex items-center rounded-full bg-slate-100 border border-slate-200/80 overflow-hidden text-xs font-semibold text-slate-800">
+                <button
+                  onClick={() => toggleLikeVideo(video)}
+                  className={`flex items-center gap-1.5 px-3.5 py-2 hover:bg-slate-200 transition-colors cursor-pointer ${
+                    isLiked ? 'text-red-600' : ''
+                  }`}
+                  title="Like video"
+                >
+                  <ThumbsUp className={`w-4 h-4 ${isLiked ? 'fill-red-600' : ''}`} />
+                  <span>{isLiked ? 'Liked' : 'Like'}</span>
+                </button>
+                <div className="w-[1px] h-5 bg-slate-300" />
+                <button
+                  className="px-3 py-2 hover:bg-slate-200 transition-colors cursor-pointer text-slate-600"
+                  title="Dislike"
+                >
+                  <ThumbsDown className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Share */}
+              <button
+                onClick={handleCopyShare}
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-200/80 text-xs font-semibold text-slate-800 transition-colors cursor-pointer"
+                title="Share link"
               >
-                <Sparkles className="w-3.5 h-3.5 text-cyan-300" />
-                <span>Open in CineMorph V2</span>
+                {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Share2 className="w-4 h-4" />}
+                <span>{copied ? 'Copied!' : 'Share'}</span>
               </button>
 
-              {/* Playback Speed Selector */}
-              <div className="flex items-center bg-white/5 border border-white/10 rounded-full px-3 py-1.5 text-xs text-indigo-300 gap-1">
-                <Gauge className="w-3.5 h-3.5" />
-                <select
-                  value={playbackSpeed}
-                  onChange={(e) => setPlaybackSpeed(parseFloat(e.target.value))}
-                  className="bg-transparent focus:outline-none cursor-pointer font-semibold"
-                >
-                  <option value={0.5} className="bg-[#121218]">0.5x</option>
-                  <option value={0.75} className="bg-[#121218]">0.75x</option>
-                  <option value={1.0} className="bg-[#121218]">1.0x (Normal)</option>
-                  <option value={1.25} className="bg-[#121218]">1.25x</option>
-                  <option value={1.5} className="bg-[#121218]">1.5x</option>
-                  <option value={2.0} className="bg-[#121218]">2.0x</option>
-                </select>
-              </div>
-
-              {/* Like/Dislike */}
-              <div className="flex items-center bg-white/5 rounded-full overflow-hidden border border-white/10">
-                <button 
-                  onClick={() => video && toggleLikeVideo(video)}
-                  className={`flex items-center gap-2 px-3.5 py-1.5 text-xs font-medium hover:bg-white/10 transition-colors border-r border-white/10 ${id && isLikedVideo(id) ? 'text-indigo-400 font-bold' : 'text-[#f1f1f1]'}`}
-                >
-                  <ThumbsUp className={`w-3.5 h-3.5 ${id && isLikedVideo(id) ? 'fill-current' : ''}`} />
-                  <span>{id && isLikedVideo(id) ? '125K' : '124K'}</span>
-                </button>
-                <button className="px-3 py-1.5 text-[#f1f1f1] hover:bg-white/10 transition-colors">
-                  <ThumbsDown className="w-3.5 h-3.5" />
-                </button>
-              </div>
+              {/* Watch Later */}
+              <button
+                onClick={() => (inWatchLater ? {} : addToWatchLater(video))}
+                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full border text-xs font-semibold transition-colors cursor-pointer ${
+                  inWatchLater
+                    ? 'bg-amber-100 text-amber-900 border-amber-300'
+                    : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-200/80'
+                }`}
+                title="Save to Watch Later"
+              >
+                <Bookmark className="w-4 h-4" />
+                <span className="hidden sm:inline">{inWatchLater ? 'Saved' : 'Watch Later'}</span>
+              </button>
 
               {/* Save to Collection */}
               <div className="relative">
-                <button 
+                <button
                   onClick={() => setShowSaveMenu(!showSaveMenu)}
-                  className="flex items-center gap-1.5 px-3.5 py-1.5 bg-white/5 border border-white/10 hover:bg-white/10 text-[#f1f1f1] rounded-full text-xs font-medium transition-colors"
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-200/80 text-xs font-semibold text-slate-800 transition-colors cursor-pointer"
+                  title="Save to Playlist or Collection"
                 >
-                  <FolderPlus className="w-3.5 h-3.5" />
-                  <span>Save</span>
+                  <FolderPlus className="w-4 h-4" />
+                  <span className="hidden sm:inline">Save</span>
                 </button>
 
                 {showSaveMenu && (
-                  <div className="absolute right-0 mt-2 w-64 bg-[#161622] border border-white/10 rounded-2xl shadow-2xl p-3 z-50">
-                    <div className="flex items-center justify-between pb-2 mb-2 border-b border-white/10">
-                      <span className="text-xs font-semibold uppercase text-gray-400">Save to Collection</span>
-                      <button 
-                        onClick={() => setShowCreateCol(!showCreateCol)}
-                        className="p-1 hover:bg-white/10 rounded-full text-white"
-                        title="New Collection"
-                      >
-                        <Plus className="w-4 h-4" />
-                      </button>
+                  <div className="absolute right-0 top-11 w-64 rounded-2xl bg-white border border-slate-200 shadow-xl p-3 z-50 text-xs space-y-2 animate-in fade-in zoom-in-95 duration-150 text-slate-800">
+                    <div className="font-bold text-slate-900 pb-1.5 border-b border-slate-100">
+                      Save video to...
+                    </div>
+                    <div className="max-h-48 overflow-y-auto space-y-1">
+                      {collections.map((col) => (
+                        <button
+                          key={col.id}
+                          onClick={() => {
+                            addVideoToCollection(col.id, video);
+                            setShowSaveMenu(false);
+                          }}
+                          className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 flex items-center justify-between transition-colors"
+                        >
+                          <span className="truncate">{col.name}</span>
+                          <span className="text-[10px] font-mono text-slate-400">
+                            {col.videos.length} vids
+                          </span>
+                        </button>
+                      ))}
                     </div>
 
-                    {showCreateCol && (
-                      <form onSubmit={handleCreateCollection} className="mb-3 flex gap-2">
-                        <input 
+                    {showCreateCol ? (
+                      <form onSubmit={handleCreateCollection} className="pt-2 border-t border-slate-100 space-y-2">
+                        <input
                           type="text"
-                          placeholder="Collection name..."
+                          placeholder="Collection name"
                           value={newColName}
                           onChange={(e) => setNewColName(e.target.value)}
-                          className="flex-1 bg-[#0f0d14] border border-white/10 rounded-lg px-2.5 py-1 text-xs text-white placeholder-gray-500 focus:outline-none"
+                          className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs focus:outline-none focus:border-red-600"
+                          autoFocus
                         />
-                        <button type="submit" className="px-3 py-1 bg-indigo-600 text-white rounded-lg text-xs font-semibold">
-                          Add
-                        </button>
-                      </form>
-                    )}
-
-                    <div className="space-y-1 max-h-48 overflow-y-auto">
-                      {collections.map(col => {
-                        const inCol = col.videos.some(v => v.id === video?.id);
-                        return (
+                        <div className="flex justify-end gap-1.5">
                           <button
-                            key={col.id}
-                            onClick={() => video && addVideoToCollection(col.id, video)}
-                            className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-white/10 text-xs flex items-center justify-between text-gray-200"
+                            type="button"
+                            onClick={() => setShowCreateCol(false)}
+                            className="px-2 py-1 text-slate-500 hover:text-slate-800"
                           >
-                            <span>{col.name}</span>
-                            {inCol && <Check className="w-3.5 h-3.5 text-indigo-400" />}
+                            Cancel
                           </button>
-                        );
-                      })}
-                    </div>
+                          <button
+                            type="submit"
+                            className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg"
+                          >
+                            Create
+                          </button>
+                        </div>
+                      </form>
+                    ) : (
+                      <button
+                        onClick={() => setShowCreateCol(true)}
+                        className="w-full text-left px-2 py-1.5 text-red-600 font-bold hover:bg-red-50 rounded-lg flex items-center gap-1.5 transition-colors"
+                      >
+                        <span>+ Create new collection</span>
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
+
+              {/* Seamless CineMorph Theater Switcher */}
+              <button
+                onClick={handleOpenInCineMorph}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black text-xs font-black tracking-wide shadow-md shadow-amber-500/20 transition-all hover:scale-105 cursor-pointer"
+                title="Transfer and watch inside CineMorph Virtual Cinema"
+              >
+                <Film className="w-3.5 h-3.5" />
+                <span>Open in CineMorph</span>
+              </button>
             </div>
           </div>
 
           {/* Description Box */}
-          <div 
+          <div
             onClick={() => setDescExpanded(!descExpanded)}
-            className="bg-[#181824] hover:bg-[#1f1f2e] p-4 rounded-2xl border border-white/10 transition-colors cursor-pointer space-y-2"
+            className="rounded-2xl bg-slate-100 hover:bg-slate-150 p-4 transition-colors cursor-pointer text-xs text-slate-700 space-y-2"
           >
-            <div className="flex items-center gap-3 text-xs font-bold text-gray-300">
-              <span>{video?.viewCount ? `${formatViews(video.viewCount)} views` : '1.4M views'}</span>
-              <span>{formatTimeAgo(video?.publishedAt)}</span>
+            <div className="flex items-center gap-3 font-bold text-slate-900 text-xs">
+              <span>{video.publishedAt ? formatTimeAgo(video.publishedAt) : 'Recent upload'}</span>
+              <span>•</span>
+              <span className="text-red-600">#OMNISTREAM #UTUBE</span>
             </div>
-            <p className={`whitespace-pre-wrap leading-relaxed text-xs text-gray-300 ${descExpanded ? '' : 'line-clamp-3'}`}>
-              {video?.description || 'No description provided for this video.'}
+
+            <p className={`whitespace-pre-line leading-relaxed ${descExpanded ? '' : 'line-clamp-3'}`}>
+              {video.description || 'No description provided by creator.'}
             </p>
-            <span className="text-xs font-bold text-indigo-400 hover:text-indigo-300 inline-block pt-1">
-              {descExpanded ? 'Show less' : '...more'}
-            </span>
+
+            <button className="text-xs font-bold text-slate-900 flex items-center gap-1 pt-1 hover:underline">
+              {descExpanded ? (
+                <>
+                  <span>Show less</span>
+                  <ChevronUp className="w-3.5 h-3.5" />
+                </>
+              ) : (
+                <>
+                  <span>Show more</span>
+                  <ChevronDown className="w-3.5 h-3.5" />
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Comments Section */}
+          <div className="pt-4 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <MessageSquare className="w-4 h-4 text-red-600" />
+                <span>Comments ({comments.length})</span>
+              </h3>
+            </div>
+
+            {/* Comment Input */}
+            <form onSubmit={handleAddComment} className="flex gap-3 items-start">
+              <div className="w-9 h-9 rounded-full bg-slate-200 shrink-0 overflow-hidden">
+                <img
+                  src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100"
+                  alt="Avatar"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="flex-1 space-y-2">
+                <input
+                  type="text"
+                  placeholder="Add a comment..."
+                  value={commentInput}
+                  onChange={(e) => setCommentInput(e.target.value)}
+                  className="w-full bg-transparent border-b border-slate-300 pb-1 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-red-600 transition-colors"
+                />
+                {commentInput.trim() && (
+                  <div className="flex justify-end gap-2 animate-in fade-in duration-150">
+                    <button
+                      type="button"
+                      onClick={() => setCommentInput('')}
+                      className="px-3 py-1.5 text-xs text-slate-600 hover:text-slate-900 font-medium"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-full shadow-sm"
+                    >
+                      Comment
+                    </button>
+                  </div>
+                )}
+              </div>
+            </form>
+
+            {/* Comments List */}
+            <div className="space-y-4 pt-2">
+              {comments.map((cmt) => (
+                <div key={cmt.id} className="flex gap-3 items-start">
+                  <div className="w-8 h-8 rounded-full bg-slate-200 shrink-0 overflow-hidden">
+                    <img src={cmt.avatar} alt={cmt.author} className="w-full h-full object-cover" />
+                  </div>
+                  <div className="space-y-1 flex-1 text-xs">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-slate-900">{cmt.author}</span>
+                      <span className="text-[11px] text-slate-400">{cmt.time}</span>
+                    </div>
+                    <p className="text-slate-700 leading-relaxed">{cmt.text}</p>
+                    <div className="flex items-center gap-3 pt-1 text-slate-500 font-semibold">
+                      <button className="flex items-center gap-1 hover:text-red-600 transition-colors">
+                        <ThumbsUp className="w-3 h-3" />
+                        <span>{cmt.likes > 0 ? cmt.likes : ''}</span>
+                      </button>
+                      <button className="hover:text-slate-800">Reply</button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* Right Column: CineMorph AI Studio */}
-        <div className="h-full">
-          {video && (
-            <CineMorphAIStudio
-              video={video}
-              aiSummary={aiSummary}
-              scriptChunks={scriptChunks}
-              onSeekTo={(sec) => {
-                const iframe = document.querySelector('iframe');
-                if (iframe) {
-                  iframe.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: 'seekTo', args: [sec, true] }), '*');
-                }
-              }}
-            />
-          )}
-        </div>
-      </div>
+        {/* Right Column: Related Videos Sidebar */}
+        {!theaterLayout && (
+          <div className="space-y-3">
+            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider font-mono">
+              Related Videos
+            </h3>
 
-      {/* Audio Studio Equalizer Modal */}
-      <CineMorphAudioStudioModal />
+            <div className="space-y-3">
+              {related.slice(0, 10).map((rel) => (
+                <Link
+                  key={rel.id}
+                  to={`/watch/${rel.id}`}
+                  className="flex gap-3 group cursor-pointer hover:bg-slate-100 p-1.5 rounded-xl transition-colors"
+                >
+                  <div className="relative w-40 aspect-video rounded-xl bg-slate-200 overflow-hidden shrink-0">
+                    <img
+                      src={rel.thumbnails.medium}
+                      alt={rel.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                    />
+                  </div>
+                  <div className="flex flex-col min-w-0 flex-1 justify-center">
+                    <h4 className="text-xs font-semibold text-slate-900 line-clamp-2 leading-snug group-hover:text-red-600 transition-colors">
+                      {rel.title}
+                    </h4>
+                    <span className="text-[11px] text-slate-500 mt-1 truncate">
+                      {rel.channelTitle}
+                    </span>
+                    <span className="text-[10px] text-slate-400 mt-0.5">
+                      {rel.publishedAt ? formatTimeAgo(rel.publishedAt) : 'Recently uploaded'}
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
