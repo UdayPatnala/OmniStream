@@ -1,5 +1,87 @@
 @import "tailwindcss";
 
+:root {
+  --oms-utube-primary: #B83A4B;
+  --oms-utube-secondary: #C96A68;
+  --oms-utube-bg: #FAF8F5;
+  --oms-utube-surface: #F4EFEC;
+  --oms-utube-card: #FFFFFF;
+  --oms-utube-border: #E4DCD8;
+  --oms-utube-text: #252326;
+  --oms-utube-text-secondary: #686267;
+  --oms-utube-text-muted: #8B8589;
+
+  --oms-cinemorph-primary: #087F7B;
+  --oms-cinemorph-secondary: #4E9D98;
+  --oms-cinemorph-bg: #F8F3EA;
+  --oms-cinemorph-surface: #F1ECE3;
+  --oms-cinemorph-card: #FFFDF9;
+  --oms-cinemorph-border: #DDD5C9;
+  --oms-cinemorph-text: #242426;
+  --oms-cinemorph-text-secondary: #655F5A;
+  --oms-cinemorph-text-muted: #888078;
+
+  --oms-theater-bg: #101214;
+  --oms-theater-bg-deep: #08090A;
+  --oms-theater-surface: #17191B;
+  --oms-theater-text: #F4F0E8;
+  --oms-theater-text-secondary: #B8B3AA;
+
+  --oms-neutral-primary: #34363A;
+  --oms-neutral-secondary: #8B9095;
+  --oms-neutral-bg: #F1F2F2;
+  --oms-neutral-surface: #FFFFFF;
+  --oms-neutral-text: #26282B;
+  --oms-neutral-muted: #777B80;
+  --oms-neutral-border: #D9DCDD;
+
+  --oms-success: #2F7D5A;
+  --oms-warning: #B47A2C;
+  --oms-error: #B13A3A;
+  --oms-info: #476B8F;
+}
+
+@theme {
+  --color-utube-primary: var(--oms-utube-primary);
+  --color-utube-secondary: var(--oms-utube-secondary);
+  --color-utube-bg: var(--oms-utube-bg);
+  --color-utube-surface: var(--oms-utube-surface);
+  --color-utube-card: var(--oms-utube-card);
+  --color-utube-border: var(--oms-utube-border);
+  --color-utube-text: var(--oms-utube-text);
+  --color-utube-text-secondary: var(--oms-utube-text-secondary);
+  --color-utube-text-muted: var(--oms-utube-text-muted);
+
+  --color-cinemorph-primary: var(--oms-cinemorph-primary);
+  --color-cinemorph-secondary: var(--oms-cinemorph-secondary);
+  --color-cinemorph-bg: var(--oms-cinemorph-bg);
+  --color-cinemorph-surface: var(--oms-cinemorph-surface);
+  --color-cinemorph-card: var(--oms-cinemorph-card);
+  --color-cinemorph-border: var(--oms-cinemorph-border);
+  --color-cinemorph-text: var(--oms-cinemorph-text);
+  --color-cinemorph-text-secondary: var(--oms-cinemorph-text-secondary);
+  --color-cinemorph-text-muted: var(--oms-cinemorph-text-muted);
+
+  --color-theater-bg: var(--oms-theater-bg);
+  --color-theater-bg-deep: var(--oms-theater-bg-deep);
+  --color-theater-surface: var(--oms-theater-surface);
+  --color-theater-text: var(--oms-theater-text);
+  --color-theater-text-secondary: var(--oms-theater-text-secondary);
+
+  --color-oms-primary: var(--oms-neutral-primary);
+  --color-oms-secondary: var(--oms-neutral-secondary);
+  --color-oms-bg: var(--oms-neutral-bg);
+  --color-oms-surface: var(--oms-neutral-surface);
+  --color-oms-text: var(--oms-neutral-text);
+  --color-oms-text-muted: var(--oms-neutral-muted);
+  --color-oms-border: var(--oms-neutral-border);
+
+  --color-semantic-success: var(--oms-success);
+  --color-semantic-warning: var(--oms-warning);
+  --color-semantic-error: var(--oms-error);
+  --color-semantic-info: var(--oms-info);
+}
+
 html, body {
   overflow-x: hidden;
   max-width: 100vw;

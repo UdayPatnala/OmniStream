@@ -239,7 +239,17 @@ export const useAppStore = create<AppState>()(
       subscriptions: [],
       subscribe: (channel) => set((state) => {
         if (state.subscriptions.find(c => c.id === channel.id)) return state;
-        return { subscriptions: [...state.subscriptions, channel] };
+        const minimalChannel: Channel = {
+          id: channel.id,
+          title: channel.title,
+          description: '',
+          thumbnails: {
+            default: '',
+            medium: '',
+            high: ''
+          }
+        };
+        return { subscriptions: [...state.subscriptions, minimalChannel] };
       }),
       unsubscribe: (channelId) => set((state) => ({
         subscriptions: state.subscriptions.filter(c => c.id !== channelId)

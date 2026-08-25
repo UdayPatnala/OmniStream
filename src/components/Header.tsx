@@ -145,12 +145,12 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
   ];
 
   return (
-    <header className="flex items-center justify-between sticky top-0 z-40 px-4 py-2 bg-[#08080c]/90 backdrop-blur-xl border-b border-[#272727]/60 h-14 select-none">
+    <header className="flex items-center justify-between sticky top-0 z-40 px-4 py-2 bg-utube-card/90 backdrop-blur-xl border-b border-utube-border h-14 select-none">
       {/* Left: Hamburger, CineMorph Logo & Version Badge */}
       <div className="flex items-center gap-3">
         <button 
           onClick={toggleSidebar} 
-          className="p-2 text-white hover:bg-white/10 rounded-full transition-colors" 
+          className="p-2 text-utube-text hover:bg-utube-surface rounded-full transition-colors" 
           aria-label="Toggle menu"
         >
           <Menu className="w-5 h-5" />
@@ -159,9 +159,9 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
         <Link to="/" className="flex items-center gap-2.5 group">
           <OMSLogo variant="light" size="sm" animated={true} />
           <div className="flex flex-col">
-            <span className="text-lg font-black tracking-tight text-gray-900 font-sans flex items-center gap-1 group-hover:text-red-600 transition-colors">
-              Omni<span className="text-red-500">Stream</span>
-              <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-red-50 text-red-600 border border-red-200 tracking-wider hidden sm:block">
+            <span className="text-lg font-black tracking-tight text-utube-text font-sans flex items-center gap-1 group-hover:text-utube-primary transition-colors">
+              Omni<span className="text-utube-primary">Stream</span>
+              <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-utube-surface text-utube-primary border border-utube-border tracking-wider hidden sm:block">
                 OMS
               </span>
             </span>
@@ -173,7 +173,7 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
           <button 
             onClick={() => setInstantAutoPlay(!instantAutoPlay)}
             className={`hidden lg:flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border transition-colors ${
-              instantAutoPlay ? 'bg-red-50 border-red-200 text-red-600' : 'bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100'
+              instantAutoPlay ? 'bg-utube-surface border-utube-border text-utube-primary' : 'bg-utube-bg border-utube-border text-utube-text-secondary hover:bg-utube-surface'
             }`}
           >
             <Settings2 className="w-3 h-3" />
@@ -202,16 +202,16 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
                 onFocus={() => setShowSuggestions(true)}
                 onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                 onChange={(e) => setQuery(e.target.value)}
-                className="w-full bg-gray-50 text-gray-900 placeholder-gray-500 rounded-l-full py-2 px-4 text-sm focus:outline-none border border-gray-300 focus:border-red-500 transition-colors"
+                className="w-full bg-utube-bg text-utube-text placeholder-utube-text-muted rounded-l-full py-2 px-4 text-sm focus:outline-none border border-utube-border focus:border-utube-primary transition-colors"
               />
             </div>
 
             <button 
               type="submit" 
-              className="bg-gray-100 hover:bg-gray-200 border border-l-0 border-gray-300 text-gray-600 px-5 py-2 rounded-r-full flex items-center justify-center transition-colors shrink-0"
+              className="bg-utube-surface hover:bg-utube-border border border-l-0 border-utube-border text-utube-text-secondary px-5 py-2 rounded-r-full flex items-center justify-center transition-colors shrink-0"
               aria-label="Search"
             >
-              <Search className="w-4 h-4 text-red-500" />
+              <Search className="w-4 h-4 text-utube-primary" />
             </button>
           </form>
 
@@ -222,7 +222,7 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
                 initial={{ opacity: 0, y: -5 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -5 }}
-                className="absolute top-full left-0 right-14 mt-1 bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden z-50 py-2"
+                className="absolute top-full left-0 right-14 mt-1 bg-utube-card rounded-2xl shadow-xl border border-utube-border overflow-hidden z-50 py-2"
               >
                 {suggestions.map((suggestion, idx) => (
                   <button
@@ -231,10 +231,10 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
                       setQuery(suggestion);
                       handleSearch(undefined, suggestion);
                     }}
-                    className="w-full flex items-center justify-between px-4 py-2 hover:bg-gray-50 text-left text-sm text-gray-900"
+                    className="w-full flex items-center justify-between px-4 py-2 hover:bg-utube-surface text-left text-sm text-utube-text"
                   >
                     <div className="flex items-center gap-3">
-                      <Search className="w-4 h-4 text-red-500" />
+                      <Search className="w-4 h-4 text-utube-primary" />
                       <span>{suggestion}</span>
                     </div>
                   </button>
@@ -242,13 +242,13 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
 
                 {query.length === 0 && searchHistory.length > 0 && (
                   <div>
-                    <div className="px-4 py-1.5 text-[11px] font-semibold text-gray-500 uppercase tracking-wider border-t border-gray-100 mt-1 flex items-center gap-1.5">
+                    <div className="px-4 py-1.5 text-[11px] font-semibold text-utube-text-secondary uppercase tracking-wider border-t border-utube-border mt-1 flex items-center gap-1.5">
                       <Clock className="w-3 h-3" /> Recent & Frequent Searches
                     </div>
                     {searchHistory.slice(0, 6).map((item, idx) => (
                       <div
                         key={`hist-${idx}`}
-                        className="w-full flex items-center justify-between px-4 py-2 hover:bg-gray-50 text-left text-sm text-gray-900"
+                        className="w-full flex items-center justify-between px-4 py-2 hover:bg-utube-surface text-left text-sm text-utube-text"
                       >
                         <button
                           onMouseDown={() => {
@@ -257,7 +257,7 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
                           }}
                           className="flex items-center gap-3 flex-1 text-left"
                         >
-                          <Clock className="w-4 h-4 text-gray-400" />
+                          <Clock className="w-4 h-4 text-utube-text-muted" />
                           <span>{item}</span>
                         </button>
                         <button
@@ -265,7 +265,7 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
                             e.stopPropagation();
                             removeSearchHistory(item);
                           }}
-                          className="p-1 text-gray-400 hover:text-red-500 rounded-full"
+                          className="p-1 text-utube-text-muted hover:text-utube-primary rounded-full"
                           aria-label="Remove search"
                         >
                           <X className="w-3.5 h-3.5" />
@@ -283,8 +283,8 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
         <button 
           className={`w-9 h-9 rounded-full flex items-center justify-center transition-all shrink-0 border cursor-pointer ${
             isListening 
-              ? 'bg-red-500 text-white border-red-600 shadow-[0_0_12px_rgba(239,68,68,0.8)] animate-pulse' 
-              : 'bg-gray-50 hover:bg-gray-100 text-gray-600 hover:text-red-600 border-gray-300'
+              ? 'bg-utube-primary text-white border-utube-primary shadow-[0_0_12px_rgba(184,58,75,0.4)] animate-pulse' 
+              : 'bg-utube-bg hover:bg-utube-surface text-utube-text-secondary hover:text-utube-primary border-utube-border'
           }`}
           aria-label={isListening ? 'Listening to voice...' : 'Search with voice'}
           title={isListening ? 'Listening...' : 'Voice Search'}
@@ -300,7 +300,7 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
         <Link 
           to="/landing"
           onClick={() => setRootLandingPreference('ask')}
-          className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-50 hover:bg-red-50 border border-gray-200 hover:border-red-200 text-gray-600 hover:text-red-600 text-xs font-bold transition-all"
+          className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-utube-bg hover:bg-utube-surface border border-utube-border hover:border-utube-primary text-utube-text-secondary hover:text-utube-primary text-xs font-bold transition-all"
           title="Switch between U-Tube V1 and CineMorph V2"
         >
           <Sparkles className="w-3.5 h-3.5" />
@@ -311,15 +311,15 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
         <div className="relative">
           <button 
             onClick={() => setShowThemeMenu(!showThemeMenu)}
-            className="p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-2 text-utube-text hover:bg-utube-surface rounded-full transition-colors"
             title="Morph Aesthetic Theme"
           >
             <Palette className="w-5 h-5" />
           </button>
 
           {showThemeMenu && (
-            <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-2xl shadow-xl p-2 z-50">
-              <div className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 px-3 py-1 border-b border-gray-100 mb-1">
+            <div className="absolute right-0 mt-2 w-48 bg-utube-card border border-utube-border rounded-2xl shadow-xl p-2 z-50">
+              <div className="text-[11px] font-semibold uppercase tracking-wider text-utube-text-muted px-3 py-1 border-b border-utube-border mb-1">
                 Aesthetic Mode
               </div>
               {themesList.map(t => (
@@ -330,7 +330,7 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
                     setShowThemeMenu(false);
                   }}
                   className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-left transition-colors ${
-                    cinemorphTheme === t.id ? 'bg-red-600 text-white font-semibold' : 'text-gray-600 hover:bg-gray-100'
+                    cinemorphTheme === t.id ? 'bg-utube-primary text-white font-semibold' : 'text-utube-text hover:bg-utube-surface'
                   }`}
                 >
                   <span className={`w-2.5 h-2.5 rounded-full ${t.color}`} />
@@ -341,13 +341,13 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
           )}
         </div>
 
-        <button className="p-2 text-gray-500 hover:bg-gray-100 rounded-full transition-colors hidden sm:block">
-          <Layers className="w-5 h-5 text-gray-600" />
+        <button className="p-2 text-utube-text-secondary hover:bg-utube-surface rounded-full transition-colors hidden sm:block">
+          <Layers className="w-5 h-5 text-utube-text-secondary" />
         </button>
-        <button className="p-2 text-gray-500 hover:bg-gray-100 rounded-full transition-colors hidden sm:block">
-          <Bell className="w-5 h-5 text-gray-600" />
+        <button className="p-2 text-utube-text-secondary hover:bg-utube-surface rounded-full transition-colors hidden sm:block">
+          <Bell className="w-5 h-5 text-utube-text-secondary" />
         </button>
-        <Link to="/settings" className="w-8 h-8 rounded-full bg-red-600 hover:bg-red-700 text-white flex items-center justify-center font-bold text-xs ml-1 shadow-sm transition-colors">
+        <Link to="/settings" className="w-8 h-8 rounded-full bg-utube-primary hover:bg-utube-secondary text-white flex items-center justify-center font-bold text-xs ml-1 shadow-sm transition-colors">
           U
         </Link>
       </div>
