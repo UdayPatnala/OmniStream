@@ -19,8 +19,15 @@ export function Layout({ children }: { children: ReactNode }) {
     }
   }, [theme]);
 
-  // Root Landing, CineMorph Landing, and Theater full-viewport passthroughs
-  const isFullViewport = 
+  // POV Landing: root path when not explicitly set to v1 or v2
+  const isPOVLanding =
+    location.pathname === '/' &&
+    rootLandingPreference !== 'v1' &&
+    rootLandingPreference !== 'v2';
+
+  // Full-viewport passthroughs (no Header / Sidebar)
+  const isFullViewport =
+    isPOVLanding ||
     location.pathname === '/landing' ||
     location.pathname === '/gateway' ||
     location.pathname === '/cinemorph' ||
@@ -28,12 +35,15 @@ export function Layout({ children }: { children: ReactNode }) {
     (location.pathname === '/' && rootLandingPreference === 'ask');
 
   if (isFullViewport) {
+    // Light bg for POV Landing, dark for CineMorph / theater
+    const bg = isPOVLanding ? 'bg-[#F5F2EE]' : 'bg-[#030208]';
     return (
-      <div className="w-full max-w-full min-h-screen bg-[#030208] overflow-y-auto overflow-x-hidden hide-scrollbar">
+      <div className={`w-full max-w-full ${bg}`} id="pov-scroll-root" style={{ overflowY: 'auto', overflowX: 'hidden', height: '100vh' }}>
         {children}
       </div>
     );
   }
+
 
   // Standard U-Tube Media Workspace
   return (
