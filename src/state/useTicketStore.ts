@@ -36,6 +36,15 @@ export interface TicketStoreState {
 
 const STORAGE_KEY_TICKETS = 'omnistream-tickets-store';
 
+function parseISO8601ToSeconds(duration: string): number {
+  const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+  if (!match) return 0;
+  const hours = parseInt(match[1] || '0', 10);
+  const minutes = parseInt(match[2] || '0', 10);
+  const seconds = parseInt(match[3] || '0', 10);
+  return hours * 3600 + minutes * 60 + seconds;
+}
+
 function generateSeatAssignment(): string {
   const rows = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
   const row = rows[Math.floor(Math.random() * rows.length)];
@@ -138,69 +147,58 @@ export const useTicketStore = create<TicketStoreState>()(
         file?: File;
       }) => {
         const cineMorph = useCineMorphStore.getState();
-        const pendingTicket: MovieTicket = {
-          ticketId: `ticket_pending_${Date.now()}`,
-          movieTitle: movie.title,
-          sourceUrl: movie.source,
-          isLocal: movie.isLocal,
-          aspectRatio: cineMorph.aspectRatio,
-          framingRule: cineMorph.framingRule,
-          timestampSeconds: 0,
-          durationSeconds: 0,
-          printedAt: Date.now(),
-          seatAssignment: generateSeatAssignment(),
-        };
+        let title = movie.title;
+        let durationSeconds = 0;
 
-        set({
-          isPrintingAnimationActive: true,
-          animationCountdownSeconds: 10,
-          activeTicket: pendingTicket,
-        });
-
-        // Dispatch heads-up event for background pre-processing
-        if (typeof window !== 'undefined') {
+        if (!movie.isLocal) {
           try {
-            window.dispatchEvent(
-              new CustomEvent('omnistream:heads-up:start', {
-                detail: { movie, aspectRatio: cineMorph.aspectRatio },
-              })
-            );
+            const { getVideosByIds } = await import('../lib/youtube');
+            const { extractYouTubeId } = await import('../lib/utils');
+            const ytId = extractYouTubeId(movie.source);
+            if (ytId) {
+              const videos = await getVideosByIds([ytId]);
+              if (videos && videos.length > 0) {
+                title = videos[0].title;
+                if (videos[0].duration) {
+                  durationSeconds = parseISO8601ToSeconds(videos[0].duration);
+                }
+              }
+            }
+          } catch (e) {
+            console.warn('Failed to pre-fetch video details for ticket:', e);
+          }
+        } else if (movie.isLocal && movie.file) {
+          try {
+            durationSeconds = await new Promise<number>((resolve) => {
+              const videoEl = document.createElement('video');
+              videoEl.preload = 'metadata';
+              videoEl.src = URL.createObjectURL(movie.file!);
+              videoEl.onloadedmetadata = () => {
+                resolve(Math.round(videoEl.duration));
+                URL.revokeObjectURL(videoEl.src);
+              };
+              videoEl.onerror = () => {
+                resolve(0);
+              };
+            });
           } catch (e) {}
         }
 
-        // Run countdown timer
-        const timerDurationMs = 10000;
-        const intervalMs = 1000;
-        let elapsed = 0;
-
-        await new Promise<void>((resolve) => {
-          const interval = setInterval(() => {
-            elapsed += intervalMs;
-            const remaining = Math.max(0, 10 - Math.floor(elapsed / 1000));
-            set({ animationCountdownSeconds: remaining });
-
-            if (elapsed >= timerDurationMs) {
-              clearInterval(interval);
-              resolve();
-            }
-          }, intervalMs);
-        });
-
         // Auto-save and register the torn ticket
         const ticketId = get().saveTicketProgress({
-          movieTitle: movie.title,
+          movieTitle: title,
           sourceUrl: movie.source,
           isLocal: movie.isLocal,
           aspectRatio: cineMorph.aspectRatio,
           framingRule: cineMorph.framingRule,
           timestampSeconds: 0,
-          durationSeconds: 0,
+          durationSeconds: durationSeconds,
         });
 
         const createdTicket = get().tickets.find((t) => t.ticketId === ticketId) || null;
 
         set({
-          isPrintingAnimationActive: false,
+          isPrintingAnimationActive: true,
           animationCountdownSeconds: 0,
           activeTicket: createdTicket,
         });
@@ -210,7 +208,8 @@ export const useTicketStore = create<TicketStoreState>()(
           type: movie.isLocal ? 'local' : 'youtube',
           url: movie.source,
           file: movie.file,
-          name: movie.title,
+          name: title,
+          duration: durationSeconds,
         });
         cineMorph.setIsPlaying(true);
       },

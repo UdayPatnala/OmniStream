@@ -139,91 +139,11 @@ export const TicketPrinterAnimation: React.FC<TicketPrinterAnimationProps> = ({
     let isCancelled = false;
 
     // Stage Timeline Execution:
-    // Total physical animation cycle: ~4.5 seconds
+    // We make it instant to remove the print animation, but keep the ticket displayed on screen
     const runAnimationSequence = async () => {
-      // 1. Initial Idle State (0 - 400ms)
-      setStage('idle');
-      setPrintProgress(0);
-      setIsVibrating(false);
-      await new Promise(r => setTimeout(r, 400));
-      if (isCancelled) return;
-
-      // 2. Start Printing (400ms - 900ms) -> LED lights up, paper emerges slightly
-      setStage('starting');
-      setIsVibrating(true);
-      playPrinterClick(750);
-      setPrintProgress(12);
-      await new Promise(r => setTimeout(r, 500));
-      if (isCancelled) return;
-
-      // 3. Printing Content (900ms - 2500ms) -> Smooth downward paper feed, title & runtime appear
-      setStage('printing');
-      const startFeedTime = Date.now();
-      const feedDuration = 1600; // 1.6s progressive extrusion
-
-      const feedInterval = setInterval(() => {
-        if (isCancelled) {
-          clearInterval(feedInterval);
-          return;
-        }
-        const elapsed = Date.now() - startFeedTime;
-        const ratio = Math.min(1, elapsed / feedDuration);
-        // Easing out slightly as paper extends
-        const currentProgress = 12 + ratio * 60; // 12% to 72%
-        setPrintProgress(currentProgress);
-        if (Math.random() > 0.4) {
-          playPrinterClick(800 + Math.random() * 200);
-        }
-
-        if (ratio >= 1) {
-          clearInterval(feedInterval);
-        }
-      }, 70);
-
-      await new Promise(r => setTimeout(r, feedDuration));
-      if (isCancelled) return;
-
-      // 4. Almost Done (2500ms - 3400ms) -> Seat number & barcode appear, vibration softens
-      setStage('almost_done');
-      const finalFeedStart = Date.now();
-      const finalDuration = 900;
-
-      const finalInterval = setInterval(() => {
-        if (isCancelled) {
-          clearInterval(finalInterval);
-          return;
-        }
-        const elapsed = Date.now() - finalFeedStart;
-        const ratio = Math.min(1, elapsed / finalDuration);
-        const currentProgress = 72 + ratio * 28; // 72% to 100%
-        setPrintProgress(currentProgress);
-        if (Math.random() > 0.6) {
-          playPrinterClick(900);
-        }
-
-        if (ratio >= 1) {
-          clearInterval(finalInterval);
-        }
-      }, 80);
-
-      await new Promise(r => setTimeout(r, finalDuration));
-      if (isCancelled) return;
-
-      // 5. Ticket Out (3400ms - 3800ms) -> Full ticket is out, vibration stops, brief pause
-      setStage('ticket_out');
+      setStage('ready');
       setPrintProgress(100);
       setIsVibrating(false);
-      playPrinterClick(1200); // Final paper cut sound
-      await new Promise(r => setTimeout(r, 450));
-      if (isCancelled) return;
-
-      // 6. Bounce & Settle (3800ms - 4200ms) -> Physical overshoot bounce
-      setStage('bounce_settle');
-      await new Promise(r => setTimeout(r, 400));
-      if (isCancelled) return;
-
-      // 7. Ready State (4200ms+) -> Ticket is ready to take
-      setStage('ready');
     };
 
     runAnimationSequence();
