@@ -85,4 +85,25 @@ html, body {
       transform: translateY(0);
     }
   }
+
+  /* Unique Cinematic Typography Classes for CineMorph */
+  .font-cinematic {
+    font-family: 'Cinzel', 'Times New Roman', Georgia, serif;
+    letter-spacing: 0.08em;
+  }
+
+  .font-cinematic-title {
+    font-family: 'Cinzel Decorative', 'Cinzel', serif;
+    letter-spacing: 0.12em;
+  }
+
+  .font-cinematic-display {
+    font-family: 'Syne', -apple-system, sans-serif;
+    letter-spacing: -0.02em;
+  }
+
+  .font-cinematic-mono {
+    font-family: 'Space Grotesk', ui-monospace, SFMono-Regular, monospace;
+    letter-spacing: 0.05em;
+  }
 }

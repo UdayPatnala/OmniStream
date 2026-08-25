@@ -156,11 +156,11 @@ export function CineMorphLanding() {
           <Film className="w-3.5 h-3.5 text-amber-400" />
         </div>
 
-        <h1 className="text-5xl sm:text-7xl font-black tracking-tight text-amber-950 text-center mb-6 drop-shadow-sm font-sans uppercase">
+        <h1 className="text-5xl sm:text-7xl font-black tracking-widest text-amber-950 text-center mb-6 drop-shadow-sm font-cinematic-title uppercase">
           Cine<span className="text-amber-700">Morph</span>
         </h1>
         
-        <p className="text-center text-amber-900/70 max-w-xl text-base sm:text-lg mb-12 font-medium tracking-wide">
+        <p className="text-center text-amber-900/70 max-w-xl text-base sm:text-lg mb-12 font-medium tracking-wide font-cinematic">
           Step into a grand theatrical environment with opening curtains, vintage acoustics, and dynamic spatial framing.
         </p>
 

@@ -122,7 +122,7 @@ export const ModeCard: React.FC<ModeCardProps> = ({ mode, className = '' }) => {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-2xl font-black tracking-tight text-slate-900 group-hover:text-amber-700 transition-colors">CineMorph</h2>
+                <h2 className="text-2xl font-black tracking-widest text-slate-900 group-hover:text-amber-700 transition-colors font-cinematic-title uppercase">CineMorph</h2>
               </div>
               <p className="text-xs text-slate-500 font-medium">Immersive 3D Theatrical Environment</p>
             </div>

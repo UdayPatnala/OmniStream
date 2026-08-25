@@ -815,17 +815,19 @@ export function CineMorphTheater() {
           maxHeight: isFullscreen ? '92vh' : frameAspectRatio === '4.3:1' ? '84vh' : '78vh',
           filter: isOriginalMode ? 'none' : presentationMode === 'cinema' ? 'brightness(1.03) contrast(1.02)' : 'none',
           borderRadius: isOriginalMode
-            ? (curvedScreenActive ? '50% 50% 50% 50% / 1.6% 1.6% 1.6% 1.6%' : '4px')
+            ? '4px'
             : presentationMode === 'cinema' 
             ? '6px 6px 36px 36px / 6px 6px 12px 12px' 
             : '8px',
           transform: isOriginalMode
-            ? (curvedScreenActive ? 'perspective(1400px) rotateX(0.5deg)' : 'none')
+            ? (curvedScreenActive ? 'perspective(1100px) rotateX(-0.6deg) scaleX(0.995)' : 'none')
             : presentationMode === 'cinema' 
             ? (frameAspectRatio === '4.3:1' ? 'perspective(1200px) rotateX(1deg) scale(1.12)' : 'perspective(1200px) rotateX(1deg)') 
             : 'none',
           boxShadow: isOriginalMode
-            ? (curvedScreenActive ? '0 0 60px rgba(0,0,0,0.95), inset 0 0 35px rgba(0,0,0,0.45)' : '0 10px 30px rgba(0,0,0,0.5)')
+            ? (curvedScreenActive 
+                ? 'inset 35px 0 50px -10px rgba(0,0,0,0.85), inset -35px 0 50px -10px rgba(0,0,0,0.85), inset 0 16px 30px -10px rgba(0,0,0,0.7), inset 0 -16px 30px -10px rgba(0,0,0,0.7), 0 25px 60px rgba(0,0,0,0.95)' 
+                : '0 10px 30px rgba(0,0,0,0.5)')
             : presentationMode === 'cinema' 
             ? '0 0 100px rgba(0,0,0,0.95), inset 0 0 50px rgba(0,0,0,0.9)' 
             : '0 20px 25px -5px rgba(0,0,0,0.1)'
@@ -837,39 +839,41 @@ export function CineMorphTheater() {
             transform: isOriginalMode ? 'none' : presentationMode === 'cinema' ? frameStyle.videoScaleTransform : 'none',
           }}
         >
-          {/* Subtle Curved Cinema Screen Frame Depth Overlay (Original Mode Only) */}
+          {/* Subtle Inward Curved Cinema Screen Frame Depth Overlay (Original Mode Only) */}
           {isOriginalMode && (
             <div 
               className={`absolute inset-0 pointer-events-none z-20 transition-opacity duration-500 ease-out ${
                 curvedScreenActive ? 'opacity-100' : 'opacity-0'
               }`}
             >
-              {/* Very thin curved top edge shadow */}
+              {/* Inward curved top edge concave vignette */}
               <div 
-                className="absolute top-0 inset-x-0 h-3 pointer-events-none"
+                className="absolute top-0 inset-x-0 h-5 pointer-events-none"
                 style={{
-                  background: 'linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.12) 50%, transparent 100%)',
-                  borderTopLeftRadius: '50% 100%',
-                  borderTopRightRadius: '50% 100%',
+                  background: 'radial-gradient(ellipse 80% 100% at 50% 0%, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.2) 60%, transparent 100%)',
                 }}
               />
 
-              {/* Very thin curved bottom edge shadow */}
+              {/* Inward curved bottom edge concave vignette */}
               <div 
-                className="absolute bottom-0 inset-x-0 h-3 pointer-events-none"
+                className="absolute bottom-0 inset-x-0 h-5 pointer-events-none"
                 style={{
-                  background: 'linear-gradient(to top, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.12) 50%, transparent 100%)',
-                  borderBottomLeftRadius: '50% 100%',
-                  borderBottomRightRadius: '50% 100%',
+                  background: 'radial-gradient(ellipse 80% 100% at 50% 100%, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.2) 60%, transparent 100%)',
                 }}
               />
 
-              {/* Very soft left/right curvature depth */}
+              {/* Lateral inward cylinder curve shadows */}
               <div 
-                className="absolute inset-y-0 left-0 w-4 pointer-events-none bg-gradient-to-r from-black/35 via-black/10 to-transparent"
+                className="absolute inset-y-0 left-0 w-8 pointer-events-none"
+                style={{
+                  background: 'linear-gradient(to right, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.25) 50%, transparent 100%)',
+                }}
               />
               <div 
-                className="absolute inset-y-0 right-0 w-4 pointer-events-none bg-gradient-to-l from-black/35 via-black/10 to-transparent"
+                className="absolute inset-y-0 right-0 w-8 pointer-events-none"
+                style={{
+                  background: 'linear-gradient(to left, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.25) 50%, transparent 100%)',
+                }}
               />
             </div>
           )}
@@ -1105,38 +1109,77 @@ export function CineMorphTheater() {
         </div>
       </div>
 
-      {/* ── 2.5D Clean Theater Seating (No Screen Overlap Shadows) ── */}
+      {/* ── High-Fidelity 2-Tier IMAX Auditorium Theater Seating ── */}
       {presentationMode === 'cinema' && !isOriginalMode && theaterSeatingEnabled && (
-        <div className="absolute bottom-0 inset-x-0 h-16 sm:h-24 pointer-events-none z-15 flex items-end justify-center px-4 overflow-hidden opacity-90">
-          {/* Single Clean Auditorium Row with Center Aisle */}
-          <div className="w-full max-w-6xl flex justify-between items-end gap-3 sm:gap-6">
-            {/* Left Bank of Seats */}
+        <div className="absolute bottom-0 inset-x-0 h-20 sm:h-28 pointer-events-none z-20 flex flex-col justify-end items-center px-2 sm:px-6 overflow-hidden">
+          {/* Back Tier Row (Midground Auditorium Seats) */}
+          <div className="w-full max-w-5xl flex justify-between items-end gap-2 sm:gap-4 opacity-50 mb-[-8px] sm:mb-[-12px]">
+            {/* Left Bank Back Row */}
+            <div className="flex-1 flex gap-1 sm:gap-2 justify-end">
+              {[1, 2, 3, 4, 5, 6].map((s) => (
+                <div
+                  key={`bk-l-${s}`}
+                  className="flex-1 max-w-[52px] h-9 sm:h-12 rounded-t-xl bg-gradient-to-b from-[#240c12] via-[#14060a] to-[#080204] border-t border-rose-900/30 flex flex-col items-center pt-0.5 shadow-md"
+                >
+                  <div className="w-3/4 h-3 sm:h-4 rounded-t-lg bg-gradient-to-b from-[#331119] to-[#1c080d] border-t border-rose-800/30" />
+                </div>
+              ))}
+            </div>
+
+            {/* Back Aisle Gap */}
+            <div className="w-6 sm:w-12 h-4" />
+
+            {/* Right Bank Back Row */}
+            <div className="flex-1 flex gap-1 sm:gap-2 justify-start">
+              {[1, 2, 3, 4, 5, 6].map((s) => (
+                <div
+                  key={`bk-r-${s}`}
+                  className="flex-1 max-w-[52px] h-9 sm:h-12 rounded-t-xl bg-gradient-to-b from-[#240c12] via-[#14060a] to-[#080204] border-t border-rose-900/30 flex flex-col items-center pt-0.5 shadow-md"
+                >
+                  <div className="w-3/4 h-3 sm:h-4 rounded-t-lg bg-gradient-to-b from-[#331119] to-[#1c080d] border-t border-rose-800/30" />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Front Tier Row (Foreground VIP Cinema Recliners with Armrests & Aisle Lights) */}
+          <div className="w-full max-w-6xl flex justify-between items-end gap-3 sm:gap-6 z-10">
+            {/* Left Bank Front Row */}
             <div className="flex-1 flex gap-1.5 sm:gap-3">
               {[1, 2, 3, 4, 5].map((s) => (
                 <div 
                   key={`fl-${s}`}
-                  className="flex-1 h-12 sm:h-16 rounded-t-2xl bg-gradient-to-b from-[#2d0f15] via-[#16070a] to-[#080204] border-t border-rose-500/20 relative flex flex-col items-center justify-start pt-1"
+                  className="flex-1 h-14 sm:h-20 rounded-t-2xl bg-gradient-to-b from-[#3a131b] via-[#1e090e] to-[#080204] border-t-2 border-rose-500/30 relative flex flex-col items-center justify-start pt-1.5 shadow-[0_-4px_20px_rgba(0,0,0,0.8)]"
                 >
-                  <div className="w-[85%] h-4 sm:h-6 rounded-t-xl bg-gradient-to-b from-[#3d141d] to-[#1c080d] border-t border-rose-400/20" />
-                  <div className="absolute -right-1 bottom-0 w-1.5 h-6 bg-[#120406] rounded-t-sm border-t border-amber-900/10" />
+                  {/* Plush Headrest Cushion */}
+                  <div className="w-[85%] h-5 sm:h-7 rounded-t-xl bg-gradient-to-b from-[#4a1823] to-[#250a11] border-t border-rose-400/40 shadow-inner" />
+                  {/* Armrest Separators with Ambient Lowlight */}
+                  <div className="absolute -right-1 bottom-0 w-2 h-8 sm:h-10 bg-[#140508] rounded-t-md border-t border-rose-500/20 shadow-lg" />
+                  <div className="absolute -left-1 bottom-0 w-2 h-8 sm:h-10 bg-[#140508] rounded-t-md border-t border-rose-500/20 shadow-lg" />
                 </div>
               ))}
             </div>
 
             {/* Center Aisle with Soft Low Floor Step Light */}
-            <div className="w-8 sm:w-16 h-6 flex items-end justify-center pb-1">
-              <div className="w-3 h-1 rounded-full bg-cyan-400/40 shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
+            <div className="w-8 sm:w-16 h-8 flex items-end justify-center pb-1">
+              <div className="flex flex-col items-center gap-1">
+                <div className="w-4 h-1 rounded-full bg-cyan-400/60 shadow-[0_0_12px_rgba(34,211,238,0.9)]" />
+                <div className="text-[7px] font-mono text-cyan-300/70 tracking-widest uppercase">AISLE</div>
+              </div>
             </div>
 
-            {/* Right Bank of Seats */}
+            {/* Right Bank Front Row */}
             <div className="flex-1 flex gap-1.5 sm:gap-3">
               {[1, 2, 3, 4, 5].map((s) => (
                 <div 
                   key={`fr-${s}`}
-                  className="flex-1 h-12 sm:h-16 rounded-t-2xl bg-gradient-to-b from-[#2d0f15] via-[#16070a] to-[#080204] border-t border-rose-500/20 relative flex flex-col items-center justify-start pt-1"
+                  className="flex-1 h-14 sm:h-20 rounded-t-2xl bg-gradient-to-b from-[#3a131b] via-[#1e090e] to-[#080204] border-t-2 border-rose-500/30 relative flex flex-col items-center justify-start pt-1.5 shadow-[0_-4px_20px_rgba(0,0,0,0.8)]"
                 >
-                  <div className="w-[85%] h-4 sm:h-6 rounded-t-xl bg-gradient-to-b from-[#3d141d] to-[#1c080d] border-t border-rose-400/20" />
-                  <div className="absolute -left-1 bottom-0 w-1.5 h-6 bg-[#120406] rounded-t-sm border-t border-amber-900/10" />
+                  {/* Plush Headrest Cushion */}
+                  <div className="w-[85%] h-5 sm:h-7 rounded-t-xl bg-gradient-to-b from-[#4a1823] to-[#250a11] border-t border-rose-400/40 shadow-inner" />
+                  {/* Armrest Separators with Ambient Lowlight */}
+                  <div className="absolute -left-1 bottom-0 w-2 h-8 sm:h-10 bg-[#140508] rounded-t-md border-t border-rose-500/20 shadow-lg" />
+                  <div className="absolute -right-1 bottom-0 w-2 h-8 sm:h-10 bg-[#140508] rounded-t-md border-t border-rose-500/20 shadow-lg" />
                 </div>
               ))}
             </div>

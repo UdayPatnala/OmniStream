@@ -61,14 +61,14 @@ export const TicketDrawer: React.FC<TicketDrawerProps> = ({ className = '' }) =>
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-base font-black tracking-tight text-slate-900">
+                <h3 className="text-base font-black tracking-wide text-slate-900 font-cinematic-title uppercase">
                   Torn Admission Tickets Shelf
                 </h3>
                 <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-[10px] font-mono font-bold text-amber-900 border border-amber-300">
                   {tickets.length} SAVED
                 </span>
               </div>
-              <p className="text-[11px] text-slate-500 font-medium">
+              <p className="text-[11px] text-slate-500 font-medium font-cinematic">
                 Click any torn ticket stub to resume theater playback instantly
               </p>
             </div>
@@ -85,8 +85,8 @@ export const TicketDrawer: React.FC<TicketDrawerProps> = ({ className = '' }) =>
         {tickets.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-amber-300 bg-white/80 py-8 px-4 text-center">
             <Clapperboard className="h-10 w-10 text-amber-400 mb-2" />
-            <div className="text-sm font-bold text-slate-800">Admission Drawer Empty</div>
-            <p className="text-xs text-slate-500 max-w-sm mt-1 leading-relaxed">
+            <div className="text-sm font-bold text-slate-800 font-cinematic">Admission Drawer Empty</div>
+            <p className="text-xs text-slate-500 max-w-sm mt-1 leading-relaxed font-cinematic">
               Start playing a movie in CineMorph to print your first vintage admission ticket. Your exact playback timestamp will be preserved here.
             </p>
           </div>
@@ -120,7 +120,7 @@ export const TicketDrawer: React.FC<TicketDrawerProps> = ({ className = '' }) =>
                             {ticket.seatAssignment || 'ORCHESTRA ROW A'}
                           </span>
                         </div>
-                        <h4 className="text-sm font-bold text-slate-900 truncate mt-1.5 group-hover:text-amber-800 transition-colors">
+                        <h4 className="text-sm font-bold text-slate-900 truncate mt-1.5 group-hover:text-amber-800 transition-colors font-cinematic tracking-wide">
                           {ticket.movieTitle}
                         </h4>
                       </div>
