@@ -839,42 +839,65 @@ export function CineMorphTheater() {
             transform: isOriginalMode ? 'none' : presentationMode === 'cinema' ? frameStyle.videoScaleTransform : 'none',
           }}
         >
-          {/* Subtle Inward Curved Cinema Screen Frame Depth Overlay (Original Mode Only) */}
+          {/* True Concave Cinema Screen Geometry Overlay (Original Mode Only) */}
           {isOriginalMode && (
             <div 
               className={`absolute inset-0 pointer-events-none z-20 transition-opacity duration-500 ease-out ${
                 curvedScreenActive ? 'opacity-100' : 'opacity-0'
               }`}
             >
-              {/* Inward curved top edge concave vignette */}
-              <div 
-                className="absolute top-0 inset-x-0 h-5 pointer-events-none"
-                style={{
-                  background: 'radial-gradient(ellipse 80% 100% at 50% 0%, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.2) 60%, transparent 100%)',
-                }}
-              />
+              <svg
+                className="absolute inset-0 w-full h-full pointer-events-none"
+                viewBox="0 0 1000 600"
+                preserveAspectRatio="none"
+              >
+                <defs>
+                  <linearGradient id="concaveTopFade" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="#000000" stopOpacity="0.55" />
+                    <stop offset="60%" stopColor="#000000" stopOpacity="0.15" />
+                    <stop offset="100%" stopColor="#000000" stopOpacity="0.0" />
+                  </linearGradient>
+                  <linearGradient id="concaveBottomFade" x1="0%" y1="100%" x2="0%" y2="0%">
+                    <stop offset="0%" stopColor="#000000" stopOpacity="0.55" />
+                    <stop offset="60%" stopColor="#000000" stopOpacity="0.15" />
+                    <stop offset="100%" stopColor="#000000" stopOpacity="0.0" />
+                  </linearGradient>
+                  <linearGradient id="concaveLeftEdge" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#000000" stopOpacity="0.5" />
+                    <stop offset="40%" stopColor="#000000" stopOpacity="0.15" />
+                    <stop offset="100%" stopColor="#000000" stopOpacity="0.0" />
+                  </linearGradient>
+                  <linearGradient id="concaveRightEdge" x1="100%" y1="0%" x2="0%" y2="0%">
+                    <stop offset="0%" stopColor="#000000" stopOpacity="0.5" />
+                    <stop offset="40%" stopColor="#000000" stopOpacity="0.15" />
+                    <stop offset="100%" stopColor="#000000" stopOpacity="0.0" />
+                  </linearGradient>
+                </defs>
 
-              {/* Inward curved bottom edge concave vignette */}
-              <div 
-                className="absolute bottom-0 inset-x-0 h-5 pointer-events-none"
-                style={{
-                  background: 'radial-gradient(ellipse 80% 100% at 50% 100%, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.2) 60%, transparent 100%)',
-                }}
-              />
+                {/* Top Inward Concave Screen Edge (dips slightly downward at center) */}
+                <path
+                  d="M 0 0 L 1000 0 L 1000 2 Q 500 8 0 2 Z"
+                  fill="#070503"
+                />
+                <path
+                  d="M 0 2 Q 500 8 1000 2 L 1000 16 Q 500 24 0 16 Z"
+                  fill="url(#concaveTopFade)"
+                />
 
-              {/* Lateral inward cylinder curve shadows */}
-              <div 
-                className="absolute inset-y-0 left-0 w-8 pointer-events-none"
-                style={{
-                  background: 'linear-gradient(to right, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.25) 50%, transparent 100%)',
-                }}
-              />
-              <div 
-                className="absolute inset-y-0 right-0 w-8 pointer-events-none"
-                style={{
-                  background: 'linear-gradient(to left, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.25) 50%, transparent 100%)',
-                }}
-              />
+                {/* Bottom Inward Concave Screen Edge (rises slightly upward at center) */}
+                <path
+                  d="M 0 600 L 1000 600 L 1000 598 Q 500 592 0 598 Z"
+                  fill="#070503"
+                />
+                <path
+                  d="M 0 598 Q 500 592 1000 598 L 1000 584 Q 500 576 0 584 Z"
+                  fill="url(#concaveBottomFade)"
+                />
+
+                {/* Lateral Inward Screen Edge Depth Falloff (Left / Right edges closer to viewer) */}
+                <rect x="0" y="0" width="60" height="600" fill="url(#concaveLeftEdge)" />
+                <rect x="940" y="0" width="60" height="600" fill="url(#concaveRightEdge)" />
+              </svg>
             </div>
           )}
           {/* Dual Source Playback Element */}
