@@ -501,6 +501,19 @@ export function CineMorphTheater() {
     return () => document.removeEventListener('fullscreenchange', handleFSChange);
   }, []);
 
+  // ── Auto-fullscreen on theater entry ────────────────────────────────────────
+  useEffect(() => {
+    // Small delay to let the DOM mount + ticket animation settle
+    const t = setTimeout(() => {
+      if (!document.fullscreenElement && containerRef.current) {
+        containerRef.current.requestFullscreen().catch(() => {
+          // Autoplay policy may block — user can still click the fullscreen button
+        });
+      }
+    }, 800);
+    return () => clearTimeout(t);
+  }, []);
+
   const toggleFullscreen = () => {
     if (!document.fullscreenElement && containerRef.current) {
       containerRef.current.requestFullscreen().catch(() => {});
@@ -856,10 +869,10 @@ export function CineMorphTheater() {
           maxHeight: isFullscreen ? '92vh' : frameAspectRatio === '4.3:1' ? '84vh' : '78vh',
           filter: isOriginalMode ? 'none' : presentationMode === 'cinema' ? 'brightness(1.03) contrast(1.02)' : 'none',
           borderRadius: isOriginalMode
-            ? '4px'
-            : presentationMode === 'cinema' 
-            ? '6px 6px 36px 36px / 6px 6px 12px 12px' 
-            : '8px',
+            ? '6px 6px 8px 8px'
+            : presentationMode === 'cinema'
+            ? '10px 10px 48px 48px / 10px 10px 18px 18px'
+            : '8px 8px 12px 12px',
           transform: isOriginalMode
             ? (curvedScreenActive ? 'perspective(1100px) rotateX(-0.6deg) scaleX(0.995)' : 'none')
             : presentationMode === 'cinema' 

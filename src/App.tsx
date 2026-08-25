@@ -23,6 +23,7 @@ const History = lazy(() => import('./pages/History').then((m) => ({ default: m.H
 const SettingsPage = lazy(() => import('./pages/Settings').then((m) => ({ default: m.SettingsPage })));
 const ChannelPage = lazy(() => import('./pages/Channel').then((m) => ({ default: m.ChannelPage })));
 const RootLanding = lazy(() => import('./pages/RootLanding').then((m) => ({ default: m.RootLanding })));
+const POVLanding = lazy(() => import('./pages/POVLanding').then((m) => ({ default: m.POVLanding })));
 
 function RouteFallback() {
   return (
@@ -33,12 +34,12 @@ function RouteFallback() {
   );
 }
 
-// Routes root based on user preference or launches Bento Grid
+// Routes root based on user preference — POVLanding is the new default immersive gateway
 function RootRouter() {
   const rootLandingPreference = useAppStore((s) => s.rootLandingPreference);
   if (rootLandingPreference === 'v1') return <Home />;
   if (rootLandingPreference === 'v2') return <CineMorphLanding />;
-  return <BentoGrid />;
+  return <POVLanding />;
 }
 
 export default function App() {
