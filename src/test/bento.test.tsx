@@ -91,4 +91,24 @@ describe('Bento Grid & Landing Components', () => {
     expect(screen.getByText(/Immersive 3D Theatrical Environment/i)).toBeInTheDocument();
     expect(screen.getByText('Enter CineMorph')).toBeInTheDocument();
   });
+
+  it('allows changing aspect ratio in CineMorph ModeCard', () => {
+    render(
+      <MemoryRouter>
+        <ModeCard mode="cinemorph" />
+      </MemoryRouter>
+    );
+
+    const imaxBtn = screen.getByText('1.43 IMAX');
+    fireEvent.click(imaxBtn);
+    expect(useCineMorphStore.getState().aspectRatio).toBe('1.43:1');
+
+    const imax190Btn = screen.getByText('1.90 IMAX');
+    fireEvent.click(imax190Btn);
+    expect(useCineMorphStore.getState().aspectRatio).toBe('1.90:1');
+
+    const origBtn = screen.getByText('Original');
+    fireEvent.click(origBtn);
+    expect(useCineMorphStore.getState().aspectRatio).toBe('original');
+  });
 });

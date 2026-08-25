@@ -70,4 +70,19 @@ html, body {
   .animate-oms-glow {
     animation: omsWaveformGlow 4s ease-in-out infinite;
   }
+
+  @keyframes ticketBounce {
+    0% {
+      transform: translateY(0);
+    }
+    40% {
+      transform: translateY(-6px);
+    }
+    70% {
+      transform: translateY(2px);
+    }
+    100% {
+      transform: translateY(0);
+    }
+  }
 }

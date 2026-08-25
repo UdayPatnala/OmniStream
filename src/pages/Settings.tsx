@@ -1,4 +1,5 @@
 import { useAppStore } from '../store';
+import { useTicketStore } from '../state/useTicketStore';
 import { Info, ShieldCheck, Heart, Sparkles, Sliders } from 'lucide-react';
 import { RankingProfile } from '../types';
 
@@ -307,6 +308,7 @@ export function SettingsPage() {
                   collections: useAppStore.getState().collections,
                   rankingProfile: useAppStore.getState().rankingProfile,
                   cinemorphTheme: useAppStore.getState().cinemorphTheme,
+                  tickets: useTicketStore.getState().tickets,
                 };
                 const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
@@ -339,6 +341,9 @@ export function SettingsPage() {
                           subscriptions: imported.subscriptions || [],
                           collections: imported.collections || [],
                         });
+                        if (imported.tickets && Array.isArray(imported.tickets)) {
+                          useTicketStore.setState({ tickets: imported.tickets });
+                        }
                         alert('Data restored successfully!');
                       } else {
                         alert('Invalid backup format.');
@@ -408,7 +413,7 @@ export function SettingsPage() {
 
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-2 border-t border-white/5">
           <div>
-            <h3 className="font-medium text-red-400">Reset All Local Data</h3>
+            <h3 className="font-medium text-red-400">Clear All Local Data</h3>
             <p className="text-xs text-[#938F99]">Wipe local storage cache, tickets, subscriptions, and reset to defaults.</p>
           </div>
           <button 
@@ -421,7 +426,7 @@ export function SettingsPage() {
             }}
             className="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-bold transition-colors shadow-lg shadow-red-600/20"
           >
-            Reset Everything
+            Clear All Local Data
           </button>
         </div>
       </div>

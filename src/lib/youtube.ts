@@ -9,14 +9,14 @@ const BACKEND_URL = (import.meta as any).env?.VITE_BACKEND_URL || '';
 const isTestEnv = typeof process !== 'undefined' && (process.env.NODE_ENV === 'test' || process.env.VITEST === 'true');
 
 // High quality dataset of verified, 100% embeddable & playable YouTube videos (No VEVO/copyright restrictions)
-export const FALLBACK_VIDEOS: Video[] = isTestEnv ? [
+export const FALLBACK_VIDEOS: Video[] = [
   {
     id: 'vid_cinematic_4k',
     title: 'Cinematic 4K Landscape Nature Documentary',
     description: 'Breathtaking 4K HDR nature and wildlife documentary showcasing wide format composition.',
     channelId: 'chan_nature',
     channelTitle: 'Nature Cinema Films',
-    publishedAt: new Date().toISOString(),
+    publishedAt: '2026-01-15T12:00:00.000Z',
     thumbnails: {
       medium: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=400',
       high: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800',
@@ -31,7 +31,7 @@ export const FALLBACK_VIDEOS: Video[] = isTestEnv ? [
     description: 'Deep dive into React 19 concurrent features, zero-latency state, and streaming architecture.',
     channelId: 'chan_tech',
     channelTitle: 'Modern Web Academy',
-    publishedAt: new Date().toISOString(),
+    publishedAt: '2026-02-10T14:30:00.000Z',
     thumbnails: {
       medium: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=400',
       high: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800',
@@ -46,7 +46,7 @@ export const FALLBACK_VIDEOS: Video[] = isTestEnv ? [
     description: 'Relaxing ambient lofi beats to study, relax, and code to with soothing visual scenery.',
     channelId: 'chan_music',
     channelTitle: 'ChillVibes Lofi',
-    publishedAt: new Date().toISOString(),
+    publishedAt: '2026-02-01T08:00:00.000Z',
     thumbnails: {
       medium: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=400',
       high: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800',
@@ -61,7 +61,7 @@ export const FALLBACK_VIDEOS: Video[] = isTestEnv ? [
     description: 'Official IMAX 1.43:1 expanded aspect ratio trailer featuring neural sound design.',
     channelId: 'chan_movies',
     channelTitle: 'IMAX Studios',
-    publishedAt: new Date().toISOString(),
+    publishedAt: '2026-03-01T18:00:00.000Z',
     thumbnails: {
       medium: 'https://images.unsplash.com/photo-1478760329108-5c3ed9d495a0?w=400',
       high: 'https://images.unsplash.com/photo-1478760329108-5c3ed9d495a0?w=800',
@@ -76,7 +76,7 @@ export const FALLBACK_VIDEOS: Video[] = isTestEnv ? [
     description: 'Neon-lit nighttime cinematic drive through Night City in 21:9 ultrawide format.',
     channelId: 'chan_gaming',
     channelTitle: 'CyberVision Media',
-    publishedAt: new Date().toISOString(),
+    publishedAt: '2026-02-20T21:00:00.000Z',
     thumbnails: {
       medium: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=400',
       high: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800',
@@ -91,7 +91,7 @@ export const FALLBACK_VIDEOS: Video[] = isTestEnv ? [
     description: '4:3 Academy ratio archival 35mm film restoration with grain reproduction.',
     channelId: 'chan_archive',
     channelTitle: 'Film Preservation Vault',
-    publishedAt: new Date().toISOString(),
+    publishedAt: '2026-01-05T10:00:00.000Z',
     thumbnails: {
       medium: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=400',
       high: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=800',
@@ -100,7 +100,7 @@ export const FALLBACK_VIDEOS: Video[] = isTestEnv ? [
     viewCount: '150000',
     category: 'History',
   }
-] : [];
+];
 
 const getApiKey = (): string => {
   return (import.meta as any).env?.VITE_YOUTUBE_API_KEY || 

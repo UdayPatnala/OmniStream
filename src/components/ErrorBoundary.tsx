@@ -26,7 +26,14 @@ export class ErrorBoundary extends Component<Props, State> {
 
   private handleReset = () => {
     try {
-      localStorage.removeItem('cinemorph-utube-storage');
+      if (typeof window !== 'undefined' && window.localStorage) {
+        Object.keys(localStorage).forEach((key) => {
+          if (key.startsWith('omnistream-') || key.startsWith('cinemorph-')) {
+            localStorage.removeItem(key);
+          }
+        });
+        localStorage.removeItem('cinemorph-utube-storage');
+      }
     } catch (e) {}
     window.location.href = '/';
   };

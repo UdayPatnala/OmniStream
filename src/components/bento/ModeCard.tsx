@@ -11,6 +11,7 @@ import {
   Zap,
   History
 } from 'lucide-react';
+import { useCineMorphStore } from '../../state/useCineMorphStore';
 
 interface ModeCardProps {
   mode: 'utube' | 'cinemorph';
@@ -99,17 +100,42 @@ export const ModeCard: React.FC<ModeCardProps> = ({ mode, className = '' }) => {
         </p>
 
         <div className="flex flex-wrap gap-2 pt-2">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              useCineMorphStore.getState().setAspectRatio('1.43:1');
+            }}
+            className="flex items-center gap-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 px-2.5 py-1 text-[11px] text-gray-700 border border-amber-200 transition-colors cursor-pointer"
+          >
+            <Maximize2 className="h-3.5 w-3.5 text-amber-500" />
+            <span>1.43 IMAX</span>
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              useCineMorphStore.getState().setAspectRatio('1.90:1');
+            }}
+            className="flex items-center gap-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 px-2.5 py-1 text-[11px] text-gray-700 border border-amber-200 transition-colors cursor-pointer"
+          >
+            <Maximize2 className="h-3.5 w-3.5 text-amber-500" />
+            <span>1.90 IMAX</span>
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              useCineMorphStore.getState().setAspectRatio('original');
+            }}
+            className="flex items-center gap-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 px-2.5 py-1 text-[11px] text-gray-700 border border-amber-200 transition-colors cursor-pointer"
+          >
+            <Layers className="h-3.5 w-3.5 text-amber-500" />
+            <span>Original</span>
+          </button>
           <div className="flex items-center gap-1.5 rounded-lg bg-amber-50 px-2.5 py-1 text-[11px] text-gray-700 border border-amber-100">
             <Cpu className="h-3.5 w-3.5 text-amber-500" />
             <span>ML Framing</span>
-          </div>
-          <div className="flex items-center gap-1.5 rounded-lg bg-amber-50 px-2.5 py-1 text-[11px] text-gray-700 border border-amber-100">
-            <Layers className="h-3.5 w-3.5 text-amber-500" />
-            <span>3D Curvature</span>
-          </div>
-          <div className="flex items-center gap-1.5 rounded-lg bg-amber-50 px-2.5 py-1 text-[11px] text-gray-700 border border-amber-100">
-            <Maximize2 className="h-3.5 w-3.5 text-amber-500" />
-            <span>IMAX Ratios</span>
           </div>
         </div>
       </div>
