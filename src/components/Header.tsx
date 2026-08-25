@@ -10,6 +10,7 @@ import { playbackService } from '../lib/services/playbackService';
 import { IntentRouter } from '../lib/services/intentRouter';
 
 import { playbackStateMachine, PlaybackState } from '../lib/services/playbackStateMachine';
+import { OMSLogo } from './common/OMSLogo';
 
 export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
   const [searchParams] = useSearchParams();
@@ -156,13 +157,7 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
         </button>
 
         <Link to="/" className="flex items-center gap-2.5 group">
-          <div className="relative w-8 h-8 rounded-full overflow-hidden p-0.5 bg-gradient-to-tr from-cyan-400 via-indigo-500 to-pink-500 shadow-lg shadow-cyan-500/30 group-hover:scale-110 transition-transform">
-            <img
-              src="/omn_logo.jpg"
-              alt="OMS Intelligence Core"
-              className="w-full h-full object-cover rounded-full animate-oms-core"
-            />
-          </div>
+          <OMSLogo variant="light" size="sm" animated={true} />
           <div className="flex flex-col">
             <span className="text-lg font-black tracking-tight text-gray-900 font-sans flex items-center gap-1 group-hover:text-red-600 transition-colors">
               Omni<span className="text-red-500">Stream</span>

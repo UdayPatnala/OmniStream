@@ -11,6 +11,7 @@ import { playbackService } from '../lib/services/playbackService';
 import { LocalMediaItem } from '../types';
 import { extractYouTubeId } from '../lib/utils';
 import { useTicketStore } from '../state/useTicketStore';
+import { OMSLogo } from '../components/common/OMSLogo';
 
 export function CineMorphLanding() {
   const [activeSourceTab, setActiveSourceTab] = useState<'youtube' | 'local'>('youtube');
@@ -146,8 +147,8 @@ export function CineMorphLanding() {
 
       {/* Main Gateway Panel */}
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center w-full max-w-4xl mt-12 mb-16">
-        <div className="w-16 h-16 rounded-full overflow-hidden p-0.5 bg-gradient-to-tr from-amber-600 via-amber-800 to-red-900 shadow-xl shadow-amber-900/20 mb-8 border border-amber-900/30">
-          <img src="/omn_logo.jpg" alt="OMS Intelligence Core" className="w-full h-full object-cover rounded-full" />
+        <div className="mb-6">
+          <OMSLogo variant="light" size="xl" animated={true} />
         </div>
 
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-900 text-amber-50 text-[10px] font-bold tracking-[0.2em] uppercase border border-amber-800 shadow-sm mb-6">

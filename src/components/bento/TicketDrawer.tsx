@@ -28,6 +28,20 @@ function formatTime(seconds: number): string {
   return `${pad(mins)}:${pad(secs)}`;
 }
 
+function formatRuntimeDisplay(durationSecs: number, timestampSecs: number): string {
+  if (!durationSecs || durationSecs <= 0) {
+    if (timestampSecs > 0) return `${formatTime(timestampSecs)} watched`;
+    return 'Feature Film';
+  }
+  const hours = Math.floor(durationSecs / 3600);
+  const minutes = Math.floor((durationSecs % 3600) / 60);
+  const seconds = Math.floor(durationSecs % 60);
+
+  if (hours > 0) return `${hours}h ${minutes}m`;
+  if (minutes > 0) return `${minutes}m ${seconds > 0 ? `${seconds}s` : ''}`;
+  return `${seconds}s`;
+}
+
 export const TicketDrawer: React.FC<TicketDrawerProps> = ({ className = '' }) => {
   const navigate = useNavigate();
   const { tickets, resumeFromTicket, removeTicket } = useTicketStore();
@@ -98,6 +112,8 @@ export const TicketDrawer: React.FC<TicketDrawerProps> = ({ className = '' }) =>
                   ? Math.min(100, Math.round((ticket.timestampSeconds / ticket.durationSeconds) * 100))
                   : 0;
 
+              const runtimeDisplay = formatRuntimeDisplay(ticket.durationSeconds, ticket.timestampSeconds);
+
               return (
                 <div
                   key={ticket.ticketId}
@@ -140,7 +156,7 @@ export const TicketDrawer: React.FC<TicketDrawerProps> = ({ className = '' }) =>
                         <Clock className="h-3 w-3 text-amber-600" />
                         <span>{formatTime(ticket.timestampSeconds)}</span>
                         {ticket.durationSeconds > 0 && (
-                          <span className="text-slate-400">/ {formatTime(ticket.durationSeconds)}</span>
+                          <span className="text-slate-400">/ {runtimeDisplay}</span>
                         )}
                       </div>
                       <span className="text-amber-800 font-bold">{progressPct}% saved</span>

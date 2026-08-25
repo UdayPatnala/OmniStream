@@ -13,6 +13,7 @@ import { useTicketStore } from '../state/useTicketStore';
 import { AspectRatioMode } from '../state/useCineMorphStore';
 import { getVideosByIds, getRelatedVideos } from '../lib/youtube';
 import { Video, AudioPreset, FrameAspectRatio, CineMorphTheme, GlowIntensity, LocalMediaItem } from '../types';
+import { OMSLogo } from '../components/common/OMSLogo';
 import {
   Play, Pause, Volume2, VolumeX, Maximize, Minimize,
   Film, Monitor, ArrowLeft, RotateCcw, ChevronRight,
@@ -371,7 +372,7 @@ export function CineMorphTheater() {
     setControlsVisible(true);
     if (controlsTimerRef.current) clearTimeout(controlsTimerRef.current);
     if (theaterState === 'playing' && !showShortcuts && !showStudioDrawer) {
-      controlsTimerRef.current = setTimeout(() => setControlsVisible(false), 3500);
+      controlsTimerRef.current = setTimeout(() => setControlsVisible(false), 1800);
     }
   }, [theaterState, showShortcuts, showStudioDrawer]);
 
@@ -655,6 +656,25 @@ export function CineMorphTheater() {
   const aiSummary = video ? generateAISummary(video) : null;
   const scriptChunks = video ? extractVideoScript(video) : [];
 
+  // Audio Tracks (Multi-Language / Audio Streams) State
+  const [selectedAudioTrackId, setSelectedAudioTrackId] = useState<string>('audio-main');
+  // Video Tracks (Multi-Angle / Stream Quality) State
+  const [selectedVideoTrackId, setSelectedVideoTrackId] = useState<string>('vid-auto');
+
+  const audioTrackOptions = [
+    { id: 'audio-main', label: 'Main Feature Audio', language: 'English (Original)', channels: '5.1 Dolby Surround' },
+    { id: 'audio-commentary', label: 'Director Commentary', language: 'English (Commentary)', channels: '2.0 Stereo' },
+    { id: 'audio-alt', label: 'Alternate Dubbed Track', language: 'Spanish / Multi-Language', channels: '2.0 Stereo' },
+    { id: 'audio-descriptive', label: 'Descriptive Audio (AD)', language: 'English (Descriptive)', channels: '2.0 Stereo' },
+  ];
+
+  const videoTrackOptions = [
+    { id: 'vid-auto', label: 'Master Native Direct Stream', resolution: '4K UHD Source', fps: '60 fps', bitrate: 'Auto Lossless' },
+    { id: 'vid-1080', label: 'High Definition 1080p', resolution: '1920x1080', fps: '60 fps', bitrate: '12 Mbps' },
+    { id: 'vid-720', label: 'Standard HD 720p', resolution: '1280x720', fps: '30 fps', bitrate: '5 Mbps' },
+    { id: 'vid-cinema', label: 'Cinema DCI Native Color', resolution: 'Direct Native Color', fps: '24 fps', bitrate: 'DCI-P3' },
+  ];
+
   // Original Mode Subtle Curved Screen state & animation
   const isOriginalMode = frameAspectRatio === 'original' || presentationMode === 'original';
   const [curvedScreenActive, setCurvedScreenActive] = useState(false);
@@ -826,7 +846,7 @@ export function CineMorphTheater() {
             : 'none',
           boxShadow: isOriginalMode
             ? (curvedScreenActive 
-                ? 'inset 35px 0 50px -10px rgba(0,0,0,0.85), inset -35px 0 50px -10px rgba(0,0,0,0.85), inset 0 16px 30px -10px rgba(0,0,0,0.7), inset 0 -16px 30px -10px rgba(0,0,0,0.7), 0 25px 60px rgba(0,0,0,0.95)' 
+                ? '0 0 90px rgba(0,0,0,0.95), 0 25px 60px rgba(0,0,0,0.9)' 
                 : '0 10px 30px rgba(0,0,0,0.5)')
             : presentationMode === 'cinema' 
             ? '0 0 100px rgba(0,0,0,0.95), inset 0 0 50px rgba(0,0,0,0.9)' 
@@ -851,52 +871,17 @@ export function CineMorphTheater() {
                 viewBox="0 0 1000 600"
                 preserveAspectRatio="none"
               >
-                <defs>
-                  <linearGradient id="concaveTopFade" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" stopColor="#000000" stopOpacity="0.55" />
-                    <stop offset="60%" stopColor="#000000" stopOpacity="0.15" />
-                    <stop offset="100%" stopColor="#000000" stopOpacity="0.0" />
-                  </linearGradient>
-                  <linearGradient id="concaveBottomFade" x1="0%" y1="100%" x2="0%" y2="0%">
-                    <stop offset="0%" stopColor="#000000" stopOpacity="0.55" />
-                    <stop offset="60%" stopColor="#000000" stopOpacity="0.15" />
-                    <stop offset="100%" stopColor="#000000" stopOpacity="0.0" />
-                  </linearGradient>
-                  <linearGradient id="concaveLeftEdge" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="#000000" stopOpacity="0.5" />
-                    <stop offset="40%" stopColor="#000000" stopOpacity="0.15" />
-                    <stop offset="100%" stopColor="#000000" stopOpacity="0.0" />
-                  </linearGradient>
-                  <linearGradient id="concaveRightEdge" x1="100%" y1="0%" x2="0%" y2="0%">
-                    <stop offset="0%" stopColor="#000000" stopOpacity="0.5" />
-                    <stop offset="40%" stopColor="#000000" stopOpacity="0.15" />
-                    <stop offset="100%" stopColor="#000000" stopOpacity="0.0" />
-                  </linearGradient>
-                </defs>
-
-                {/* Top Inward Concave Screen Edge (dips slightly downward at center) */}
+                {/* Top Inward Concave Proscenium Edge (subtle concave curve dipping down 6px at center) */}
                 <path
-                  d="M 0 0 L 1000 0 L 1000 2 Q 500 8 0 2 Z"
+                  d="M 0 0 L 1000 0 L 1000 2 Q 500 7 0 2 Z"
                   fill="#070503"
                 />
-                <path
-                  d="M 0 2 Q 500 8 1000 2 L 1000 16 Q 500 24 0 16 Z"
-                  fill="url(#concaveTopFade)"
-                />
 
-                {/* Bottom Inward Concave Screen Edge (rises slightly upward at center) */}
+                {/* Bottom Inward Concave Proscenium Edge (subtle concave curve rising up 6px at center) */}
                 <path
-                  d="M 0 600 L 1000 600 L 1000 598 Q 500 592 0 598 Z"
+                  d="M 0 600 L 1000 600 L 1000 598 Q 500 593 0 598 Z"
                   fill="#070503"
                 />
-                <path
-                  d="M 0 598 Q 500 592 1000 598 L 1000 584 Q 500 576 0 584 Z"
-                  fill="url(#concaveBottomFade)"
-                />
-
-                {/* Lateral Inward Screen Edge Depth Falloff (Left / Right edges closer to viewer) */}
-                <rect x="0" y="0" width="60" height="600" fill="url(#concaveLeftEdge)" />
-                <rect x="940" y="0" width="60" height="600" fill="url(#concaveRightEdge)" />
               </svg>
             </div>
           )}
@@ -1310,60 +1295,87 @@ export function CineMorphTheater() {
               </span>
             </div>
 
-            {/* Right Tools & Clean Cyclers (Minimal & Simple) */}
-            <div className="flex items-center gap-1.5 sm:gap-2">
-              {/* Aspect Ratio Cycler */}
-              <button
-                onClick={cycleAspectRatio}
-                className="px-2.5 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-xs font-bold text-amber-200 transition-all flex items-center gap-1 cursor-pointer active:scale-95"
-                title="Cycle Aspect Ratio (1.90, 1.43, 21:9, 16:9, Original)"
-              >
-                <Maximize2 className="w-3.5 h-3.5 text-amber-400" />
-                <span className="uppercase">{frameAspectRatio}</span>
-              </button>
+            {/* Right Tools: Aspect Ratios, Audio Modes, Studio Drawer, Fullscreen */}
+            <div className="flex items-center gap-2 sm:gap-2.5">
+              {/* Aspect Ratio Selector Pills (True IMAX, IMAX, Original) */}
+              <div className="flex items-center gap-1 bg-black/40 p-1 rounded-xl border border-amber-500/20">
+                <button
+                  onClick={() => { 
+                    setFrameAspectRatio('1.43:1'); 
+                    showToast('🎬 Aspect Ratio: True IMAX (1.43:1)'); 
+                  }}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                    frameAspectRatio === '1.43:1' 
+                      ? 'bg-amber-500 text-black shadow-sm' 
+                      : 'text-amber-200/70 hover:text-amber-100 hover:bg-white/5'
+                  }`}
+                  title="True IMAX Large Format (1.43:1)"
+                >
+                  True IMAX
+                </button>
+                <button
+                  onClick={() => { 
+                    setFrameAspectRatio('1.90:1'); 
+                    showToast('🎬 Aspect Ratio: IMAX (1.90:1)'); 
+                  }}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                    frameAspectRatio === '1.90:1' 
+                      ? 'bg-amber-500 text-black shadow-sm' 
+                      : 'text-amber-200/70 hover:text-amber-100 hover:bg-white/5'
+                  }`}
+                  title="IMAX Digital Widescreen (1.90:1)"
+                >
+                  IMAX
+                </button>
+                <button
+                  onClick={() => { 
+                    setFrameAspectRatio('original'); 
+                    showToast('🎬 Aspect Ratio: Original Native Source'); 
+                  }}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                    frameAspectRatio === 'original' 
+                      ? 'bg-amber-500 text-black shadow-sm' 
+                      : 'text-amber-200/70 hover:text-amber-100 hover:bg-white/5'
+                  }`}
+                  title="Original Unmodified Aspect Ratio"
+                >
+                  Original
+                </button>
+              </div>
 
-              {/* Audio EQ Preset Cycle */}
+              {/* Audio Mode Preset Selector (3D Spatial, Dialogue Boost, Bass, etc.) */}
               <button
                 onClick={cycleAudioPreset}
-                className="hidden sm:flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-xs font-semibold text-purple-300 transition-all cursor-pointer active:scale-95"
-                title="Cycle Audio Preset"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-xs font-semibold text-purple-200 transition-all cursor-pointer active:scale-95 shadow-sm"
+                title="Cycle Audio Mode Preset (3D Spatial, Dialogue Boost, Cinema Bass, Night Mode, Original)"
               >
                 <Sliders className="w-3.5 h-3.5 text-purple-400" />
-                <span className="capitalize">{audioEQ.preset.replace('-', ' ')}</span>
+                <span className="capitalize hidden sm:inline">
+                  {audioEQ.preset === 'spatial-3d' 
+                    ? '3D Spatial' 
+                    : audioEQ.preset === 'dialogue-boost' 
+                    ? 'Dialogue Boost' 
+                    : audioEQ.preset === 'bass-heavy' 
+                    ? 'Cinema Bass' 
+                    : audioEQ.preset === 'night-compression' 
+                    ? 'Night Mode' 
+                    : 'Original Audio'}
+                </span>
+                <span className="sm:hidden text-[11px]">Audio</span>
               </button>
 
-              {/* CC Subtitles Toggle */}
-              <button
-                onClick={() => {
-                  const nextCc = !subtitlesOn;
-                  setSubtitlesOn(nextCc);
-                  sendIframeCommand(nextCc ? 'loadModule' : 'unloadModule', ['captions']);
-                  if (isLocalMedia && localVideoRef.current) {
-                    const tracks = localVideoRef.current.textTracks;
-                    for (let i = 0; i < tracks.length; i++) {
-                      tracks[i].mode = nextCc ? 'showing' : 'disabled';
-                    }
-                  }
-                  showToast(nextCc ? '💬 Subtitles / CC Enabled' : '💬 Subtitles / CC Disabled');
-                }}
-                className={`p-2 rounded-xl transition-all cursor-pointer ${
-                  subtitlesOn ? 'bg-amber-500/30 text-amber-200 border border-amber-500/40' : 'text-amber-300/70 hover:text-amber-100 hover:bg-amber-500/10'
-                }`}
-                title="Toggle Subtitles / CC"
-              >
-                <Captions className="w-4 h-4" />
-              </button>
-
-              {/* Studio & Cinema Settings Drawer Toggle */}
+              {/* OMS Studio Controls Drawer Toggle Button */}
               <button
                 onClick={() => setShowStudioDrawer(s => !s)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  showStudioDrawer ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/30' : 'bg-amber-500/10 text-amber-200 border border-amber-500/20 hover:bg-amber-500/20'
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  showStudioDrawer 
+                    ? 'bg-cyan-500/20 text-cyan-200 border border-cyan-400/50 shadow-lg shadow-cyan-500/30' 
+                    : 'bg-black/40 text-amber-200 border border-amber-500/30 hover:bg-amber-500/20'
                 }`}
-                title="Open Studio Settings & Cinema Controls"
+                title="Open OMS Studio (Audio Tracks, Video Tracks, Subtitles, Speed, Seating)"
               >
-                <Sparkles className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Studio</span>
+                <OMSLogo variant="dark" size="xs" animated={true} />
+                <span className="hidden sm:inline font-cinematic text-[11px] tracking-wider text-cyan-300 font-bold">OMS</span>
               </button>
 
               {/* Fullscreen Toggle */}
@@ -1379,23 +1391,141 @@ export function CineMorphTheater() {
         </div>
       </div>
 
-      {/* ── Studio Drawer Overlay ── */}
+      {/* ── Studio Drawer Overlay (Audio Tracks, Video Tracks & Cinema Tools) ── */}
       {showStudioDrawer && (
         <div className="absolute top-0 right-0 bottom-0 w-80 sm:w-96 bg-[#0c0907]/98 backdrop-blur-2xl border-l border-amber-900/40 p-6 z-40 overflow-y-auto space-y-6 animate-in slide-in-from-right duration-300 text-amber-100 shadow-2xl">
           <div className="flex items-center justify-between pb-4 border-b border-amber-900/30">
             <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-amber-400" />
-              <span className="text-sm font-bold text-amber-100 tracking-wide">Studio & Cinema Controls</span>
+              <OMSLogo variant="dark" size="sm" showLabel={true} animated={true} />
             </div>
             <button 
               onClick={() => setShowStudioDrawer(false)}
-              className="p-1 text-amber-400 hover:text-amber-200 rounded-lg hover:bg-amber-900/30 transition-colors"
+              className="p-1 text-amber-400 hover:text-amber-200 rounded-lg hover:bg-amber-900/30 transition-colors cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
           </div>
 
-          {/* Quick Cinema Settings & Environment */}
+          {/* ── Audio Tracks (Language / Stream Selection) ── */}
+          <div className="space-y-2.5 pb-4 border-b border-amber-900/30">
+            <div className="text-[10px] font-bold text-amber-400 uppercase tracking-widest flex items-center justify-between">
+              <span className="flex items-center gap-1.5">
+                <Volume2 className="w-3.5 h-3.5 text-amber-400" />
+                Audio Tracks (Multi-Language)
+              </span>
+              <span className="text-[9px] font-mono text-amber-500/80 bg-amber-950/40 px-1.5 py-0.5 rounded border border-amber-900/30">
+                {audioTrackOptions.length} Tracks
+              </span>
+            </div>
+            <div className="space-y-1.5">
+              {audioTrackOptions.map((trk) => {
+                const isSelected = selectedAudioTrackId === trk.id;
+                return (
+                  <button
+                    key={trk.id}
+                    onClick={() => {
+                      setSelectedAudioTrackId(trk.id);
+                      showToast(`🔊 Audio Track: ${trk.label} (${trk.language})`);
+                    }}
+                    className={`w-full p-2.5 rounded-xl border text-left transition-all flex items-center justify-between cursor-pointer ${
+                      isSelected 
+                        ? 'bg-amber-500/20 text-amber-100 border-amber-500/50 shadow-sm' 
+                        : 'bg-amber-950/20 text-amber-300/70 border-amber-900/20 hover:bg-amber-900/30'
+                    }`}
+                  >
+                    <div>
+                      <div className="text-xs font-bold text-amber-100 flex items-center gap-2">
+                        <span>{trk.label}</span>
+                        {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />}
+                      </div>
+                      <div className="text-[10px] text-amber-300/60 font-mono mt-0.5">
+                        {trk.language} • {trk.channels}
+                      </div>
+                    </div>
+                    {isSelected && <Check className="w-4 h-4 text-amber-400 shrink-0" />}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* ── Video Tracks (Quality & Stream Selection) ── */}
+          <div className="space-y-2.5 pb-4 border-b border-amber-900/30">
+            <div className="text-[10px] font-bold text-amber-400 uppercase tracking-widest flex items-center justify-between">
+              <span className="flex items-center gap-1.5">
+                <Film className="w-3.5 h-3.5 text-amber-400" />
+                Video Tracks & Quality Streams
+              </span>
+              <span className="text-[9px] font-mono text-amber-500/80 bg-amber-950/40 px-1.5 py-0.5 rounded border border-amber-900/30">
+                {videoTrackOptions.length} Streams
+              </span>
+            </div>
+            <div className="space-y-1.5">
+              {videoTrackOptions.map((vtrk) => {
+                const isSelected = selectedVideoTrackId === vtrk.id;
+                return (
+                  <button
+                    key={vtrk.id}
+                    onClick={() => {
+                      setSelectedVideoTrackId(vtrk.id);
+                      showToast(`🎥 Video Stream: ${vtrk.label} (${vtrk.resolution})`);
+                    }}
+                    className={`w-full p-2.5 rounded-xl border text-left transition-all flex items-center justify-between cursor-pointer ${
+                      isSelected 
+                        ? 'bg-amber-500/20 text-amber-100 border-amber-500/50 shadow-sm' 
+                        : 'bg-amber-950/20 text-amber-300/70 border-amber-900/20 hover:bg-amber-900/30'
+                    }`}
+                  >
+                    <div>
+                      <div className="text-xs font-bold text-amber-100 flex items-center gap-2">
+                        <span>{vtrk.label}</span>
+                        {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />}
+                      </div>
+                      <div className="text-[10px] text-amber-300/60 font-mono mt-0.5">
+                        {vtrk.resolution} • {vtrk.fps} • {vtrk.bitrate}
+                      </div>
+                    </div>
+                    {isSelected && <Check className="w-4 h-4 text-amber-400 shrink-0" />}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* ── Subtitles & Closed Captions ── */}
+          <div className="space-y-2.5 pb-4 border-b border-amber-900/30">
+            <div className="text-[10px] font-bold text-amber-400 uppercase tracking-widest flex items-center gap-1.5">
+              <Captions className="w-3.5 h-3.5 text-amber-400" />
+              Subtitles & Closed Captions
+            </div>
+            <button
+              onClick={() => {
+                const nextCc = !subtitlesOn;
+                setSubtitlesOn(nextCc);
+                sendIframeCommand(nextCc ? 'loadModule' : 'unloadModule', ['captions']);
+                if (isLocalMedia && localVideoRef.current) {
+                  const tracks = localVideoRef.current.textTracks;
+                  for (let i = 0; i < tracks.length; i++) {
+                    tracks[i].mode = nextCc ? 'showing' : 'disabled';
+                  }
+                }
+                showToast(nextCc ? '💬 Subtitles / CC Enabled' : '💬 Subtitles / CC Disabled');
+              }}
+              className={`w-full p-2.5 rounded-xl border text-xs font-semibold flex items-center justify-between transition-all cursor-pointer ${
+                subtitlesOn ? 'bg-amber-500/20 text-amber-100 border-amber-500/40' : 'bg-amber-950/20 text-amber-300/70 border-amber-900/20 hover:bg-amber-900/30'
+              }`}
+            >
+              <span className="flex items-center gap-2">
+                <Captions className="w-4 h-4 text-amber-400" />
+                <span>Closed Captions & Subtitles</span>
+              </span>
+              <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-black/40 border border-amber-500/20">
+                {subtitlesOn ? 'ON' : 'OFF'}
+              </span>
+            </button>
+          </div>
+
+          {/* ── Environment & Playback Tools ── */}
           <div className="space-y-3 pb-4 border-b border-amber-900/30">
             <div className="text-[10px] font-bold text-amber-400 uppercase tracking-widest flex items-center gap-1.5">
               <Sliders className="w-3.5 h-3.5 text-amber-400" />

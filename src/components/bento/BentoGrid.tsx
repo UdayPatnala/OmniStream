@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { ModeCard } from './ModeCard';
 import { TicketDrawer } from './TicketDrawer';
+import { OMSLogo } from '../common/OMSLogo';
 import { useCineMorphStore } from '../../state/useCineMorphStore';
 import { useUTubeStore } from '../../state/useUTubeStore';
 import { useAppStore } from '../../store';
@@ -125,14 +126,7 @@ export const BentoGrid: React.FC = () => {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-3.5 sm:p-4 rounded-3xl bg-white/80 backdrop-blur-xl border border-slate-200/80 shadow-sm">
           {/* Brand & Identity */}
           <div className="flex items-center gap-3.5">
-            <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-white border border-slate-200 p-1 shadow-md group">
-              <img
-                src="/omn_logo.jpg"
-                alt="OMS Intelligence Core"
-                className="w-full h-full object-cover rounded-xl group-hover:scale-105 transition-transform"
-              />
-              <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-white shadow-sm" title="OMS Core Active" />
-            </div>
+            <OMSLogo variant="light" size="md" animated={true} />
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 font-cinematic-title uppercase">
