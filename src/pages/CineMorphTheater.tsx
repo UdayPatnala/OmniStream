@@ -17,7 +17,7 @@ import {
   Play, Pause, Volume2, VolumeX, Maximize, Minimize,
   Film, Monitor, ArrowLeft, RotateCcw, ChevronRight,
   Sparkles, HelpCircle, X, Keyboard, Sliders, Maximize2,
-  Sun, FileText, Check, ListFilter, HardDrive, Armchair,
+  Sun, FileText, Check, HardDrive, Armchair,
   Eye, RefreshCw, Layers, Zap, Captions, Gauge, Languages
 } from 'lucide-react';
 import { 
@@ -26,7 +26,6 @@ import {
   calculateFrameStyle, 
   generateAISummary, 
   extractVideoScript, 
-  generateSceneHighlights,
   localVideoAnalyzer,
   hybridMediaRouter,
   adaptiveCinemaEngine
@@ -655,7 +654,6 @@ export function CineMorphTheater() {
   // Intelligence metadata
   const aiSummary = video ? generateAISummary(video) : null;
   const scriptChunks = video ? extractVideoScript(video) : [];
-  const highlights = video ? generateSceneHighlights(video) : [];
 
   return (
     <div
@@ -1334,37 +1332,6 @@ export function CineMorphTheater() {
               <HelpCircle className="w-3.5 h-3.5 text-amber-400" />
               <span>View Keyboard Shortcuts</span>
             </button>
-          </div>
-
-          {/* Scene Highlights */}
-          <div className="space-y-2">
-            <div className="text-[10px] font-bold text-amber-400 uppercase tracking-widest flex items-center gap-1.5">
-              <ListFilter className="w-3.5 h-3.5 text-amber-400" />
-              Synchronized Scene Highlights
-            </div>
-            <div className="space-y-1.5">
-              {highlights.map(h => (
-                <button
-                  key={h.id}
-                  onClick={() => {
-                    if (isLocalMedia && localVideoRef.current) {
-                      localVideoRef.current.currentTime = h.timestamp;
-                    } else {
-                      sendIframeCommand('seekTo', [h.timestamp, true]);
-                    }
-                    showToast(`⏱️ Jumped to: ${h.title}`);
-                  }}
-                  className="w-full p-2.5 rounded-xl bg-amber-950/30 hover:bg-amber-900/40 border border-amber-900/20 hover:border-amber-500/30 text-left transition-all flex items-center justify-between group"
-                >
-                  <div className="text-xs font-semibold text-amber-100 group-hover:text-amber-300 truncate max-w-[200px]">
-                    {h.title}
-                  </div>
-                  <span className="text-[10px] font-mono font-bold text-amber-400 bg-black/50 px-2 py-0.5 rounded-full border border-amber-500/20">
-                    {formatTime(h.timestamp)}
-                  </span>
-                </button>
-              ))}
-            </div>
           </div>
 
           {/* AI Summary Breakdown */}
