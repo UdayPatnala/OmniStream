@@ -199,7 +199,7 @@ export function RootLanding() {
                     CineMorph <span className="text-cyan-400 text-2xl font-bold">AI V2</span>
                   </h2>
                   <p className="text-xs sm:text-sm text-gray-400 leading-relaxed">
-                    Step inside a 2.5D IMAX virtual cinema hall with adaptive Ambilight bloom, Web Audio DSP (+20dB EQ), 4.3:1 ratio, and local media playback.
+                    Step inside a 2.5D IMAX virtual cinema hall with adaptive Ambilight bloom, Web Audio DSP (+20dB EQ), 1.43:1 & 1.90:1 ratio, and local media playback.
                   </p>
                 </div>
                 <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-cyan-600/30 to-indigo-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-300 shrink-0 group-hover:scale-110 transition-transform shadow-xl shadow-cyan-500/20">
@@ -212,7 +212,7 @@ export function RootLanding() {
                 <div className="flex items-center justify-between text-xs font-bold text-gray-300">
                   <span className="flex items-center gap-2">
                     <Radio className="w-3.5 h-3.5 text-cyan-400" />
-                    IMAX 4.3:1 Cinema Hall
+                    IMAX 1.43:1 & 1.90:1 Cinema Hall
                   </span>
                   <span className="text-[10px] text-cyan-400 uppercase tracking-widest font-mono">+18dB Audio DSP</span>
                 </div>
@@ -230,7 +230,7 @@ export function RootLanding() {
                 <div className="p-3.5 rounded-2xl bg-white/5 border border-white/5 space-y-1 group-hover:border-cyan-500/20 transition-colors">
                   <div className="flex items-center gap-2 text-xs font-bold text-gray-200">
                     <Film className="w-3.5 h-3.5 text-cyan-400" />
-                    <span>IMAX 4.3:1 Cinema Screen</span>
+                    <span>IMAX 1.43:1 & 1.90:1 Screen</span>
                   </div>
                   <p className="text-[11px] text-gray-400">Wall-to-wall curved screen & low lighting.</p>
                 </div>
