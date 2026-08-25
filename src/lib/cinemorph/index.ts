@@ -5,3 +5,5 @@ export * from './telemetryEngine';
 export * from './localVideoAnalyzer';
 export * from './hybridRouter';
 export * from './adaptiveCinemaEngine';
+export * from './oms/omsPipeline';
+export * from './oms/types';
