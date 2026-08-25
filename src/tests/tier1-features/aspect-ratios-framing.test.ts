@@ -55,4 +55,11 @@ describe('Tier 1: Aspect Ratios & Framing Calculations (F16, F17, F18, F19)', ()
     expect(out143.screenTransform.scale).toBeGreaterThan(1.0);
     expect(out143.subtitleSafeMode).toBe(false);
   });
+
+  it('T1-ASPT-07: Original Mode maintains 1.0x native scaling without smart crop while supporting subtle screen curvature', () => {
+    const style = calculateFrameStyle('original', 'center');
+    expect(style.aspectRatioStyle).toBe('16 / 9');
+    expect(style.videoScaleTransform).toBe('scale(1.0) translate(0px, 0px)');
+    expect(style.cropOverlay).toBe(false);
+  });
 });

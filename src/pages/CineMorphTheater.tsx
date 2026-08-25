@@ -655,6 +655,29 @@ export function CineMorphTheater() {
   const aiSummary = video ? generateAISummary(video) : null;
   const scriptChunks = video ? extractVideoScript(video) : [];
 
+  // Original Mode Subtle Curved Screen state & animation
+  const isOriginalMode = frameAspectRatio === 'original' || presentationMode === 'original';
+  const [curvedScreenActive, setCurvedScreenActive] = useState(false);
+
+  useEffect(() => {
+    if (isOriginalMode) {
+      const prefersReducedMotion = typeof window !== 'undefined' &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      if (prefersReducedMotion) {
+        setCurvedScreenActive(true);
+      } else {
+        setCurvedScreenActive(false);
+        const timer = setTimeout(() => {
+          setCurvedScreenActive(true);
+        }, 60);
+        return () => clearTimeout(timer);
+      }
+    } else {
+      setCurvedScreenActive(false);
+    }
+  }, [isOriginalMode, frameAspectRatio, presentationMode]);
+
   return (
     <div
       ref={containerRef}
@@ -663,7 +686,7 @@ export function CineMorphTheater() {
       onTouchStart={resetControlsTimer}
     >
       {/* ── Dynamic Reactive Ambilight Bloom (Auditorium Ambient Glow) ── */}
-      {presentationMode === 'cinema' && glowIntensity !== 'off' && (
+      {presentationMode === 'cinema' && !isOriginalMode && glowIntensity !== 'off' && (
         <div
           className="absolute inset-0 pointer-events-none transition-all duration-700 z-0"
           style={{
@@ -690,7 +713,7 @@ export function CineMorphTheater() {
       </div>
 
       {/* ── Grand IMAX Laser Cinema Auditorium Architectural Layers ── */}
-      {presentationMode === 'cinema' && (
+      {presentationMode === 'cinema' && !isOriginalMode && (
         <>
           {/* Ceiling Arch Starfield & Scalloped Halogen Spotlights (matching IMAX reference) */}
           <div className="absolute top-0 inset-x-0 h-36 bg-gradient-to-b from-black via-black/80 to-transparent pointer-events-none z-1 flex flex-col justify-start items-center pt-1 overflow-hidden opacity-95">
@@ -780,7 +803,7 @@ export function CineMorphTheater() {
 
       {/* ── The Cinema Screen Container ── */}
       <div
-        className="relative transition-all duration-700 w-full flex items-center justify-center z-10 overflow-hidden shadow-2xl border border-amber-900/10 bg-black"
+        className="relative transition-all duration-500 ease-out w-full flex items-center justify-center z-10 overflow-hidden shadow-2xl border border-amber-900/10 bg-black"
         style={{
           aspectRatio: frameStyle.aspectRatioStyle,
           width: '100%',
@@ -790,12 +813,20 @@ export function CineMorphTheater() {
             ? `min(98vw, calc(84vh * (${frameStyle.aspectRatioStyle})))`
             : `min(92vw, calc(78vh * (${frameStyle.aspectRatioStyle})))`,
           maxHeight: isFullscreen ? '92vh' : frameAspectRatio === '4.3:1' ? '84vh' : '78vh',
-          filter: presentationMode === 'cinema' ? 'brightness(1.03) contrast(1.02)' : 'none',
-          borderRadius: presentationMode === 'cinema' ? '6px 6px 36px 36px / 6px 6px 12px 12px' : '8px',
-          transform: presentationMode === 'cinema' 
+          filter: isOriginalMode ? 'none' : presentationMode === 'cinema' ? 'brightness(1.03) contrast(1.02)' : 'none',
+          borderRadius: isOriginalMode
+            ? (curvedScreenActive ? '50% 50% 50% 50% / 1.6% 1.6% 1.6% 1.6%' : '4px')
+            : presentationMode === 'cinema' 
+            ? '6px 6px 36px 36px / 6px 6px 12px 12px' 
+            : '8px',
+          transform: isOriginalMode
+            ? (curvedScreenActive ? 'perspective(1400px) rotateX(0.5deg)' : 'none')
+            : presentationMode === 'cinema' 
             ? (frameAspectRatio === '4.3:1' ? 'perspective(1200px) rotateX(1deg) scale(1.12)' : 'perspective(1200px) rotateX(1deg)') 
             : 'none',
-          boxShadow: presentationMode === 'cinema' 
+          boxShadow: isOriginalMode
+            ? (curvedScreenActive ? '0 0 60px rgba(0,0,0,0.95), inset 0 0 35px rgba(0,0,0,0.45)' : '0 10px 30px rgba(0,0,0,0.5)')
+            : presentationMode === 'cinema' 
             ? '0 0 100px rgba(0,0,0,0.95), inset 0 0 50px rgba(0,0,0,0.9)' 
             : '0 20px 25px -5px rgba(0,0,0,0.1)'
         }}
@@ -803,9 +834,45 @@ export function CineMorphTheater() {
         <div
           className="w-full h-full transition-transform duration-500 relative overflow-hidden"
           style={{
-            transform: presentationMode === 'cinema' ? frameStyle.videoScaleTransform : 'none',
+            transform: isOriginalMode ? 'none' : presentationMode === 'cinema' ? frameStyle.videoScaleTransform : 'none',
           }}
         >
+          {/* Subtle Curved Cinema Screen Frame Depth Overlay (Original Mode Only) */}
+          {isOriginalMode && (
+            <div 
+              className={`absolute inset-0 pointer-events-none z-20 transition-opacity duration-500 ease-out ${
+                curvedScreenActive ? 'opacity-100' : 'opacity-0'
+              }`}
+            >
+              {/* Very thin curved top edge shadow */}
+              <div 
+                className="absolute top-0 inset-x-0 h-3 pointer-events-none"
+                style={{
+                  background: 'linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.12) 50%, transparent 100%)',
+                  borderTopLeftRadius: '50% 100%',
+                  borderTopRightRadius: '50% 100%',
+                }}
+              />
+
+              {/* Very thin curved bottom edge shadow */}
+              <div 
+                className="absolute bottom-0 inset-x-0 h-3 pointer-events-none"
+                style={{
+                  background: 'linear-gradient(to top, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.12) 50%, transparent 100%)',
+                  borderBottomLeftRadius: '50% 100%',
+                  borderBottomRightRadius: '50% 100%',
+                }}
+              />
+
+              {/* Very soft left/right curvature depth */}
+              <div 
+                className="absolute inset-y-0 left-0 w-4 pointer-events-none bg-gradient-to-r from-black/35 via-black/10 to-transparent"
+              />
+              <div 
+                className="absolute inset-y-0 right-0 w-4 pointer-events-none bg-gradient-to-l from-black/35 via-black/10 to-transparent"
+              />
+            </div>
+          )}
           {/* Dual Source Playback Element */}
           {showIntroBumper ? (
             <div className="relative w-full h-full bg-black flex items-center justify-center overflow-hidden">
@@ -1039,7 +1106,7 @@ export function CineMorphTheater() {
       </div>
 
       {/* ── 2.5D Clean Theater Seating (No Screen Overlap Shadows) ── */}
-      {theaterSeatingEnabled && (
+      {presentationMode === 'cinema' && !isOriginalMode && theaterSeatingEnabled && (
         <div className="absolute bottom-0 inset-x-0 h-16 sm:h-24 pointer-events-none z-15 flex items-end justify-center px-4 overflow-hidden opacity-90">
           {/* Single Clean Auditorium Row with Center Aisle */}
           <div className="w-full max-w-6xl flex justify-between items-end gap-3 sm:gap-6">
