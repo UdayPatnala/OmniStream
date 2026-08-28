@@ -961,17 +961,20 @@ export function CineMorphTheater() {
                 fill="#070503"
               />
 
-              {/* Left & Right Curved Side Bevel Edges */}
-              <path
-                d="M 0 0 Q 12 300 0 600 L 4 600 Q 14 300 4 0 Z"
-                fill="#070503"
-                opacity="0.6"
-              />
-              <path
-                d="M 1000 0 Q 988 300 1000 600 L 996 600 Q 986 300 996 0 Z"
-                fill="#070503"
-                opacity="0.6"
-              />
+              {/* Left & Right Curved Side Bevel Edges — subtle shadow only, no hard lines */}
+              <defs>
+                <linearGradient id="leftEdgeFade" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stopColor="#070503" stopOpacity="0.45" />
+                  <stop offset="100%" stopColor="#070503" stopOpacity="0" />
+                </linearGradient>
+                <linearGradient id="rightEdgeFade" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stopColor="#070503" stopOpacity="0" />
+                  <stop offset="100%" stopColor="#070503" stopOpacity="0.45" />
+                </linearGradient>
+              </defs>
+              <rect x="0" y="0" width="28" height="600" fill="url(#leftEdgeFade)" />
+              <rect x="972" y="0" width="28" height="600" fill="url(#rightEdgeFade)" />
+
             </svg>
           </div>
           {/* Dual Source Playback Element */}
@@ -1208,9 +1211,9 @@ export function CineMorphTheater() {
 
       {/* ── High-Fidelity 2-Tier IMAX Auditorium Theater Seating ── */}
       {presentationMode === 'cinema' && !isOriginalMode && theaterSeatingEnabled && (
-        <div className="absolute bottom-0 inset-x-0 h-20 sm:h-28 pointer-events-none z-20 flex flex-col justify-end items-center px-2 sm:px-6 overflow-hidden">
+        <div className="absolute bottom-[88px] inset-x-0 h-28 sm:h-40 pointer-events-none z-20 flex flex-col justify-end items-center px-2 sm:px-6">
           {/* Back Tier Row (Midground Auditorium Seats) */}
-          <div className="w-full max-w-5xl flex justify-between items-end gap-2 sm:gap-4 opacity-50 mb-[-8px] sm:mb-[-12px]">
+          <div className="w-full max-w-5xl flex justify-between items-end gap-2 sm:gap-4 opacity-75 mb-[-6px] sm:mb-[-10px]">
             {/* Left Bank Back Row */}
             <div className="flex-1 flex gap-1 sm:gap-2 justify-end">
               {[1, 2, 3, 4, 5, 6].map((s) => (
@@ -1246,7 +1249,7 @@ export function CineMorphTheater() {
               {[1, 2, 3, 4, 5].map((s) => (
                 <div 
                   key={`fl-${s}`}
-                  className="flex-1 h-14 sm:h-20 rounded-t-2xl bg-gradient-to-b from-[#3a131b] via-[#1e090e] to-[#080204] border-t-2 border-rose-500/30 relative flex flex-col items-center justify-start pt-1.5 shadow-[0_-4px_20px_rgba(0,0,0,0.8)]"
+                  className="flex-1 h-16 sm:h-24 rounded-t-2xl bg-gradient-to-b from-[#3a131b] via-[#1e090e] to-[#080204] border-t-2 border-rose-500/30 relative flex flex-col items-center justify-start pt-1.5 shadow-[0_-4px_20px_rgba(0,0,0,0.8)]"
                 >
                   {/* Plush Headrest Cushion */}
                   <div className="w-[85%] h-5 sm:h-7 rounded-t-xl bg-gradient-to-b from-[#4a1823] to-[#250a11] border-t border-rose-400/40 shadow-inner" />
@@ -1270,7 +1273,7 @@ export function CineMorphTheater() {
               {[1, 2, 3, 4, 5].map((s) => (
                 <div 
                   key={`fr-${s}`}
-                  className="flex-1 h-14 sm:h-20 rounded-t-2xl bg-gradient-to-b from-[#3a131b] via-[#1e090e] to-[#080204] border-t-2 border-rose-500/30 relative flex flex-col items-center justify-start pt-1.5 shadow-[0_-4px_20px_rgba(0,0,0,0.8)]"
+                  className="flex-1 h-16 sm:h-24 rounded-t-2xl bg-gradient-to-b from-[#3a131b] via-[#1e090e] to-[#080204] border-t-2 border-rose-500/30 relative flex flex-col items-center justify-start pt-1.5 shadow-[0_-4px_20px_rgba(0,0,0,0.8)]"
                 >
                   {/* Plush Headrest Cushion */}
                   <div className="w-[85%] h-5 sm:h-7 rounded-t-xl bg-gradient-to-b from-[#4a1823] to-[#250a11] border-t border-rose-400/40 shadow-inner" />
@@ -1283,6 +1286,7 @@ export function CineMorphTheater() {
           </div>
         </div>
       )}
+
 
       {/* ── Floating Controls Deck (Vanishing Interface) ── */}
       <div
