@@ -940,32 +940,38 @@ export function CineMorphTheater() {
             transform: isOriginalMode ? 'none' : presentationMode === 'cinema' ? frameStyle.videoScaleTransform : 'none',
           }}
         >
-          {/* True Concave Cinema Screen Geometry Overlay (Original Mode Only) */}
-          {isOriginalMode && (
-            <div 
-              className={`absolute inset-0 pointer-events-none z-20 transition-opacity duration-500 ease-out ${
-                curvedScreenActive ? 'opacity-100' : 'opacity-0'
-              }`}
+          {/* True Concave Curved Cinema Screen Proscenium Geometry Overlay */}
+          <div className="absolute inset-0 pointer-events-none z-20 transition-opacity duration-500 ease-out opacity-100">
+            <svg
+              className="absolute inset-0 w-full h-full pointer-events-none"
+              viewBox="0 0 1000 600"
+              preserveAspectRatio="none"
             >
-              <svg
-                className="absolute inset-0 w-full h-full pointer-events-none"
-                viewBox="0 0 1000 600"
-                preserveAspectRatio="none"
-              >
-                {/* Top Inward Concave Proscenium Edge (subtle concave curve dipping down 6px at center) */}
-                <path
-                  d="M 0 0 L 1000 0 L 1000 2 Q 500 7 0 2 Z"
-                  fill="#070503"
-                />
+              {/* Top Inward Concave Proscenium Edge (subtle concave curve dipping down 12px at center) */}
+              <path
+                d="M 0 0 L 1000 0 L 1000 4 Q 500 16 0 4 Z"
+                fill="#070503"
+              />
 
-                {/* Bottom Inward Concave Proscenium Edge (subtle concave curve rising up 6px at center) */}
-                <path
-                  d="M 0 600 L 1000 600 L 1000 598 Q 500 593 0 598 Z"
-                  fill="#070503"
-                />
-              </svg>
-            </div>
-          )}
+              {/* Bottom Inward Concave Proscenium Edge (subtle concave curve rising up 12px at center) */}
+              <path
+                d="M 0 600 L 1000 600 L 1000 596 Q 500 584 0 596 Z"
+                fill="#070503"
+              />
+
+              {/* Left & Right Curved Side Bevel Edges */}
+              <path
+                d="M 0 0 Q 12 300 0 600 L 4 600 Q 14 300 4 0 Z"
+                fill="#070503"
+                opacity="0.6"
+              />
+              <path
+                d="M 1000 0 Q 988 300 1000 600 L 996 600 Q 986 300 996 0 Z"
+                fill="#070503"
+                opacity="0.6"
+              />
+            </svg>
+          </div>
           {/* Dual Source Playback Element */}
           {showIntroBumper ? (
             <div className="relative w-full h-full bg-black flex items-center justify-center overflow-hidden">
