@@ -22,3 +22,9 @@ The OmniStream Intelligence System (OMS) Identity Standard is located at:
 `d:\PROJECT\AROH Open Source\Products\OmniStream\OMNISTREAM_OMS_IDENTITY_STANDARD.md`
 
 You MUST use the `view_file` tool to read these files if you do not already have them in your context. Do NOT guess the architecture. The user has explicitly stated: "make layers, models, llms anything needed to achieve the goal."
+
+## OmniStream Architecture & Lightweight Invariants
+- **No Heavy 3D/Tensor Bundles**: Prefer CSS3D transforms, SVG aperture overlays, and 16x9 canvas sampling over Three.js and TensorFlow.js.
+- **OMS Render Isolation**: Real-time ambient analysis must update DOM element refs or CSS variables directly; never set high-frequency React states on root theater components.
+- **Color System V2**: Editorial light-first foundation (`#F7F5F0`), muted Vermilion (`#C7494F`) for U-Tube accents, muted Slate Blue (`#526C9E`) for CineMorph accents, Graphite (`#5E6166`) for OMS.
+- **Persistence Integrity**: Tickets are only saved on confirmed theater entry ("Take Ticket & Enter Theater"). Do not store temporary tickets if user navigates back.
