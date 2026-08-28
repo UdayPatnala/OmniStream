@@ -266,43 +266,6 @@ export function CineMorphLanding() {
           </div>
         )}
 
-        {/* Torn Tickets / Continue Watching */}
-        {tickets.length > 0 && (
-          <div className="w-full max-w-2xl mt-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <div className="flex items-center gap-2 mb-4 px-2">
-              <Ticket className="w-4 h-4 text-cinemorph-primary" />
-              <h3 className="text-xs font-bold text-cinemorph-primary tracking-[0.2em] uppercase">My Stubs</h3>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {tickets.slice(0, 4).map(ticket => (
-                <div 
-                  key={ticket.ticketId}
-                  onClick={async () => {
-                    const resumed = useTicketStore.getState().resumeFromTicket(ticket.ticketId);
-                    if (resumed) {
-                      await useTicketStore.getState().trigger10sPrintAnimation({
-                        title: ticket.movieTitle,
-                        source: ticket.sourceUrl,
-                        isLocal: ticket.isLocal
-                      });
-                      navigate(ticket.isLocal ? `/theater/${ticket.ticketId}` : `/theater/${encodeURIComponent(ticket.sourceUrl)}`);
-                    }
-                  }}
-                  className="group relative bg-cinemorph-card border border-cinemorph-border hover:border-cinemorph-primary p-3 rounded-2xl flex items-center gap-4 cursor-pointer transition-all shadow-sm hover:shadow-md"
-                >
-                  <div className="w-12 h-12 bg-cinemorph-surface rounded-xl flex items-center justify-center border border-cinemorph-border group-hover:scale-105 transition-transform">
-                    {ticket.isLocal ? <HardDrive className="w-5 h-5 text-cinemorph-primary" /> : <Film className="w-5 h-5 text-cinemorph-primary" />}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="text-sm font-bold text-cinemorph-text truncate">{ticket.movieTitle}</h4>
-                    <p className="text-[10px] font-mono text-cinemorph-text-secondary mt-1">{ticket.seatAssignment}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
       </div>
 
       <div className="absolute bottom-6 font-mono text-[10px] text-cinemorph-text-muted tracking-[0.3em] uppercase flex items-center gap-3 font-bold">

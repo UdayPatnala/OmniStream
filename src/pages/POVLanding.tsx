@@ -303,40 +303,40 @@ export const POVLanding: React.FC = () => {
               {/* Architectural baseboard */}
               <div className="absolute bottom-0 inset-x-0 h-4 bg-stone-300/40" />
               {/* Accent top stripe (Garnet) */}
-              <div className="absolute top-12 inset-x-0 h-[3px] bg-[#B83A4B]/20" />
+              <div className="absolute top-12 inset-x-0 h-[3px] bg-[#C7494F]/20" />
 
               {/* WALL MESSAGES: DISCOVER, WATCH, YOURS */}
               <div className="absolute inset-0 flex items-center justify-around px-24 select-none">
                 
                 {/* 1. DISCOVER */}
                 <div className="flex items-center gap-6 transform rotate-0" style={{ width: '380px' }}>
-                  <div className="w-14 h-14 rounded-full border-2 border-[#B83A4B]/20 bg-[#FAF8F5] flex items-center justify-center shrink-0 shadow-sm">
-                    <Search className="w-6 h-6 text-[#B83A4B]" />
+                  <div className="w-14 h-14 rounded-full border-2 border-[#C7494F]/20 bg-[#FAF8F5] flex items-center justify-center shrink-0 shadow-sm">
+                    <Search className="w-6 h-6 text-[#C7494F]" />
                   </div>
                   <div className="space-y-1 text-left font-cinematic">
-                    <h3 className="text-base font-black text-[#B83A4B] uppercase tracking-widest leading-none">DISCOVER</h3>
+                    <h3 className="text-base font-black text-[#C7494F] uppercase tracking-widest leading-none">DISCOVER</h3>
                     <p className="text-[11px] text-stone-600 font-bold tracking-wide uppercase leading-normal">Find anything.<br />From anywhere.</p>
                   </div>
                 </div>
 
                 {/* 2. WATCH */}
                 <div className="flex items-center gap-6" style={{ width: '380px' }}>
-                  <div className="w-14 h-14 rounded-full border-2 border-[#B83A4B]/20 bg-[#FAF8F5] flex items-center justify-center shrink-0 shadow-sm">
-                    <Play className="w-6 h-6 text-[#B83A4B]" />
+                  <div className="w-14 h-14 rounded-full border-2 border-[#C7494F]/20 bg-[#FAF8F5] flex items-center justify-center shrink-0 shadow-sm">
+                    <Play className="w-6 h-6 text-[#C7494F]" />
                   </div>
                   <div className="space-y-1 text-left font-cinematic">
-                    <h3 className="text-base font-black text-[#B83A4B] uppercase tracking-widest leading-none">WATCH</h3>
+                    <h3 className="text-base font-black text-[#C7494F] uppercase tracking-widest leading-none">WATCH</h3>
                     <p className="text-[11px] text-stone-600 font-bold tracking-wide uppercase leading-normal">Smooth. Simple.<br />Ad-free.</p>
                   </div>
                 </div>
 
                 {/* 3. YOURS */}
                 <div className="flex items-center gap-6" style={{ width: '380px' }}>
-                  <div className="w-14 h-14 rounded-full border-2 border-[#B83A4B]/20 bg-[#FAF8F5] flex items-center justify-center shrink-0 shadow-sm">
-                    <Heart className="w-6 h-6 text-[#B83A4B]" />
+                  <div className="w-14 h-14 rounded-full border-2 border-[#C7494F]/20 bg-[#FAF8F5] flex items-center justify-center shrink-0 shadow-sm">
+                    <Heart className="w-6 h-6 text-[#C7494F]" />
                   </div>
                   <div className="space-y-1 text-left font-cinematic">
-                    <h3 className="text-base font-black text-[#B83A4B] uppercase tracking-widest leading-none">YOURS</h3>
+                    <h3 className="text-base font-black text-[#C7494F] uppercase tracking-widest leading-none">YOURS</h3>
                     <p className="text-[11px] text-stone-600 font-bold tracking-wide uppercase leading-normal">Your history.<br />Your space.</p>
                   </div>
                 </div>
@@ -358,29 +358,29 @@ export const POVLanding: React.FC = () => {
               }}
             >
               <div className="absolute bottom-0 inset-x-0 h-4 bg-stone-300/40" />
-              <div className="absolute top-12 inset-x-0 h-[3px] bg-[#087F7B]/20" />
+              <div className="absolute top-12 inset-x-0 h-[3px] bg-[#526C9E]/20" />
 
               {/* WALL MESSAGES: IMMENSE, CINEMA, IMMERSIVE */}
               <div className="absolute inset-0 flex items-center justify-around px-24 select-none">
                 
                 {/* 1. IMMENSE */}
                 <div className="flex items-center gap-6" style={{ width: '380px' }}>
-                  <div className="w-14 h-14 rounded-full border-2 border-[#087F7B]/20 bg-[#FAF8F5] flex items-center justify-center shrink-0 shadow-sm">
-                    <Monitor className="w-6 h-6 text-[#087F7B]" />
+                  <div className="w-14 h-14 rounded-full border-2 border-[#526C9E]/20 bg-[#FAF8F5] flex items-center justify-center shrink-0 shadow-sm">
+                    <Monitor className="w-6 h-6 text-[#526C9E]" />
                   </div>
                   <div className="space-y-1 text-left font-cinematic">
-                    <h3 className="text-base font-black text-[#087F7B] uppercase tracking-widest leading-none">IMMENSE</h3>
+                    <h3 className="text-base font-black text-[#526C9E] uppercase tracking-widest leading-none">IMMENSE</h3>
                     <p className="text-[11px] text-stone-600 font-bold tracking-wide uppercase leading-normal">Step beyond<br />the ordinary.</p>
                   </div>
                 </div>
 
                 {/* 2. CINEMA */}
                 <div className="flex items-center gap-6" style={{ width: '380px' }}>
-                  <div className="w-14 h-14 rounded-full border-2 border-[#087F7B]/20 bg-[#FAF8F5] flex items-center justify-center shrink-0 shadow-sm">
-                    <Film className="w-6 h-6 text-[#087F7B]" />
+                  <div className="w-14 h-14 rounded-full border-2 border-[#526C9E]/20 bg-[#FAF8F5] flex items-center justify-center shrink-0 shadow-sm">
+                    <Film className="w-6 h-6 text-[#526C9E]" />
                   </div>
                   <div className="space-y-1 text-left font-cinematic">
-                    <h3 className="text-base font-black text-[#087F7B] uppercase tracking-widest leading-none">CINEMA</h3>
+                    <h3 className="text-base font-black text-[#526C9E] uppercase tracking-widest leading-none">CINEMA</h3>
                     <p className="text-[11px] text-stone-600 font-bold tracking-wide uppercase leading-normal">Big screen feeling.<br />At home.</p>
                   </div>
                 </div>
@@ -495,7 +495,7 @@ export const POVLanding: React.FC = () => {
               {/* U-Tube Left Arrow Indicator */}
               <div 
                 className={`flex items-center gap-2 text-xs font-mono font-black tracking-widest transition-all duration-300 ${
-                  activeHover === 'utube' ? 'text-[#B83A4B] translate-x-[-4px]' : 'text-stone-400'
+                  activeHover === 'utube' ? 'text-[#C7494F] translate-x-[-4px]' : 'text-stone-400'
                 }`}
               >
                 <span>← U-TUBE</span>
@@ -504,7 +504,7 @@ export const POVLanding: React.FC = () => {
               {/* CineMorph Right Arrow Indicator */}
               <div 
                 className={`flex items-center gap-2 text-xs font-mono font-black tracking-widest transition-all duration-300 ${
-                  activeHover === 'cinemorph' ? 'text-[#087F7B] translate-x-[4px]' : 'text-stone-400'
+                  activeHover === 'cinemorph' ? 'text-[#526C9E] translate-x-[4px]' : 'text-stone-400'
                 }`}
               >
                 <span>CINEMORPH →</span>
@@ -525,12 +525,12 @@ export const POVLanding: React.FC = () => {
                   onMouseEnter={() => setActiveHover('utube')}
                   onMouseLeave={() => setActiveHover(null)}
                   disabled={transitioning}
-                  className="group p-8 sm:p-10 text-left hover:bg-[#FAF8F5]/80 rounded-l-[2rem] transition-colors duration-350 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B83A4B] cursor-pointer"
+                  className="group p-8 sm:p-10 text-left hover:bg-[#FAF8F5]/80 rounded-l-[2rem] transition-colors duration-350 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C7494F] cursor-pointer"
                   aria-label="Enter U-Tube Platform"
                 >
                   <div className="flex items-center gap-3 mb-5">
-                    <div className="w-8 h-8 rounded-full border border-red-200 bg-red-50/50 flex items-center justify-center group-hover:bg-[#B83A4B] group-hover:border-[#B83A4B] transition-all shadow-sm">
-                      <ArrowLeft className="w-4 h-4 text-[#B83A4B] group-hover:text-white transition-colors" />
+                    <div className="w-8 h-8 rounded-full border border-red-200 bg-red-50/50 flex items-center justify-center group-hover:bg-[#C7494F] group-hover:border-[#C7494F] transition-all shadow-sm">
+                      <ArrowLeft className="w-4 h-4 text-[#C7494F] group-hover:text-white transition-colors" />
                     </div>
                     <span className="text-[9px] font-mono font-bold tracking-[0.25em] text-stone-400 uppercase">
                       Select Left Path
@@ -539,10 +539,10 @@ export const POVLanding: React.FC = () => {
 
                   <div className="space-y-2">
                     <div className="flex items-end gap-2">
-                      <span className="font-black text-[#34363A] leading-none tracking-tight group-hover:text-[#B83A4B] transition-colors font-cinematic-title" style={{ fontSize: 'clamp(22px, 2.8vw, 36px)' }}>
+                      <span className="font-black text-[#34363A] leading-none tracking-tight group-hover:text-[#C7494F] transition-colors font-cinematic-title" style={{ fontSize: 'clamp(22px, 2.8vw, 36px)' }}>
                         U-TUBE
                       </span>
-                      <div className="flex-1 mb-1.5 h-px bg-stone-300/60 group-hover:bg-[#B83A4B]/40 transition-colors" />
+                      <div className="flex-1 mb-1.5 h-px bg-stone-300/60 group-hover:bg-[#C7494F]/40 transition-colors" />
                     </div>
                     <p className="text-stone-500 text-xs sm:text-sm font-medium leading-relaxed max-w-[240px]">
                       Discover and watch. Ad-free. Clean. Yours.
@@ -556,22 +556,22 @@ export const POVLanding: React.FC = () => {
                   onMouseEnter={() => setActiveHover('cinemorph')}
                   onMouseLeave={() => setActiveHover(null)}
                   disabled={transitioning}
-                  className="group p-8 sm:p-10 text-right hover:bg-[#F8F3EA]/80 rounded-r-[2rem] transition-colors duration-350 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#087F7B] cursor-pointer"
+                  className="group p-8 sm:p-10 text-right hover:bg-[#F8F3EA]/80 rounded-r-[2rem] transition-colors duration-350 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#526C9E] cursor-pointer"
                   aria-label="Enter CineMorph Virtual Theater"
                 >
                   <div className="flex items-center justify-end gap-3 mb-5">
                     <span className="text-[9px] font-mono font-bold tracking-[0.25em] text-stone-400 uppercase">
                       Select Right Path
                     </span>
-                    <div className="w-8 h-8 rounded-full border border-teal-200 bg-teal-50/50 flex items-center justify-center group-hover:bg-[#087F7B] group-hover:border-[#087F7B] transition-all shadow-sm">
-                      <ArrowRight className="w-4 h-4 text-[#087F7B] group-hover:text-white transition-colors" />
+                    <div className="w-8 h-8 rounded-full border border-indigo-200 bg-indigo-50/50 flex items-center justify-center group-hover:bg-[#526C9E] group-hover:border-[#526C9E] transition-all shadow-sm">
+                      <ArrowRight className="w-4 h-4 text-[#526C9E] group-hover:text-white transition-colors" />
                     </div>
                   </div>
 
                   <div className="space-y-2">
                     <div className="flex items-end gap-2 justify-end">
-                      <div className="flex-1 mb-1.5 h-px bg-stone-300/60 group-hover:bg-[#087F7B]/40 transition-colors" />
-                      <span className="font-black text-[#34363A] leading-none tracking-tight group-hover:text-[#087F7B] transition-colors font-cinematic-title" style={{ fontSize: 'clamp(22px, 2.8vw, 36px)' }}>
+                      <div className="flex-1 mb-1.5 h-px bg-stone-300/60 group-hover:bg-[#526C9E]/40 transition-colors" />
+                      <span className="font-black text-[#34363A] leading-none tracking-tight group-hover:text-[#526C9E] transition-colors font-cinematic-title" style={{ fontSize: 'clamp(22px, 2.8vw, 36px)' }}>
                         CINEMORPH
                       </span>
                     </div>

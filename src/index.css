@@ -1,44 +1,61 @@
 @import "tailwindcss";
 
 :root {
-  --oms-utube-primary: #B83A4B;
-  --oms-utube-secondary: #C96A68;
-  --oms-utube-bg: #FAF8F5;
-  --oms-utube-surface: #F4EFEC;
-  --oms-utube-card: #FFFFFF;
-  --oms-utube-border: #E4DCD8;
-  --oms-utube-text: #252326;
-  --oms-utube-text-secondary: #686267;
-  --oms-utube-text-muted: #8B8589;
+  /* Master Environment Palette */
+  --oms-env-bg: #F7F5F0;
+  --oms-env-surface: #FFFEFB;
+  --oms-env-surface-secondary: #F1EFEA;
+  --oms-env-text: #202124;
+  --oms-env-text-secondary: #68665F;
+  --oms-env-text-muted: #8B8982;
+  --oms-env-border: #DDDAD3;
 
-  --oms-cinemorph-primary: #087F7B;
-  --oms-cinemorph-secondary: #4E9D98;
-  --oms-cinemorph-bg: #F8F3EA;
-  --oms-cinemorph-surface: #F1ECE3;
-  --oms-cinemorph-card: #FFFDF9;
-  --oms-cinemorph-border: #DDD5C9;
-  --oms-cinemorph-text: #242426;
-  --oms-cinemorph-text-secondary: #655F5A;
-  --oms-cinemorph-text-muted: #888078;
+  /* U-Tube Identity (Warm Vermilion Accent) */
+  --oms-utube-primary: #C7494F;
+  --oms-utube-soft: #E9B6B4;
+  --oms-utube-deep: #96383E;
+  --oms-utube-bg: #F7F5F0;
+  --oms-utube-surface: #FFFEFB;
+  --oms-utube-card: #FFFEFB;
+  --oms-utube-border: #DDDAD3;
+  --oms-utube-text: #202124;
+  --oms-utube-text-secondary: #68665F;
+  --oms-utube-text-muted: #8B8982;
 
+  /* CineMorph Identity (Muted Cinematic Blue / Indigo Accent) */
+  --oms-cinemorph-primary: #526C9E;
+  --oms-cinemorph-soft: #B8C4DA;
+  --oms-cinemorph-deep: #3F527A;
+  --oms-cinemorph-bg: #F7F5F0;
+  --oms-cinemorph-surface: #F1EFEA;
+  --oms-cinemorph-card: #FFFEFB;
+  --oms-cinemorph-border: #DDDAD3;
+  --oms-cinemorph-text: #202124;
+  --oms-cinemorph-text-secondary: #68665F;
+  --oms-cinemorph-text-muted: #8B8982;
+
+  /* Theater Dark Mode Palette */
   --oms-theater-bg: #101214;
   --oms-theater-bg-deep: #08090A;
   --oms-theater-surface: #17191B;
   --oms-theater-text: #F4F0E8;
   --oms-theater-text-secondary: #B8B3AA;
 
-  --oms-neutral-primary: #34363A;
-  --oms-neutral-secondary: #8B9095;
-  --oms-neutral-bg: #F1F2F2;
-  --oms-neutral-surface: #FFFFFF;
-  --oms-neutral-text: #26282B;
-  --oms-neutral-muted: #777B80;
-  --oms-neutral-border: #D9DCDD;
+  /* OMS Intelligence System Neutral Identity */
+  --oms-neutral-primary: #5E6166;
+  --oms-neutral-soft: #D5D7D9;
+  --oms-neutral-deep: #3E4145;
+  --oms-neutral-bg: #F1EFEA;
+  --oms-neutral-surface: #FFFEFB;
+  --oms-neutral-text: #202124;
+  --oms-neutral-muted: #8B8982;
+  --oms-neutral-border: #DDDAD3;
 
+  /* Functional Semantics */
   --oms-success: #2F7D5A;
   --oms-warning: #B47A2C;
   --oms-error: #B13A3A;
-  --oms-info: #476B8F;
+  --oms-info: #526C9E;
 }
 
 @theme {

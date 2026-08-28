@@ -184,8 +184,9 @@ export const useTicketStore = create<TicketStoreState>()(
           } catch (e) {}
         }
 
-        // Auto-save and register the torn ticket
-        const ticketId = get().saveTicketProgress({
+        // Create temporary active ticket
+        const tempTicket: MovieTicket = {
+          ticketId: `ticket_temp_${Date.now()}`,
           movieTitle: title,
           sourceUrl: movie.source,
           isLocal: movie.isLocal,
@@ -193,14 +194,14 @@ export const useTicketStore = create<TicketStoreState>()(
           framingRule: cineMorph.framingRule,
           timestampSeconds: 0,
           durationSeconds: durationSeconds,
-        });
-
-        const createdTicket = get().tickets.find((t) => t.ticketId === ticketId) || null;
+          printedAt: Date.now(),
+          seatAssignment: generateSeatAssignment(),
+        };
 
         set({
           isPrintingAnimationActive: true,
           animationCountdownSeconds: 0,
-          activeTicket: createdTicket,
+          activeTicket: tempTicket,
         });
 
         // Load media into CineMorph player

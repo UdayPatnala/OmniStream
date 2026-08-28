@@ -695,19 +695,56 @@ export function CineMorphTheater() {
   // Video Tracks (Multi-Angle / Stream Quality) State
   const [selectedVideoTrackId, setSelectedVideoTrackId] = useState<string>('vid-auto');
 
-  const audioTrackOptions = [
-    { id: 'audio-main', label: 'Main Feature Audio', language: 'English (Original)', channels: '5.1 Dolby Surround' },
-    { id: 'audio-commentary', label: 'Director Commentary', language: 'English (Commentary)', channels: '2.0 Stereo' },
-    { id: 'audio-alt', label: 'Alternate Dubbed Track', language: 'Spanish / Multi-Language', channels: '2.0 Stereo' },
-    { id: 'audio-descriptive', label: 'Descriptive Audio (AD)', language: 'English (Descriptive)', channels: '2.0 Stereo' },
-  ];
+  // Real detected audio and video tracks (No fake tracks)
+  const audioTrackOptions = React.useMemo(() => {
+    if (isLocalMedia && localVideoRef.current && (localVideoRef.current as any).audioTracks?.length > 1) {
+      const trks = (localVideoRef.current as any).audioTracks;
+      return Array.from(trks).map((t: any, i: number) => ({
+        id: `audio-${i}`,
+        label: t.label || `Audio Track ${i + 1}`,
+        language: t.language || 'Native',
+        channels: 'Multi-Channel'
+      }));
+    }
+    return [
+      { id: 'audio-main', label: 'Native Source Audio', language: 'Default / Original', channels: 'Standard' }
+    ];
+  }, [isLocalMedia]);
 
-  const videoTrackOptions = [
-    { id: 'vid-auto', label: 'Master Native Direct Stream', resolution: '4K UHD Source', fps: '60 fps', bitrate: 'Auto Lossless' },
-    { id: 'vid-1080', label: 'High Definition 1080p', resolution: '1920x1080', fps: '60 fps', bitrate: '12 Mbps' },
-    { id: 'vid-720', label: 'Standard HD 720p', resolution: '1280x720', fps: '30 fps', bitrate: '5 Mbps' },
-    { id: 'vid-cinema', label: 'Cinema DCI Native Color', resolution: 'Direct Native Color', fps: '24 fps', bitrate: 'DCI-P3' },
-  ];
+  const videoTrackOptions = React.useMemo(() => {
+    if (isLocalMedia && localVideoRef.current && (localVideoRef.current as any).videoTracks?.length > 1) {
+      const trks = (localVideoRef.current as any).videoTracks;
+      return Array.from(trks).map((t: any, i: number) => ({
+        id: `vid-${i}`,
+        label: t.label || `Video Stream ${i + 1}`,
+        resolution: 'Native',
+        fps: '',
+        bitrate: 'Lossless'
+      }));
+    }
+    return [
+      { id: 'vid-auto', label: 'Native Video Stream', resolution: 'Original Source', fps: '', bitrate: 'Default' }
+    ];
+  }, [isLocalMedia]);
+
+  // Screen click handler: hide controls/drawers if open; enter fullscreen if closed ("dont vice versa")
+  const handleScreenClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (controlsVisible || showStudioDrawer || showShortcuts) {
+      setControlsVisible(false);
+      setShowStudioDrawer(false);
+      setShowShortcuts(false);
+      return;
+    }
+    if (!document.fullscreenElement && !(document as any).webkitFullscreenElement) {
+      if (containerRef.current?.requestFullscreen) {
+        containerRef.current.requestFullscreen().catch(() => {});
+      } else if ((containerRef.current as any)?.webkitRequestFullscreen) {
+        (containerRef.current as any).webkitRequestFullscreen();
+      }
+      setIsFullscreen(true);
+    }
+  };
 
   // Original Mode Subtle Curved Screen state & animation
   const isOriginalMode = frameAspectRatio === 'original' || presentationMode === 'original';
@@ -857,7 +894,8 @@ export function CineMorphTheater() {
 
       {/* ── The Cinema Screen Container ── */}
       <div
-        className="relative transition-all duration-500 ease-out w-full flex items-center justify-center z-10 overflow-hidden shadow-2xl border border-amber-900/10 bg-black"
+        onClick={handleScreenClick}
+        className="relative transition-all duration-500 ease-out w-full flex items-center justify-center z-10 overflow-hidden shadow-2xl border border-white/10 bg-black cursor-pointer"
         style={{
           aspectRatio: frameStyle.aspectRatioStyle,
           width: '100%',
@@ -869,10 +907,10 @@ export function CineMorphTheater() {
           maxHeight: isFullscreen ? '92vh' : frameAspectRatio === '4.3:1' ? '84vh' : '78vh',
           filter: isOriginalMode ? 'none' : presentationMode === 'cinema' ? 'brightness(1.03) contrast(1.02)' : 'none',
           borderRadius: isOriginalMode
-            ? '6px 6px 8px 8px'
+            ? '12px 12px 16px 16px'
             : presentationMode === 'cinema'
-            ? '10px 10px 48px 48px / 10px 10px 18px 18px'
-            : '8px 8px 12px 12px',
+            ? '16px 16px 48px 48px / 16px 16px 24px 24px'
+            : '12px 12px 16px 16px',
           transform: isOriginalMode
             ? (curvedScreenActive ? 'perspective(1100px) rotateX(-0.6deg) scaleX(0.995)' : 'none')
             : presentationMode === 'cinema' 
@@ -887,6 +925,15 @@ export function CineMorphTheater() {
             : '0 20px 25px -5px rgba(0,0,0,0.1)'
         }}
       >
+        {/* Subtitles / CC Visual Text Overlay */}
+        {subtitlesOn && !showIntroBumper && theaterState !== 'ended' && (
+          <div className="absolute bottom-8 inset-x-0 z-30 flex justify-center pointer-events-none px-6 animate-in fade-in duration-200">
+            <div className="bg-black/90 text-white text-sm sm:text-base md:text-lg font-bold px-5 py-2 rounded-xl border border-white/20 shadow-2xl backdrop-blur-md tracking-wide text-center max-w-2xl font-sans drop-shadow-md">
+              {video?.title ? `[CC] Playing: ${video.title}` : `[Closed Captions Enabled]` }
+            </div>
+          </div>
+        )}
+
         <div
           className="w-full h-full transition-transform duration-500 relative overflow-hidden"
           style={{
@@ -1652,18 +1699,6 @@ export function CineMorphTheater() {
               <span>View Keyboard Shortcuts</span>
             </button>
           </div>
-
-          {/* AI Summary Breakdown */}
-          {aiSummary && (
-            <div className="space-y-2 pt-2 border-t border-amber-900/30">
-              <div className="text-[10px] font-bold text-amber-400 uppercase tracking-widest">
-                Executive Breakdown
-              </div>
-              <p className="text-xs text-amber-200/80 leading-relaxed bg-amber-950/20 p-3 rounded-xl border border-amber-900/20">
-                {aiSummary.executiveSummary}
-              </p>
-            </div>
-          )}
         </div>
       )}
 

@@ -395,7 +395,7 @@ export const useAppStore = create<AppState>()(
       cinemorphTheme: 'cinematic-dark',
       setCinemorphTheme: (cinemorphTheme) => set({ cinemorphTheme }),
 
-      glowIntensity: 'ultra',
+      glowIntensity: 'off',
       setGlowIntensity: (glowIntensity) => set({ glowIntensity }),
 
       frameAspectRatio: '16:9',
@@ -501,7 +501,7 @@ export const useAppStore = create<AppState>()(
       merge: (persistedState: any, currentState) => ({
         ...currentState,
         ...(persistedState || {}),
-        glowIntensity: persistedState?.glowIntensity || 'ultra',
+        glowIntensity: persistedState?.glowIntensity || 'off',
         frameAspectRatio: persistedState?.frameAspectRatio || '16:9',
         reframeMode: persistedState?.reframeMode || 'center',
         cinemorphTheme: persistedState?.cinemorphTheme || 'cinematic-dark',
