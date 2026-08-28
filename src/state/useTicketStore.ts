@@ -2,6 +2,8 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { AspectRatioMode, FramingRuleMode, useCineMorphStore } from './useCineMorphStore';
 import { storageService, IDB_STORES } from '../services/storageService';
+import { getVideosByIds } from '../lib/youtube';
+import { extractYouTubeId } from '../lib/utils';
 
 export interface MovieTicket {
   ticketId: string;
@@ -152,8 +154,6 @@ export const useTicketStore = create<TicketStoreState>()(
 
         if (!movie.isLocal) {
           try {
-            const { getVideosByIds } = await import('../lib/youtube');
-            const { extractYouTubeId } = await import('../lib/utils');
             const ytId = extractYouTubeId(movie.source);
             if (ytId) {
               const videos = await getVideosByIds([ytId]);

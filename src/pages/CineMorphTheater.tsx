@@ -93,7 +93,8 @@ export function CineMorphTheater() {
   const [speedRate, setSpeedRate] = useState(1);
   const [audioTrackIndex, setAudioTrackIndex] = useState(0);
   const [hudToast, setHudToast] = useState<string | null>(null);
-  const [dynamicBloomColor, setDynamicBloomColor] = useState<string | null>(null);
+  
+  const bloomRef = useRef<HTMLDivElement>(null);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [recommendations, setRecommendations] = useState<Video[]>([]);
@@ -336,8 +337,8 @@ export function CineMorphTheater() {
     // Instant zero-wait cache lookup for immediate room glow
     if (localItem?.id && !showIntroBumper) {
       const cached = localVideoAnalyzer.getCachedAnalysis(localItem.id);
-      if (cached) {
-        setDynamicBloomColor(cached.dominantColor);
+      if (cached && bloomRef.current) {
+        bloomRef.current.style.background = `radial-gradient(ellipse at center, ${cached.dominantColor} 0%, rgba(7, 5, 3, 0.95) 75%)`;
       }
     }
 
@@ -348,8 +349,8 @@ export function CineMorphTheater() {
         const runSampling = () => {
           if (activeVideoEl) {
             const analysis = localVideoAnalyzer.analyzeVideoFrame(activeVideoEl, showIntroBumper ? 'cinema-intro' : localItem?.id);
-            if (analysis) {
-              setDynamicBloomColor(analysis.dominantColor);
+            if (analysis && bloomRef.current) {
+              bloomRef.current.style.background = `radial-gradient(ellipse at center, ${analysis.dominantColor} 0%, rgba(7, 5, 3, 0.95) 75%)`;
             }
           }
         };
@@ -779,10 +780,11 @@ export function CineMorphTheater() {
       {/* ── Dynamic Reactive Ambilight Bloom (Auditorium Ambient Glow) ── */}
       {presentationMode === 'cinema' && !isOriginalMode && glowIntensity !== 'off' && (
         <div
+          ref={bloomRef}
           className="absolute inset-0 pointer-events-none transition-all duration-700 z-0"
           style={{
             background: `radial-gradient(ellipse at center, ${
-              dynamicBloomColor || adaptiveDecision.ambientLight.lowpassColor || 'rgba(217, 119, 6, 0.35)'
+              adaptiveDecision.ambientLight.lowpassColor || 'rgba(217, 119, 6, 0.35)'
             } 0%, rgba(7, 5, 3, 0.95) 75%)`,
             filter: 'blur(80px)',
             opacity: theaterState === 'playing' ? (glowIntensity === 'ultra' ? 0.9 : 0.6) : 0.3,

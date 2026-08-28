@@ -30,7 +30,6 @@ export default defineConfig(() => {
             'vendor-motion': ['motion'],
             'vendor-icons': ['lucide-react'],
             'vendor-state': ['zustand', 'clsx', 'tailwind-merge'],
-            'vendor-three': ['three'],
           },
         },
       },
