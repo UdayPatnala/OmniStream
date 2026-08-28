@@ -152,6 +152,12 @@ export const useTicketStore = create<TicketStoreState>()(
         let title = movie.title;
         let durationSeconds = 0;
 
+        // Set initial staging state
+        set({
+          isPrintingAnimationActive: true,
+          animationCountdownSeconds: 0,
+        });
+
         if (!movie.isLocal) {
           try {
             const ytId = extractYouTubeId(movie.source);
@@ -182,6 +188,11 @@ export const useTicketStore = create<TicketStoreState>()(
               };
             });
           } catch (e) {}
+        }
+
+        // If user cancelled while async resolution was running, do not re-activate
+        if (!get().isPrintingAnimationActive) {
+          return;
         }
 
         // Create temporary active ticket
