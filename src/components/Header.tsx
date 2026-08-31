@@ -1,9 +1,8 @@
-import { Search, Menu, Clock, X, Mic, Bell, Video as VideoIcon, Sparkles, Layers, Palette, Zap, Settings2, Compass, Film } from 'lucide-react';
+import { Search, Menu, Clock, X, Mic, Layers, Settings2, Film } from 'lucide-react';
 import { useState, useEffect, type FormEvent } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { fetchSearchSuggestions } from '../lib/youtube';
 import { useAppStore } from '../store';
-import { CineMorphTheme } from '../types';
 import { AnimatePresence, motion } from 'motion/react';
 import { extractYouTubeId } from '../lib/utils';
 import { playbackService } from '../lib/services/playbackService';
@@ -18,19 +17,13 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
   const [query, setQuery] = useState(urlQuery);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [showThemeMenu, setShowThemeMenu] = useState(false);
   const [pipelineState, setPipelineState] = useState<PlaybackState>('IDLE');
   const [isListening, setIsListening] = useState(false);
   const navigate = useNavigate();
 
-  const { 
-    versionMode, 
-    setVersionMode, 
-    cinemorphTheme, 
-    setCinemorphTheme,
+  const {
     instantAutoPlay,
     setInstantAutoPlay,
-    setRootLandingPreference,
   } = useAppStore();
 
   const startVoiceSearch = () => {
@@ -134,15 +127,6 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
       navigate(`/search?q=${encodeURIComponent(finalQuery)}`);
     }
   };
-
-  const themesList: { id: CineMorphTheme; name: string; color: string }[] = [
-    { id: 'cinematic-dark', name: 'Cinematic Dark', color: 'bg-indigo-600' },
-    { id: 'cyberpunk-oled', name: 'Cyberpunk OLED', color: 'bg-cyan-500' },
-    { id: 'glassmorphic-neon', name: 'Glassmorphic Neon', color: 'bg-purple-500' },
-    { id: 'ambient-minimal', name: 'Ambient Minimalist', color: 'bg-emerald-500' },
-    { id: 'imax-ultra', name: 'IMAX Ultra', color: 'bg-sky-500' },
-    { id: 'golden-hour', name: 'Golden Hour', color: 'bg-amber-500' },
-  ];
 
   return (
     <header className="flex items-center justify-between sticky top-0 z-40 px-4 py-2 bg-utube-card/90 backdrop-blur-xl border-b border-utube-border h-14 select-none">
@@ -294,71 +278,30 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
         </button>
       </div>
 
-      {/* Right: Theme Selector & User Controls */}
+      {/* Right: Cross-engine navigation + profile */}
       <div className="flex items-center gap-2">
-        {/* Experience Gateway Switcher */}
-        <Link 
-          to="/landing"
-          onClick={() => setRootLandingPreference('ask')}
-          className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-utube-bg hover:bg-utube-surface border border-utube-border hover:border-utube-primary text-utube-text-secondary hover:text-utube-primary text-xs font-bold transition-all"
-          title="Switch between U-Tube V1 and CineMorph V2"
-        >
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>Gateway</span>
-        </Link>
-
-        {/* Theme Selector */}
-        <div className="relative">
-          <button 
-            onClick={() => setShowThemeMenu(!showThemeMenu)}
-            className="p-2 text-utube-text hover:bg-utube-surface rounded-full transition-colors"
-            title="Morph Aesthetic Theme"
-          >
-            <Palette className="w-5 h-5" />
-          </button>
-
-          {showThemeMenu && (
-            <div className="absolute right-0 mt-2 w-48 bg-utube-card border border-utube-border rounded-2xl shadow-xl p-2 z-50">
-              <div className="text-[11px] font-semibold uppercase tracking-wider text-utube-text-muted px-3 py-1 border-b border-utube-border mb-1">
-                Aesthetic Mode
-              </div>
-              {themesList.map(t => (
-                <button
-                  key={t.id}
-                  onClick={() => {
-                    setCinemorphTheme(t.id);
-                    setShowThemeMenu(false);
-                  }}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-left transition-colors ${
-                    cinemorphTheme === t.id ? 'bg-utube-primary text-white font-semibold' : 'text-utube-text hover:bg-utube-surface'
-                  }`}
-                >
-                  <span className={`w-2.5 h-2.5 rounded-full ${t.color}`} />
-                  <span>{t.name}</span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Dual-Engine Portal & CineMorph Quick Jump */}
-        <Link 
-          to="/portal" 
-          title="Switch Engine Portal (Bento Hub)"
+        {/* OmniStream home — permitted cross-product escape #1 */}
+        <Link
+          to="/"
+          title="Return to OmniStream gateway"
           className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-utube-surface hover:bg-utube-border/50 text-utube-text-secondary hover:text-utube-text border border-utube-border text-xs font-semibold transition-all"
         >
-          <Compass className="w-3.5 h-3.5 text-utube-text-muted" />
-          <span>Hub</span>
+          <Layers className="w-3.5 h-3.5 text-utube-text-muted" />
+          <span>OmniStream</span>
         </Link>
-        <Link 
-          to="/cinemorph" 
+
+        {/* CineMorph — permitted cross-product escape #2 */}
+        <Link
+          to="/cinemorph"
           title="Launch CineMorph Virtual Theater"
           className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/30 text-xs font-bold transition-all shadow-sm group"
         >
           <Film className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400 group-hover:scale-110 transition-transform" />
           <span className="font-cinematic">CineMorph</span>
         </Link>
-        <Link to="/settings" title="Settings" className="w-8 h-8 rounded-full bg-utube-primary hover:bg-utube-secondary text-white flex items-center justify-center font-bold text-xs ml-1 shadow-sm transition-colors">
+
+        {/* User/settings avatar */}
+        <Link to="/settings" title="Preferences" className="w-8 h-8 rounded-full bg-utube-primary hover:bg-utube-secondary text-white flex items-center justify-center font-bold text-xs ml-1 shadow-sm transition-colors">
           U
         </Link>
       </div>

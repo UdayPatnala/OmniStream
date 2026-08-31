@@ -43,7 +43,8 @@ describe('Threshold & Landing Portal Components', () => {
     expect(screen.getByText(/CINEMORPH/i)).toBeInTheDocument();
     expect(screen.getByText(/DISCOVERY FLOW/i)).toBeInTheDocument();
     expect(screen.getByText(/THEATER APERTURE/i)).toBeInTheDocument();
-    expect(screen.getByText(/AN/i)).toBeInTheDocument();
+    // AROH product seal is now an image (no text); verify it via aria-label on the container
+    expect(screen.getByLabelText(/An AROH product/i)).toBeInTheDocument();
   });
 
   it('renders BentoGrid header and both mode cards', () => {

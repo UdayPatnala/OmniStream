@@ -100,6 +100,13 @@ export function CineMorphTheater() {
   const [recommendations, setRecommendations] = useState<Video[]>([]);
   const [nextUpCountdown, setNextUpCountdown] = useState<number | null>(null);
 
+  // Audio/Video track selections (must be here at top with all other hooks — NOT after derived state)
+  const [selectedAudioTrackId, setSelectedAudioTrackId] = useState<string>('audio-main');
+  const [selectedVideoTrackId, setSelectedVideoTrackId] = useState<string>('vid-auto');
+
+  // Curved screen activation for original mode (must be with all hooks — NOT after handler functions)
+  const [curvedScreenActive, setCurvedScreenActive] = useState(false);
+
   // Fetch recommendations & reset player state on video ID change
   useEffect(() => {
     if (!id) return;
@@ -527,6 +534,24 @@ export function CineMorphTheater() {
     return () => clearTimeout(t);
   }, []);
 
+  // Curved screen entrance animation for original mode
+  useEffect(() => {
+    const isOriginal = frameAspectRatio === 'original' || presentationMode === 'original';
+    if (isOriginal) {
+      const prefersReducedMotion = typeof window !== 'undefined' &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (prefersReducedMotion) {
+        setCurvedScreenActive(true);
+      } else {
+        setCurvedScreenActive(false);
+        const timer = setTimeout(() => setCurvedScreenActive(true), 60);
+        return () => clearTimeout(timer);
+      }
+    } else {
+      setCurvedScreenActive(false);
+    }
+  }, [frameAspectRatio, presentationMode]);
+
   const toggleFullscreen = () => {
     if (!document.fullscreenElement && containerRef.current) {
       containerRef.current.requestFullscreen().catch(() => {});
@@ -697,12 +722,8 @@ export function CineMorphTheater() {
   const aiSummary = video ? generateAISummary(video) : null;
   const scriptChunks = video ? extractVideoScript(video) : [];
 
-  // Audio Tracks (Multi-Language / Audio Streams) State
-  const [selectedAudioTrackId, setSelectedAudioTrackId] = useState<string>('audio-main');
-  // Video Tracks (Multi-Angle / Stream Quality) State
-  const [selectedVideoTrackId, setSelectedVideoTrackId] = useState<string>('vid-auto');
-
   // Real detected audio and video tracks (No fake tracks)
+  // useMemo is safe here — not a useState (order-sensitive hook)
   const audioTrackOptions = React.useMemo(() => {
     if (isLocalMedia && localVideoRef.current && (localVideoRef.current as any).audioTracks?.length > 1) {
       const trks = (localVideoRef.current as any).audioTracks;
@@ -734,7 +755,7 @@ export function CineMorphTheater() {
     ];
   }, [isLocalMedia]);
 
-  // Screen click handler: hide controls/drawers if open; enter fullscreen if closed ("dont vice versa")
+  // Screen click handler: hide controls/drawers if open; enter fullscreen if closed
   const handleScreenClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (controlsVisible || showStudioDrawer || showShortcuts) {
@@ -753,28 +774,9 @@ export function CineMorphTheater() {
     }
   };
 
-  // Original Mode Subtle Curved Screen state & animation
+  // Derived mode flags (computed from state, not hooks)
   const isOriginalMode = frameAspectRatio === 'original' || presentationMode === 'original';
-  const [curvedScreenActive, setCurvedScreenActive] = useState(false);
-
-  useEffect(() => {
-    if (isOriginalMode) {
-      const prefersReducedMotion = typeof window !== 'undefined' &&
-        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-      if (prefersReducedMotion) {
-        setCurvedScreenActive(true);
-      } else {
-        setCurvedScreenActive(false);
-        const timer = setTimeout(() => {
-          setCurvedScreenActive(true);
-        }, 60);
-        return () => clearTimeout(timer);
-      }
-    } else {
-      setCurvedScreenActive(false);
-    }
-  }, [isOriginalMode, frameAspectRatio, presentationMode]);
+  const isIMAXMode = (frameAspectRatio === '1.90:1' || frameAspectRatio === '1.43:1') && presentationMode !== 'original';
 
   return (
     <div
