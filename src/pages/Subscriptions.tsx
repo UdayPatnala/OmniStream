@@ -44,12 +44,12 @@ export function Subscriptions() {
 
   if (subscriptions.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-[50vh] text-center max-w-md mx-auto">
-        <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-6 border border-slate-200">
-          <Tv className="w-8 h-8 text-slate-400" />
+      <div className="flex flex-col items-center justify-center h-[50vh] text-center max-w-md mx-auto text-utube-text">
+        <div className="w-20 h-20 bg-utube-surface rounded-full flex items-center justify-center mb-6 border border-utube-border">
+          <Tv className="w-8 h-8 text-utube-text-muted" />
         </div>
-        <h2 className="text-xl font-semibold mb-2 text-slate-800">No Subscriptions Yet</h2>
-        <p className="text-slate-500 text-sm">
+        <h2 className="text-xl font-bold mb-2 text-utube-text">No Subscriptions Yet</h2>
+        <p className="text-utube-text-muted text-sm">
           Subscribe to channels to see their latest videos here. Search for your favorite creators to get started.
         </p>
       </div>
@@ -59,9 +59,9 @@ export function Subscriptions() {
   const selectedChannel = subscriptions.find(s => s.id === selectedChannelId) || subscriptions[0];
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto py-4 font-sans">
+    <div className="space-y-8 max-w-7xl mx-auto py-4 font-sans text-utube-text select-none">
       <div>
-        <h1 className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400 mb-6">Your Subscriptions</h1>
+        <h1 className="text-xs font-bold uppercase tracking-[0.2em] text-utube-text-muted mb-6">Your Subscriptions</h1>
         <div className="flex gap-5 overflow-x-auto pb-4 hide-scrollbar">
           {subscriptions.map(sub => {
             const initial = sub.title ? sub.title.charAt(0).toUpperCase() : 'C';
@@ -74,13 +74,13 @@ export function Subscriptions() {
               >
                 <div className={`w-14 h-14 rounded-full flex items-center justify-center text-base font-bold transition-all shadow-sm ${
                   isActive
-                    ? 'bg-[#B83A4B] text-white ring-2 ring-offset-2 ring-[#B83A4B]'
-                    : 'bg-white text-slate-700 border border-slate-200 group-hover:border-slate-350 hover:bg-slate-50'
+                    ? 'bg-utube-primary text-white ring-2 ring-offset-2 ring-utube-primary'
+                    : 'bg-utube-card text-utube-text border border-utube-border group-hover:border-utube-primary/40 hover:bg-utube-surface'
                 }`}>
                   {initial}
                 </div>
                 <span className={`text-[11px] text-center line-clamp-1 w-20 font-semibold transition-colors ${
-                  isActive ? 'text-[#B83A4B]' : 'text-slate-500 group-hover:text-slate-800'
+                  isActive ? 'text-utube-primary' : 'text-utube-text-muted group-hover:text-utube-text'
                 }`}>
                   {sub.title}
                 </span>
@@ -90,43 +90,45 @@ export function Subscriptions() {
         </div>
       </div>
 
-      <div className="border-t border-slate-200/80 pt-6">
+      <div className="border-t border-utube-border pt-6">
         <div className="flex items-center justify-between gap-4 mb-6">
           <div>
-            <h2 className="text-lg font-bold text-slate-900 leading-none">{selectedChannel?.title}</h2>
-            <p className="text-xs text-slate-500 mt-1">Latest uploads from this channel</p>
+            <h2 className="text-lg font-bold text-utube-text leading-none">{selectedChannel?.title}</h2>
+            <p className="text-xs text-utube-text-muted mt-1">Latest uploads from this channel</p>
           </div>
           {selectedChannelId && (
             <Link
               to={`/channel/${selectedChannelId}`}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full hover:bg-slate-100 text-xs font-semibold text-slate-700 transition-colors border border-slate-200"
+              className="flex items-center gap-1 text-xs font-bold text-utube-primary hover:underline"
             >
-              <span>View Channel Page</span>
+              <span>View Channel</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           )}
         </div>
 
-        {error && (
-          <div className="p-4 bg-red-50 text-red-700 rounded-xl border border-red-200 flex items-center gap-3 mb-6">
-            <AlertCircle className="w-5 h-5 text-red-600" />
-            <span className="text-sm font-medium">{error}</span>
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 gap-y-6">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <VideoCardSkeleton key={i} />
+            ))}
+          </div>
+        ) : error ? (
+          <div className="flex items-center gap-3 p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-600 text-xs font-medium">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>{error}</span>
+          </div>
+        ) : videos.length === 0 ? (
+          <div className="p-8 text-center text-xs text-utube-text-muted bg-utube-surface/50 rounded-2xl border border-utube-border">
+            No uploads found for this channel.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 gap-y-6">
+            {videos.map(video => (
+              <VideoCard key={video.id} video={video} />
+            ))}
           </div>
         )}
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {loading ? (
-            Array.from({ length: 8 }).map((_, i) => <VideoCardSkeleton key={i} />)
-          ) : videos.length > 0 ? (
-            videos.map(video => (
-              <VideoCard key={video.id} video={video} />
-            ))
-          ) : (
-            <div className="col-span-full py-12 text-center text-slate-500 text-sm font-medium">
-              No videos found for this channel.
-            </div>
-          )}
-        </div>
       </div>
     </div>
   );

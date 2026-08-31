@@ -34,17 +34,17 @@ export function Collections() {
   };
 
   return (
-    <div className="flex flex-col md:flex-row gap-6 h-full max-w-[1700px] mx-auto py-2">
+    <div className="flex flex-col md:flex-row gap-6 h-full max-w-[1700px] mx-auto py-2 text-utube-text select-none font-sans">
       {/* Sidebar Collections List */}
       <div className="w-full md:w-64 shrink-0 space-y-3">
-        <div className="flex items-center justify-between border-b border-[#272727] pb-2">
-          <h2 className="text-sm font-bold uppercase tracking-wider text-[#aaaaaa]">Playlists & Collections</h2>
+        <div className="flex items-center justify-between border-b border-utube-border pb-3">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-utube-text-muted">Playlists & Collections</h2>
           <button 
             onClick={() => setShowNewForm(!showNewForm)}
-            className="p-1 hover:bg-[#272727] rounded-full transition-colors text-white"
+            className="p-1.5 hover:bg-utube-surface rounded-xl transition-colors text-utube-text cursor-pointer"
             title="Create new collection"
           >
-            <Plus className="w-5 h-5" />
+            <Plus className="w-4 h-4 text-utube-primary" />
           </button>
         </div>
 
@@ -55,10 +55,10 @@ export function Collections() {
               placeholder="Playlist name..."
               value={newCollectionName}
               onChange={(e) => setNewCollectionName(e.target.value)}
-              className="flex-1 h-9 px-3 text-xs rounded-lg border border-[#383838] bg-[#121212] text-[#f1f1f1] focus:outline-none"
+              className="flex-1 h-9 px-3 text-xs rounded-xl border border-utube-border bg-utube-surface text-utube-text focus:outline-none focus:border-utube-primary"
               autoFocus
             />
-            <button type="submit" className="px-3 h-9 bg-white text-black text-xs font-bold rounded-lg hover:bg-[#d9d9d9]">
+            <button type="submit" className="px-3 h-9 bg-utube-primary text-white text-xs font-bold rounded-xl hover:opacity-90 transition-opacity cursor-pointer">
               Add
             </button>
           </form>
@@ -69,23 +69,23 @@ export function Collections() {
             <button
               key={col.id}
               onClick={() => setActiveTabId(col.id)}
-              className={`w-full flex items-center justify-between p-3 rounded-xl text-left transition-colors ${
+              className={`w-full flex items-center justify-between p-3 rounded-2xl text-left transition-colors cursor-pointer ${
                 activeTabId === col.id 
-                  ? 'bg-[#272727] text-white font-semibold' 
-                  : 'hover:bg-[#272727]/50 text-[#f1f1f1]'
+                  ? 'bg-utube-card border border-utube-border shadow-sm text-utube-text font-bold ring-1 ring-utube-primary/30' 
+                  : 'hover:bg-utube-surface text-utube-text-secondary border border-transparent'
               }`}
             >
               <div className="flex items-center gap-3">
                 {col.id === 'watch-later' ? (
-                  <Clock className="w-4 h-4 text-cyan-400" />
+                  <Clock className="w-4 h-4 text-amber-500" />
                 ) : col.id === 'liked-videos' ? (
-                  <ThumbsUp className="w-4 h-4 text-purple-400" />
+                  <ThumbsUp className="w-4 h-4 text-utube-primary" />
                 ) : (
-                  <FolderHeart className="w-4 h-4 text-red-500" />
+                  <FolderHeart className="w-4 h-4 text-cinemorph-primary" />
                 )}
                 <span className="truncate text-xs">{col.name}</span>
               </div>
-              <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${activeTabId === col.id ? 'bg-[#383838]' : 'bg-[#1e1e1e]'}`}>
+              <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ${activeTabId === col.id ? 'bg-utube-surface text-utube-primary border border-utube-border' : 'bg-utube-surface text-utube-text-muted'}`}>
                 {col.videos.length}
               </span>
             </button>
@@ -94,14 +94,14 @@ export function Collections() {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 min-w-0 bg-[#272727] rounded-2xl p-6 border border-[#383838]">
+      <div className="flex-1 min-w-0 bg-utube-card rounded-3xl p-6 sm:p-7 border border-utube-border shadow-sm">
         {activePlaylist ? (
           <div className="space-y-6">
-            <div className="flex items-center justify-between border-b border-[#383838] pb-4">
+            <div className="flex items-center justify-between border-b border-utube-border pb-4">
               <div>
-                <h1 className="text-2xl font-bold text-[#f1f1f1]">{activePlaylist.name}</h1>
-                <p className="text-[#aaaaaa] text-xs mt-1">
-                  {activePlaylist.videos.length} saved videos
+                <h1 className="text-xl sm:text-2xl font-black text-utube-text font-cinematic-title uppercase tracking-tight">{activePlaylist.name}</h1>
+                <p className="text-utube-text-muted text-xs mt-1">
+                  {activePlaylist.videos.length} saved streams
                 </p>
               </div>
               
@@ -113,19 +113,20 @@ export function Collections() {
                       setActiveTabId('watch-later');
                     }
                   }}
-                  className="p-2 text-[#aaaaaa] hover:text-red-400 hover:bg-white/10 rounded-full transition-colors"
+                  className="p-2 text-utube-text-muted hover:text-red-600 hover:bg-red-500/10 rounded-xl transition-colors cursor-pointer"
+                  title="Delete Collection"
                 >
-                  <Trash2 className="w-5 h-5" />
+                  <Trash2 className="w-4 h-4" />
                 </button>
               )}
             </div>
 
             {activePlaylist.videos.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 text-[#aaaaaa]">
-                <FolderHeart className="w-16 h-16 mb-4 opacity-20" />
+              <div className="flex flex-col items-center justify-center py-16 text-utube-text-muted">
+                <FolderHeart className="w-12 h-12 mb-3 opacity-30 text-utube-primary" />
                 <p className="text-sm font-medium">This playlist is empty.</p>
-                <Link to="/" className="mt-4 text-white font-semibold hover:underline flex items-center text-xs">
-                  Discover videos <ChevronRight className="w-4 h-4 ml-1" />
+                <Link to="/home" className="mt-4 text-utube-primary font-bold hover:underline flex items-center text-xs">
+                  Discover streams <ChevronRight className="w-4 h-4 ml-1" />
                 </Link>
               </div>
             ) : (
@@ -143,8 +144,9 @@ export function Collections() {
                           removeVideoFromCollection(activePlaylist.id, video.id);
                         }
                       }}
-                      className="absolute top-2 right-2 p-1.5 bg-black/80 text-white hover:bg-red-500 rounded-full opacity-0 group-hover:opacity-100 transition-all z-10"
+                      className="absolute top-2 right-2 p-1.5 bg-black/80 text-white hover:bg-red-500 rounded-full opacity-0 group-hover:opacity-100 transition-all z-10 cursor-pointer shadow-md"
                       aria-label="Remove from collection"
+                      title="Remove"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -158,4 +160,3 @@ export function Collections() {
     </div>
   );
 }
-

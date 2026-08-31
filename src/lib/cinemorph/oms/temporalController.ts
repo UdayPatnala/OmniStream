@@ -2,7 +2,8 @@ import { OMS_ScoredFraming, OMS_TemporalState } from './types';
 
 /**
  * temporalController.ts - Stage 9: Temporal Motion & Hysteresis Controller
- * Prevents micro-jitter, hunting, and unnatural camera movements through exponential smoothing and deadband hysteresis.
+ * Prevents micro-jitter, hunting, and unnatural camera movements through
+ * 2nd-order critically damped spring-damper dynamics (zeta = 1.0) and deadband hysteresis.
  */
 export class OMS_TemporalController {
   private state: OMS_TemporalState = {
@@ -13,9 +14,10 @@ export class OMS_TemporalController {
     lastUpdateTime: 0,
   };
 
-  private readonly ALPHA = 0.15; // Low-pass filter smoothing coefficient
   private readonly DEADBAND_DELTA = 0.025; // Minimum target delta to trigger motion
-  private readonly MAX_VELOCITY_PER_SEC = 0.40; // Max pan velocity clamp
+  private readonly OMEGA_N = 6.0; // Natural frequency (rad/s)
+  private readonly ZETA = 1.0; // Critically damped ratio (zeta = 1.0: zero overshoot)
+  private readonly MAX_VELOCITY_PER_SEC = 0.45; // Max pan velocity clamp
 
   public smooth(
     target: OMS_ScoredFraming,
@@ -36,31 +38,50 @@ export class OMS_TemporalController {
       };
     }
 
-    const dt = Math.max(0.016, Math.min(0.2, Math.abs(timestamp - this.state.lastUpdateTime)));
+    const dt = Math.max(0.016, Math.min(0.1, Math.abs(timestamp - this.state.lastUpdateTime)));
     this.state.lastUpdateTime = timestamp;
 
-    // Deadband check
+    // Calculate displacement error
     const dx = target.panX - this.state.currentPanX;
     const dy = target.panY - this.state.currentPanY;
     const dScale = target.scale - this.state.currentScale;
 
-    let nextPanX = this.state.currentPanX;
-    let nextPanY = this.state.currentPanY;
-    let nextScale = this.state.currentScale;
+    // Apply deadband hysteresis
+    let effectiveTargetX = this.state.currentPanX;
+    let effectiveTargetY = this.state.currentPanY;
+    let effectiveTargetScale = this.state.currentScale;
 
     if (Math.abs(dx) > this.DEADBAND_DELTA) {
-      const clampedVx = Math.max(-this.MAX_VELOCITY_PER_SEC, Math.min(this.MAX_VELOCITY_PER_SEC, dx / dt));
-      nextPanX = this.state.currentPanX + clampedVx * dt * this.ALPHA;
+      effectiveTargetX = target.panX;
     }
-
     if (Math.abs(dy) > this.DEADBAND_DELTA) {
-      const clampedVy = Math.max(-this.MAX_VELOCITY_PER_SEC, Math.min(this.MAX_VELOCITY_PER_SEC, dy / dt));
-      nextPanY = this.state.currentPanY + clampedVy * dt * this.ALPHA;
+      effectiveTargetY = target.panY;
+    }
+    if (Math.abs(dScale) > 0.01) {
+      effectiveTargetScale = target.scale;
     }
 
-    if (Math.abs(dScale) > 0.01) {
-      nextScale = this.state.currentScale + dScale * this.ALPHA;
-    }
+    // Spring-Damper Physics step: F = -k*(x - target) - c*v
+    // For critical damping: k = omega^2, c = 2*zeta*omega
+    const k = this.OMEGA_N * this.OMEGA_N;
+    const c = 2 * this.ZETA * this.OMEGA_N;
+
+    const ax = k * (effectiveTargetX - this.state.currentPanX) - c * this.state.velocity.vx;
+    const ay = k * (effectiveTargetY - this.state.currentPanY) - c * this.state.velocity.vy;
+
+    // Integrate velocity and clamp
+    let vx = this.state.velocity.vx + ax * dt;
+    let vy = this.state.velocity.vy + ay * dt;
+
+    vx = Math.max(-this.MAX_VELOCITY_PER_SEC, Math.min(this.MAX_VELOCITY_PER_SEC, vx));
+    vy = Math.max(-this.MAX_VELOCITY_PER_SEC, Math.min(this.MAX_VELOCITY_PER_SEC, vy));
+
+    this.state.velocity = { vx, vy };
+
+    // Integrate position
+    const nextPanX = this.state.currentPanX + vx * dt;
+    const nextPanY = this.state.currentPanY + vy * dt;
+    const nextScale = this.state.currentScale + (effectiveTargetScale - this.state.currentScale) * 0.18;
 
     this.state.currentPanX = nextPanX;
     this.state.currentPanY = nextPanY;

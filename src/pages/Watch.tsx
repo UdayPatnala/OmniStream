@@ -106,7 +106,6 @@ export function Watch() {
     if (isSubscribed) {
       unsubscribe(video.channelId);
     } else {
-      // Save channel — use real data from API if available, else minimal stub
       const chanToSub: Channel = channel || {
         id: video.channelId,
         title: video.channelTitle,
@@ -153,13 +152,13 @@ export function Watch() {
   if (!video) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="w-7 h-7 rounded-full border-2 border-red-600 border-t-transparent animate-spin" />
+        <div className="w-7 h-7 rounded-full border-2 border-utube-primary border-t-transparent animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="w-full max-w-[1700px] mx-auto pb-12 font-sans select-none">
+    <div className="w-full max-w-[1700px] mx-auto pb-12 font-sans select-none text-utube-text">
       <div className={`grid gap-6 ${theaterLayout ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-3'}`}>
 
         {/* ── Main: Player + Metadata ── */}
@@ -175,22 +174,22 @@ export function Watch() {
           />
 
           {/* Title */}
-          <h1 className="text-lg sm:text-xl font-bold text-slate-900 leading-snug tracking-tight">
+          <h1 className="text-lg sm:text-xl font-bold text-utube-text leading-snug tracking-tight">
             {video.title}
           </h1>
 
           {/* Channel row + Actions */}
-          <div className="flex flex-wrap items-center justify-between gap-4 pb-3 border-b border-slate-200">
+          <div className="flex flex-wrap items-center justify-between gap-4 pb-3 border-b border-utube-border">
 
             {/* Channel info & Subscribe */}
             <div className="flex items-center gap-3">
               <Link
                 to={video.channelId ? `/channel/${video.channelId}` : '#'}
-                className="w-9 h-9 rounded-full overflow-hidden bg-slate-200 shrink-0 border border-slate-200 hover:opacity-90 transition-opacity"
+                className="w-9 h-9 rounded-full overflow-hidden bg-utube-surface shrink-0 border border-utube-border hover:opacity-90 transition-opacity"
               >
                 {channel?.thumbnails?.medium
                   ? <img src={channel.thumbnails.medium} alt={video.channelTitle} className="w-full h-full object-cover" />
-                  : <div className="w-full h-full bg-slate-300 flex items-center justify-center text-slate-600 font-bold text-sm">
+                  : <div className="w-full h-full bg-utube-surface flex items-center justify-center text-utube-text font-bold text-sm">
                       {video.channelTitle?.[0]?.toUpperCase() || 'C'}
                     </div>
                 }
@@ -199,12 +198,12 @@ export function Watch() {
               <div>
                 <Link
                   to={video.channelId ? `/channel/${video.channelId}` : '#'}
-                  className="font-bold text-sm text-slate-900 hover:underline block truncate max-w-[180px]"
+                  className="font-bold text-sm text-utube-text hover:underline block truncate max-w-[180px]"
                 >
                   {video.channelTitle}
                 </Link>
                 {channel?.subscriberCount && (
-                  <span className="text-xs text-slate-500">{formatViews(channel.subscriberCount)} subscribers</span>
+                  <span className="text-xs text-utube-text-muted">{formatViews(channel.subscriberCount)} subscribers</span>
                 )}
               </div>
 
@@ -212,8 +211,8 @@ export function Watch() {
                 onClick={handleToggleSubscribe}
                 className={`ml-2 px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
                   isSubscribed
-                    ? 'bg-slate-200 text-slate-700 hover:bg-slate-300'
-                    : 'bg-slate-900 text-white hover:bg-slate-700'
+                    ? 'bg-utube-surface text-utube-text hover:bg-utube-border/60 border border-utube-border'
+                    : 'bg-utube-primary text-white hover:opacity-90 shadow-sm'
                 }`}
               >
                 {isSubscribed ? (
@@ -236,18 +235,18 @@ export function Watch() {
                 onClick={() => toggleLikeVideo(video)}
                 className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-colors cursor-pointer ${
                   isLiked
-                    ? 'bg-red-50 text-red-700 border-red-200'
-                    : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
+                    ? 'bg-utube-primary/10 text-utube-primary border-utube-primary/30'
+                    : 'bg-utube-surface text-utube-text-secondary border-utube-border hover:bg-utube-surface/80'
                 }`}
               >
-                <ThumbsUp className={`w-3.5 h-3.5 ${isLiked ? 'fill-red-600 text-red-600' : ''}`} />
+                <ThumbsUp className={`w-3.5 h-3.5 ${isLiked ? 'fill-current text-utube-primary' : ''}`} />
                 {isLiked ? 'Liked' : 'Like'}
               </button>
 
               {/* Share */}
               <button
                 onClick={handleCopyShare}
-                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs font-semibold text-slate-700 transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-utube-surface hover:bg-utube-border/60 border border-utube-border text-xs font-semibold text-utube-text transition-colors cursor-pointer"
               >
                 {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Share2 className="w-3.5 h-3.5" />}
                 {copied ? 'Copied!' : 'Share'}
@@ -258,11 +257,11 @@ export function Watch() {
                 onClick={() => { if (!inWatchLater) addToWatchLater(video); }}
                 className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border text-xs font-semibold transition-colors cursor-pointer ${
                   inWatchLater
-                    ? 'bg-amber-50 text-amber-800 border-amber-200'
-                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'
+                    ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30'
+                    : 'bg-utube-surface hover:bg-utube-border/60 text-utube-text border-utube-border'
                 }`}
               >
-                <Bookmark className={`w-3.5 h-3.5 ${inWatchLater ? 'fill-amber-600 text-amber-600' : ''}`} />
+                <Bookmark className={`w-3.5 h-3.5 ${inWatchLater ? 'fill-current text-amber-600' : ''}`} />
                 <span className="hidden sm:inline">{inWatchLater ? 'Saved' : 'Watch Later'}</span>
               </button>
 
@@ -270,46 +269,46 @@ export function Watch() {
               <div className="relative">
                 <button
                   onClick={() => setShowSaveMenu(s => !s)}
-                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs font-semibold text-slate-700 transition-colors cursor-pointer"
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-utube-surface hover:bg-utube-border/60 border border-utube-border text-xs font-semibold text-utube-text transition-colors cursor-pointer"
                 >
                   <FolderPlus className="w-3.5 h-3.5" />
                   <span className="hidden sm:inline">Save</span>
                 </button>
 
                 {showSaveMenu && (
-                  <div className="absolute right-0 top-10 w-60 rounded-2xl bg-white border border-slate-200 shadow-xl p-3 z-50 text-xs space-y-1.5 animate-in fade-in zoom-in-95 duration-150">
-                    <div className="font-bold text-slate-900 pb-1.5 border-b border-slate-100 text-[11px] uppercase tracking-widest">Save to...</div>
+                  <div className="absolute right-0 top-10 w-60 rounded-2xl bg-utube-card border border-utube-border shadow-xl p-3 z-50 text-xs space-y-1.5 animate-in fade-in zoom-in-95 duration-150">
+                    <div className="font-bold text-utube-text pb-1.5 border-b border-utube-border text-[11px] uppercase tracking-widest">Save to...</div>
                     <div className="max-h-44 overflow-y-auto space-y-0.5">
                       {collections.map(col => (
                         <button
                           key={col.id}
                           onClick={() => { addVideoToCollection(col.id, video); setShowSaveMenu(false); }}
-                          className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 flex items-center justify-between transition-colors cursor-pointer"
+                          className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-utube-surface flex items-center justify-between transition-colors cursor-pointer"
                         >
-                          <span className="truncate text-slate-700">{col.name}</span>
-                          <span className="text-[10px] text-slate-400 font-mono ml-2 shrink-0">{col.videos.length}</span>
+                          <span className="truncate text-utube-text">{col.name}</span>
+                          <span className="text-[10px] text-utube-text-muted font-mono ml-2 shrink-0">{col.videos.length}</span>
                         </button>
                       ))}
                     </div>
                     {showCreateCol ? (
-                      <form onSubmit={handleCreateCollection} className="pt-2 border-t border-slate-100 space-y-1.5">
+                      <form onSubmit={handleCreateCollection} className="pt-2 border-t border-utube-border space-y-1.5">
                         <input
                           type="text"
                           placeholder="Collection name"
                           value={newColName}
                           onChange={e => setNewColName(e.target.value)}
-                          className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs focus:outline-none focus:border-slate-500"
+                          className="w-full px-2.5 py-1.5 rounded-lg border border-utube-border bg-utube-surface text-utube-text text-xs focus:outline-none focus:border-utube-primary"
                           autoFocus
                         />
                         <div className="flex justify-end gap-1.5">
-                          <button type="button" onClick={() => setShowCreateCol(false)} className="px-2 py-1 text-slate-500">Cancel</button>
-                          <button type="submit" className="px-3 py-1 bg-slate-900 text-white font-bold rounded-lg">Create</button>
+                          <button type="button" onClick={() => setShowCreateCol(false)} className="px-2 py-1 text-utube-text-muted">Cancel</button>
+                          <button type="submit" className="px-3 py-1 bg-utube-primary text-white font-bold rounded-lg cursor-pointer">Create</button>
                         </div>
                       </form>
                     ) : (
                       <button
                         onClick={() => setShowCreateCol(true)}
-                        className="w-full text-left px-2 py-1.5 text-slate-900 font-bold hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                        className="w-full text-left px-2 py-1.5 text-utube-text font-bold hover:bg-utube-surface rounded-lg transition-colors cursor-pointer"
                       >
                         + New collection
                       </button>
@@ -321,7 +320,7 @@ export function Watch() {
               {/* Open in CineMorph */}
               <button
                 onClick={handleOpenInCineMorph}
-                className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black text-xs font-black tracking-wide shadow-sm transition-all hover:scale-105 cursor-pointer"
+                className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black text-xs font-black tracking-wide shadow-sm transition-all hover:scale-105 cursor-pointer font-cinematic"
               >
                 <Film className="w-3.5 h-3.5" />
                 <span>Open in CineMorph</span>
@@ -333,15 +332,15 @@ export function Watch() {
           {video.description && (
             <div
               onClick={() => setDescExpanded(e => !e)}
-              className="rounded-xl bg-slate-100 hover:bg-slate-150 p-3.5 transition-colors cursor-pointer text-xs text-slate-700 space-y-1.5"
+              className="rounded-2xl bg-utube-surface/60 hover:bg-utube-surface border border-utube-border/60 p-4 transition-colors cursor-pointer text-xs text-utube-text space-y-1.5"
             >
-              <div className="flex items-center gap-2 font-semibold text-slate-500 text-[11px]">
+              <div className="flex items-center gap-2 font-semibold text-utube-text-muted text-[11px]">
                 <span>{video.publishedAt ? formatTimeAgo(video.publishedAt) : ''}</span>
               </div>
-              <p className={`whitespace-pre-line leading-relaxed ${descExpanded ? '' : 'line-clamp-3'}`}>
+              <p className={`whitespace-pre-line leading-relaxed text-utube-text-secondary ${descExpanded ? '' : 'line-clamp-3'}`}>
                 {video.description}
               </p>
-              <button className="text-xs font-bold text-slate-600 flex items-center gap-1 pt-0.5">
+              <button className="text-xs font-bold text-utube-primary flex items-center gap-1 pt-0.5">
                 {descExpanded
                   ? <><span>Show less</span><ChevronUp className="w-3 h-3" /></>
                   : <><span>Show more</span><ChevronDown className="w-3 h-3" /></>
@@ -354,16 +353,16 @@ export function Watch() {
         {/* ── Right: Related Videos ── */}
         {!theaterLayout && (
           <div className="space-y-2 pt-0.5">
-            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest pb-1">
-              Related
+            <h3 className="text-xs font-bold text-utube-text-muted uppercase tracking-widest pb-1">
+              Related Streams
             </h3>
             {related.slice(0, 12).map(rel => (
               <Link
                 key={rel.id}
                 to={`/watch/${rel.id}`}
-                className="flex gap-2.5 group hover:bg-slate-100 p-1.5 rounded-xl transition-colors"
+                className="flex gap-2.5 group hover:bg-utube-surface p-2 rounded-2xl transition-colors border border-transparent hover:border-utube-border"
               >
-                <div className="relative w-36 aspect-video rounded-lg bg-slate-200 overflow-hidden shrink-0">
+                <div className="relative w-36 aspect-video rounded-xl bg-utube-surface overflow-hidden shrink-0 border border-utube-border/60">
                   <img
                     src={rel.thumbnails.medium}
                     alt={rel.title}
@@ -371,12 +370,12 @@ export function Watch() {
                   />
                 </div>
                 <div className="flex flex-col min-w-0 justify-center gap-0.5">
-                  <h4 className="text-xs font-semibold text-slate-900 line-clamp-2 leading-snug group-hover:text-red-600 transition-colors">
+                  <h4 className="text-xs font-bold text-utube-text line-clamp-2 leading-snug group-hover:text-utube-primary transition-colors">
                     {rel.title}
                   </h4>
-                  <span className="text-[10px] text-slate-500 truncate">{rel.channelTitle}</span>
+                  <span className="text-[10px] text-utube-text-muted truncate">{rel.channelTitle}</span>
                   {rel.publishedAt && (
-                    <span className="text-[10px] text-slate-400">{formatTimeAgo(rel.publishedAt)}</span>
+                    <span className="text-[10px] text-utube-text-muted">{formatTimeAgo(rel.publishedAt)}</span>
                   )}
                 </div>
               </Link>
