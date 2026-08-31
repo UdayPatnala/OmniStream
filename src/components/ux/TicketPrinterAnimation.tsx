@@ -169,6 +169,18 @@ export const TicketPrinterAnimation: React.FC<TicketPrinterAnimationProps> = ({
   // printProgress 100% -> translateY(0%) [fully outside slot]
   const paperTranslateY = `${-100 + printProgress}%`;
 
+  // Keyboard Escape shortcut to skip intro instantly
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        handleSkipOrTakeTicket();
+      }
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, []);
+
   return (
     <div
       data-testid="ticket-intro-overlay"
@@ -192,9 +204,10 @@ export const TicketPrinterAnimation: React.FC<TicketPrinterAnimationProps> = ({
 
         <button
           onClick={handleSkipOrTakeTicket}
-          className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-amber-950/40 hover:bg-amber-900/60 border border-amber-500/30 text-xs font-bold text-amber-200 hover:text-white transition-all shadow-lg cursor-pointer active:scale-95"
+          className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-amber-950/60 hover:bg-amber-900/80 border border-amber-500/40 text-xs font-bold text-amber-200 hover:text-white transition-all shadow-lg cursor-pointer active:scale-95"
+          title="Skip intro and start movie (Esc)"
         >
-          <span>Skip & Enter Cinema</span>
+          <span>Skip to Cinema (Esc)</span>
           <ChevronRight className="w-3.5 h-3.5" />
         </button>
       </div>

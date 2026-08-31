@@ -86,7 +86,7 @@ export const BentoGrid: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] text-slate-900 select-none antialiased relative overflow-hidden">
+    <div className="min-h-screen bg-utube-bg text-utube-text select-none antialiased relative overflow-hidden">
       {/* ── Background Editorial Ambient Grid & Radial Gradients ── */}
       <div 
         className="absolute inset-0 pointer-events-none opacity-[0.035]"

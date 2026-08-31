@@ -58,6 +58,51 @@
   --oms-info: #526C9E;
 }
 
+.dark {
+  /* Master Dark Environment */
+  --oms-env-bg: #0E1013;
+  --oms-env-surface: #17191E;
+  --oms-env-surface-secondary: #1F2229;
+  --oms-env-text: #F4F0E8;
+  --oms-env-text-secondary: #A0A3A8;
+  --oms-env-text-muted: #6B6E75;
+  --oms-env-border: #262930;
+
+  /* U-Tube Dark Mode Identity */
+  --oms-utube-primary: #E0535A;
+  --oms-utube-soft: #7A282D;
+  --oms-utube-deep: #C7494F;
+  --oms-utube-bg: #0E1013;
+  --oms-utube-surface: #17191E;
+  --oms-utube-card: #17191E;
+  --oms-utube-border: #262930;
+  --oms-utube-text: #F4F0E8;
+  --oms-utube-text-secondary: #A0A3A8;
+  --oms-utube-text-muted: #6B6E75;
+
+  /* CineMorph Dark Mode Identity */
+  --oms-cinemorph-primary: #6B88C4;
+  --oms-cinemorph-soft: #2B3A57;
+  --oms-cinemorph-deep: #526C9E;
+  --oms-cinemorph-bg: #0E1013;
+  --oms-cinemorph-surface: #17191E;
+  --oms-cinemorph-card: #17191E;
+  --oms-cinemorph-border: #262930;
+  --oms-cinemorph-text: #F4F0E8;
+  --oms-cinemorph-text-secondary: #A0A3A8;
+  --oms-cinemorph-text-muted: #6B6E75;
+
+  /* OMS Neutral Dark Identity */
+  --oms-neutral-primary: #8C8F94;
+  --oms-neutral-soft: #32353B;
+  --oms-neutral-deep: #5E6166;
+  --oms-neutral-bg: #14161B;
+  --oms-neutral-surface: #1C1E24;
+  --oms-neutral-text: #F4F0E8;
+  --oms-neutral-muted: #6B6E75;
+  --oms-neutral-border: #262930;
+}
+
 @theme {
   --color-utube-primary: var(--oms-utube-primary);
   --color-utube-secondary: var(--oms-utube-secondary);

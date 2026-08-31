@@ -48,29 +48,29 @@ export function SettingsPage() {
       </div>
 
       {/* Playback & Appearance Preferences */}
-      <div className="bg-[#1C1B1F] p-6 rounded-[32px] border border-white/5 space-y-6 shadow-xl">
-        <h2 className="text-sm font-medium uppercase tracking-[0.2em] text-[#938F99] border-b border-white/5 pb-4">Playback & Appearance</h2>
+      <div className="bg-utube-card p-6 rounded-3xl border border-utube-border space-y-6 shadow-sm">
+        <h2 className="text-xs font-bold uppercase tracking-widest text-utube-text-muted border-b border-utube-border pb-4">Playback & Appearance</h2>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-[#E6E1E5]">Theme</label>
+            <label className="block text-xs font-bold text-utube-text">Theme</label>
             <select 
               value={theme}
               onChange={(e) => setTheme(e.target.value as 'dark'|'light'|'system')}
-              className="w-full h-12 px-4 rounded-xl border border-white/5 bg-[#2B2930] focus:outline-none focus:border-[#D0BCFF] text-[#E6E1E5]"
+              className="w-full h-12 px-4 rounded-2xl border border-utube-border bg-utube-surface focus:outline-none focus:border-utube-primary text-utube-text text-sm cursor-pointer shadow-sm"
             >
               <option value="system">System Default</option>
-              <option value="light">Light Mode</option>
-              <option value="dark">Dark Mode</option>
+              <option value="light">Light Mode (Editorial Foundation)</option>
+              <option value="dark">Dark Mode (Cinema Focus)</option>
             </select>
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-[#E6E1E5]">Default Playback Speed</label>
+            <label className="block text-xs font-bold text-utube-text">Default Playback Speed</label>
             <select 
               value={playbackSpeed}
               onChange={(e) => setPlaybackSpeed(parseFloat(e.target.value))}
-              className="w-full h-12 px-4 rounded-xl border border-white/5 bg-[#2B2930] focus:outline-none focus:border-[#D0BCFF] text-[#E6E1E5]"
+              className="w-full h-12 px-4 rounded-2xl border border-utube-border bg-utube-surface focus:outline-none focus:border-utube-primary text-utube-text text-sm cursor-pointer shadow-sm"
             >
               <option value={0.5}>0.5x</option>
               <option value={0.75}>0.75x</option>
@@ -82,30 +82,30 @@ export function SettingsPage() {
           </div>
         </div>
 
-        <div className="flex items-center justify-between pt-2">
+        <div className="flex items-center justify-between pt-2 border-t border-utube-border">
           <div>
-            <h3 className="font-medium text-[#E6E1E5]">Autoplay</h3>
-            <p className="text-xs text-[#938F99]">Automatically play active videos when selected.</p>
+            <h3 className="text-sm font-bold text-utube-text">Autoplay</h3>
+            <p className="text-xs text-utube-text-secondary">Automatically play active videos when selected.</p>
           </div>
           <button
             onClick={() => setAutoplay(!autoplay)}
-            className={`w-12 h-6 rounded-full transition-colors relative p-1 ${autoplay ? 'bg-[#D0BCFF]' : 'bg-[#2B2930]'}`}
+            className={`w-12 h-6 rounded-full transition-colors relative p-1 cursor-pointer ${autoplay ? 'bg-utube-primary' : 'bg-utube-border'}`}
             aria-label="Toggle Autoplay"
           >
-            <div className={`w-4 h-4 rounded-full transition-transform ${autoplay ? 'translate-x-6 bg-[#381E72]' : 'translate-x-0 bg-[#938F99]'}`} />
+            <div className={`w-4 h-4 rounded-full transition-transform bg-white ${autoplay ? 'translate-x-6' : 'translate-x-0'}`} />
           </button>
         </div>
       </div>
 
       {/* Discovery & Ranking Intelligence */}
-      <div className="bg-[#1C1B1F] p-6 rounded-[32px] border border-white/5 space-y-6 shadow-xl">
-        <div className="flex items-center gap-2 border-b border-white/5 pb-4">
-          <Sliders className="w-4 h-4 text-[#D0BCFF]" />
-          <h2 className="text-sm font-medium uppercase tracking-[0.2em] text-[#938F99]">Autonomous Discovery & Ranking</h2>
+      <div className="bg-utube-card p-6 rounded-3xl border border-utube-border space-y-6 shadow-sm">
+        <div className="flex items-center gap-2 border-b border-utube-border pb-4">
+          <Sliders className="w-4 h-4 text-utube-primary" />
+          <h2 className="text-xs font-bold uppercase tracking-widest text-utube-text-muted">Autonomous Discovery & Ranking</h2>
         </div>
 
         <div className="space-y-4">
-          <label className="block text-sm font-medium text-[#E6E1E5]">Candidate Ranking Profile</label>
+          <label className="block text-xs font-bold text-utube-text">Candidate Ranking Profile</label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {[
               { id: 'balanced', title: 'Balanced (Standard)', desc: 'Optimal blend of relevance, title match, channel size & recency.' },
@@ -116,17 +116,17 @@ export function SettingsPage() {
               <button
                 key={p.id}
                 onClick={() => setRankingProfile(p.id as RankingProfile)}
-                className={`p-4 rounded-2xl border text-left transition-all ${
+                className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${
                   rankingProfile === p.id 
-                    ? 'bg-[#381E72]/40 border-[#D0BCFF] text-white shadow-lg' 
-                    : 'bg-[#2B2930]/40 border-white/5 text-[#CAC4D0] hover:bg-[#2B2930]'
+                    ? 'bg-utube-surface border-utube-primary text-utube-text shadow-sm ring-1 ring-utube-primary' 
+                    : 'bg-utube-surface/50 border-utube-border text-utube-text-secondary hover:bg-utube-surface'
                 }`}
               >
-                <div className="font-semibold text-sm text-[#E6E1E5] flex items-center justify-between">
+                <div className="font-bold text-sm text-utube-text flex items-center justify-between">
                   {p.title}
-                  {rankingProfile === p.id && <span className="text-xs text-[#D0BCFF]">● Selected</span>}
+                  {rankingProfile === p.id && <span className="text-xs text-utube-primary font-bold">● Active</span>}
                 </div>
-                <div className="text-xs text-[#938F99] mt-1">{p.desc}</div>
+                <div className="text-xs text-utube-text-muted mt-1">{p.desc}</div>
               </button>
             ))}
           </div>
@@ -147,11 +147,11 @@ export function SettingsPage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-xs">
           <div className="space-y-2">
-            <label className="block font-medium text-[#E6E1E5]">Default Cinema Theme</label>
+            <label className="block font-bold text-utube-text">Default Cinema Theme</label>
             <select
               value={cinemorphTheme}
               onChange={(e) => setCinemorphTheme(e.target.value as any)}
-              className="w-full h-12 px-4 rounded-xl border border-purple-500/30 bg-[#0F0D17] text-white focus:outline-none focus:border-purple-400"
+              className="w-full h-12 px-4 rounded-2xl border border-utube-border bg-utube-surface text-utube-text focus:outline-none focus:border-utube-primary cursor-pointer shadow-sm"
             >
               <option value="cinematic-dark">Cinematic Dark</option>
               <option value="cyberpunk-oled">Cyberpunk OLED</option>
@@ -163,11 +163,11 @@ export function SettingsPage() {
           </div>
 
           <div className="space-y-2">
-            <label className="block font-medium text-[#E6E1E5]">Ambient Glow Intensity</label>
+            <label className="block font-bold text-utube-text">Ambient Glow Intensity</label>
             <select
               value={glowIntensity}
               onChange={(e) => setGlowIntensity(e.target.value as any)}
-              className="w-full h-12 px-4 rounded-xl border border-purple-500/30 bg-[#0F0D17] text-white focus:outline-none focus:border-purple-400"
+              className="w-full h-12 px-4 rounded-2xl border border-utube-border bg-utube-surface text-utube-text focus:outline-none focus:border-utube-primary cursor-pointer shadow-sm"
             >
               <option value="off">Off (Disabled)</option>
               <option value="low">Low (35%)</option>
@@ -177,11 +177,11 @@ export function SettingsPage() {
           </div>
 
           <div className="space-y-2">
-            <label className="block font-medium text-[#E6E1E5]">Default Viewport Aspect</label>
+            <label className="block font-bold text-utube-text">Default Viewport Aspect</label>
             <select
               value={frameAspectRatio}
               onChange={(e) => setFrameAspectRatio(e.target.value as any)}
-              className="w-full h-12 px-4 rounded-xl border border-purple-500/30 bg-[#0F0D17] text-white focus:outline-none focus:border-purple-400"
+              className="w-full h-12 px-4 rounded-2xl border border-utube-border bg-utube-surface text-utube-text focus:outline-none focus:border-utube-primary cursor-pointer shadow-sm"
             >
               <option value="16:9">16:9 Standard Widescreen</option>
               <option value="21:9">21:9 UltraWide Cinema</option>
@@ -192,11 +192,11 @@ export function SettingsPage() {
           </div>
 
           <div className="space-y-2">
-            <label className="block font-medium text-[#E6E1E5]">Smart Reframe Focus Mode</label>
+            <label className="block font-bold text-utube-text">Smart Reframe Focus Mode</label>
             <select
               value={reframeMode}
               onChange={(e) => setReframeMode(e.target.value as any)}
-              className="w-full h-12 px-4 rounded-xl border border-purple-500/30 bg-[#0F0D17] text-white focus:outline-none focus:border-purple-400"
+              className="w-full h-12 px-4 rounded-2xl border border-utube-border bg-utube-surface text-utube-text focus:outline-none focus:border-utube-primary cursor-pointer shadow-sm"
             >
               <option value="center">Center Lock</option>
               <option value="face-priority">Face Priority Tracking</option>
@@ -205,11 +205,11 @@ export function SettingsPage() {
           </div>
 
           <div className="space-y-2">
-            <label className="block font-medium text-[#E6E1E5]">Root Gateway Start Preference</label>
+            <label className="block font-bold text-utube-text">Root Gateway Start Preference</label>
             <select
               value={rootLandingPreference}
               onChange={(e) => setRootLandingPreference(e.target.value as any)}
-              className="w-full h-12 px-4 rounded-xl border border-purple-500/30 bg-[#0F0D17] text-white focus:outline-none focus:border-purple-400"
+              className="w-full h-12 px-4 rounded-2xl border border-utube-border bg-utube-surface text-utube-text focus:outline-none focus:border-utube-primary cursor-pointer shadow-sm"
             >
               <option value="ask">Always Ask (Experience Selector)</option>
               <option value="v1">Default to U-Tube V1</option>
@@ -218,11 +218,11 @@ export function SettingsPage() {
           </div>
 
           <div className="space-y-2">
-            <label className="block font-medium text-[#E6E1E5]">2.5D Virtual Theater Seating</label>
+            <label className="block font-bold text-utube-text">2.5D Virtual Theater Seating</label>
             <select
               value={theaterSeatingEnabled ? 'true' : 'false'}
               onChange={(e) => setTheaterSeatingEnabled(e.target.value === 'true')}
-              className="w-full h-12 px-4 rounded-xl border border-purple-500/30 bg-[#0F0D17] text-white focus:outline-none focus:border-purple-400"
+              className="w-full h-12 px-4 rounded-2xl border border-utube-border bg-utube-surface text-utube-text focus:outline-none focus:border-utube-primary cursor-pointer shadow-sm"
             >
               <option value="true">Enabled (Center Cinema View)</option>
               <option value="false">Disabled (Screen Only)</option>
@@ -230,11 +230,11 @@ export function SettingsPage() {
           </div>
 
           <div className="space-y-2">
-            <label className="block font-medium text-[#E6E1E5]">Velvet Curtain Animation Sequence</label>
+            <label className="block font-bold text-utube-text">Velvet Curtain Animation Sequence</label>
             <select
               value={curtainAnimationEnabled ? 'true' : 'false'}
               onChange={(e) => setCurtainAnimationEnabled(e.target.value === 'true')}
-              className="w-full h-12 px-4 rounded-xl border border-purple-500/30 bg-[#0F0D17] text-white focus:outline-none focus:border-purple-400"
+              className="w-full h-12 px-4 rounded-2xl border border-utube-border bg-utube-surface text-utube-text focus:outline-none focus:border-utube-primary cursor-pointer shadow-sm"
             >
               <option value="true">Full Velvet Curtain Sequence</option>
               <option value="false">Quick Start (Curtains Always Open)</option>
@@ -244,21 +244,21 @@ export function SettingsPage() {
       </div>
 
       {/* Adaptive Performance & Hybrid Media Routing */}
-      <div className="bg-[#1C1B1F] p-6 rounded-[32px] border border-white/5 space-y-6 shadow-xl">
-        <div className="flex items-center justify-between border-b border-white/5 pb-4">
-          <h2 className="text-sm font-medium uppercase tracking-[0.2em] text-[#938F99]">Adaptive Media Engine & Hybrid Routing</h2>
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-950 text-cyan-400 border border-cyan-500/20">
+      <div className="bg-utube-card p-6 rounded-3xl border border-utube-border space-y-6 shadow-sm">
+        <div className="flex items-center justify-between border-b border-utube-border pb-4">
+          <h2 className="text-xs font-bold uppercase tracking-widest text-utube-text-muted">Adaptive Media Engine & Hybrid Routing</h2>
+          <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-utube-surface text-utube-primary border border-utube-border">
             {metrics.cores} Cores • {metrics.memory}GB RAM
           </span>
         </div>
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <label className="block font-medium text-[#E6E1E5]">Device Performance Profile</label>
+            <label className="block text-xs font-bold text-utube-text">Device Performance Profile</label>
             <select
               value={devicePerformanceProfile}
               onChange={(e) => setDevicePerformanceProfile(e.target.value as any)}
-              className="w-full h-12 px-4 rounded-xl border border-white/10 bg-[#0F0D17] text-white focus:outline-none focus:border-cyan-400 text-sm"
+              className="w-full h-12 px-4 rounded-2xl border border-utube-border bg-utube-surface text-utube-text focus:outline-none focus:border-utube-primary text-sm cursor-pointer shadow-sm"
             >
               <option value="high">High Performance (800ms 60FPS Sampling • High LOD)</option>
               <option value="balanced">Balanced (1500ms Sampling • Medium LOD)</option>
@@ -268,11 +268,11 @@ export function SettingsPage() {
           </div>
 
           <div className="space-y-2">
-            <label className="block font-medium text-[#E6E1E5]">Eco Mode (Battery & CPU Saver)</label>
+            <label className="block text-xs font-bold text-utube-text">Eco Mode (Battery & CPU Saver)</label>
             <select
               value={ecoMode ? 'true' : 'false'}
               onChange={(e) => setEcoMode(e.target.value === 'true')}
-              className="w-full h-12 px-4 rounded-xl border border-white/10 bg-[#0F0D17] text-white focus:outline-none focus:border-cyan-400 text-sm"
+              className="w-full h-12 px-4 rounded-2xl border border-utube-border bg-utube-surface text-utube-text focus:outline-none focus:border-utube-primary text-sm cursor-pointer shadow-sm"
             >
               <option value="false">Standard / Auto Adaptive</option>
               <option value="true">🌱 Enabled (Throttled Background Processing)</option>
@@ -282,26 +282,26 @@ export function SettingsPage() {
       </div>
 
       {/* Data & History Controls with Backup Export/Import */}
-      <div className="bg-[#1C1B1F] p-6 rounded-[32px] border border-white/5 space-y-6 shadow-xl">
-        <h2 className="text-sm font-medium uppercase tracking-[0.2em] text-[#938F99] border-b border-white/5 pb-4">Data & Local Storage</h2>
+      <div className="bg-utube-card p-6 rounded-3xl border border-utube-border space-y-6 shadow-sm">
+        <h2 className="text-xs font-bold uppercase tracking-widest text-utube-text-muted border-b border-utube-border pb-4">Data & Local Storage</h2>
         
         {/* Storage Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="p-3 bg-[#2B2930]/40 rounded-xl border border-white/5 text-center">
-            <div className="text-lg font-bold text-[#D0BCFF]">{Object.keys(useAppStore.getState().history).length}</div>
-            <div className="text-[11px] text-[#938F99]">History Videos</div>
+          <div className="p-3 bg-utube-surface rounded-2xl border border-utube-border text-center shadow-sm">
+            <div className="text-lg font-black text-utube-primary">{Object.keys(useAppStore.getState().history).length}</div>
+            <div className="text-[11px] font-medium text-utube-text-muted">History Videos</div>
           </div>
-          <div className="p-3 bg-[#2B2930]/40 rounded-xl border border-white/5 text-center">
-            <div className="text-lg font-bold text-[#D0BCFF]">{useAppStore.getState().subscriptions.length}</div>
-            <div className="text-[11px] text-[#938F99]">Subscriptions</div>
+          <div className="p-3 bg-utube-surface rounded-2xl border border-utube-border text-center shadow-sm">
+            <div className="text-lg font-black text-utube-primary">{useAppStore.getState().subscriptions.length}</div>
+            <div className="text-[11px] font-medium text-utube-text-muted">Subscriptions</div>
           </div>
-          <div className="p-3 bg-[#2B2930]/40 rounded-xl border border-white/5 text-center">
-            <div className="text-lg font-bold text-[#D0BCFF]">{useAppStore.getState().collections.length}</div>
-            <div className="text-[11px] text-[#938F99]">Collections</div>
+          <div className="p-3 bg-utube-surface rounded-2xl border border-utube-border text-center shadow-sm">
+            <div className="text-lg font-black text-utube-primary">{useAppStore.getState().collections.length}</div>
+            <div className="text-[11px] font-medium text-utube-text-muted">Collections</div>
           </div>
-          <div className="p-3 bg-[#2B2930]/40 rounded-xl border border-white/5 text-center">
-            <div className="text-lg font-bold text-[#D0BCFF]">{useAppStore.getState().searchHistory.length}</div>
-            <div className="text-[11px] text-[#938F99]">Search Tags</div>
+          <div className="p-3 bg-utube-surface rounded-2xl border border-utube-border text-center shadow-sm">
+            <div className="text-lg font-black text-utube-primary">{useAppStore.getState().searchHistory.length}</div>
+            <div className="text-[11px] font-medium text-utube-text-muted">Search Tags</div>
           </div>
         </div>
 
@@ -374,58 +374,58 @@ export function SettingsPage() {
         </div>
 
         {/* Clear Actions */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-2 border-t border-white/5">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-2 border-t border-utube-border">
           <div>
-            <h3 className="font-medium text-[#E6E1E5]">Clear Search History</h3>
-            <p className="text-xs text-[#938F99]">Remove all saved search suggestions & query tags.</p>
+            <h3 className="font-bold text-sm text-utube-text">Clear Search History</h3>
+            <p className="text-xs text-utube-text-secondary">Remove all saved search suggestions & query tags.</p>
           </div>
           <button 
             onClick={() => {
               clearSearchHistory();
               showToast('🧹 Search history cleared');
             }}
-            className="px-6 py-2.5 bg-white/5 text-[#E6E1E5] hover:bg-white/10 rounded-xl text-sm font-medium transition-colors cursor-pointer"
+            className="px-5 py-2.5 bg-utube-surface hover:bg-utube-border/60 text-utube-text border border-utube-border rounded-2xl text-xs font-bold transition-all cursor-pointer shadow-sm"
           >
             Clear Search History
           </button>
         </div>
 
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-2 border-t border-white/5">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-2 border-t border-utube-border">
           <div>
-            <h3 className="font-medium text-[#E6E1E5]">Clear Watch History</h3>
-            <p className="text-xs text-[#938F99]">Remove all watched video history and playback timestamps.</p>
+            <h3 className="font-bold text-sm text-utube-text">Clear Watch History</h3>
+            <p className="text-xs text-utube-text-secondary">Remove all watched video history and playback timestamps.</p>
           </div>
           <button 
             onClick={() => {
               clearHistory();
               showToast('🧹 Watch history cleared');
             }}
-            className="px-6 py-2.5 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-xl text-sm font-medium transition-colors cursor-pointer"
+            className="px-5 py-2.5 bg-red-500/10 text-red-600 hover:bg-red-500/20 border border-red-500/20 rounded-2xl text-xs font-bold transition-all cursor-pointer shadow-sm"
           >
             Clear Watch History
           </button>
         </div>
 
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-2 border-t border-white/5">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-2 border-t border-utube-border">
           <div>
-            <h3 className="font-medium text-[#E6E1E5]">Clear Collections & Playlists</h3>
-            <p className="text-xs text-[#938F99]">Remove all saved user playlists, favorites, and queues.</p>
+            <h3 className="font-bold text-sm text-utube-text">Clear Collections & Playlists</h3>
+            <p className="text-xs text-utube-text-secondary">Remove all saved user playlists, favorites, and queues.</p>
           </div>
           <button 
             onClick={() => {
               useAppStore.setState({ collections: [] });
               showToast('🧹 Collections and playlists cleared');
             }}
-            className="px-6 py-2.5 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-xl text-sm font-medium transition-colors cursor-pointer"
+            className="px-5 py-2.5 bg-red-500/10 text-red-600 hover:bg-red-500/20 border border-red-500/20 rounded-2xl text-xs font-bold transition-all cursor-pointer shadow-sm"
           >
             Clear Collections
           </button>
         </div>
 
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-2 border-t border-white/5">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-2 border-t border-utube-border">
           <div>
-            <h3 className="font-medium text-red-400">Clear All Local Data</h3>
-            <p className="text-xs text-[#938F99]">Wipe local storage cache, tickets, subscriptions, and reset to defaults.</p>
+            <h3 className="font-bold text-sm text-red-600">Clear All Local Data</h3>
+            <p className="text-xs text-utube-text-secondary">Wipe local storage cache, tickets, subscriptions, and reset to defaults.</p>
           </div>
           <button 
             onClick={() => {
@@ -436,7 +436,7 @@ export function SettingsPage() {
                 window.location.reload();
               }, 1200);
             }}
-            className="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-bold transition-colors shadow-lg shadow-red-600/20 cursor-pointer"
+            className="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-2xl text-xs font-bold transition-all shadow-md shadow-red-600/20 cursor-pointer"
           >
             Clear All Local Data
           </button>
