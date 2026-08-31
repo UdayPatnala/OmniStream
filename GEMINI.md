@@ -91,6 +91,12 @@ Classify all evaluated models into one of 5 distinct states:
 - **Output Integrity Guard**: Validate output bounds and numeric sanity (reject NaN/Infinity) before declaring inference success.
 - **Model Replacement Test**: Replacing or removing a model must touch only its adapter, configuration, and registry entry.
 
+### 4. CineMorph Hybrid Video Intelligence Invariants
+- **Multi-Tier Decoupling**: Fast-path CV runs continuously at 150-400ms throttled intervals; deep neural vision (YOLO/BlazeFace) runs strictly on shot boundaries or saliency delta triggers.
+- **Source Composition Protection**: Always evaluate candidate framing against the source directorial baseline. If improvement is below $\Delta < 0.15$, preserve original framing.
+- **Spring-Damper Temporal Stabilization**: Never apply raw frame-to-frame bounding box coordinates directly to viewport transforms. All pan/zoom operations must pass through critically damped spring filters ($\zeta = 1.0$) with deadband hysteresis ($|\Delta| > 0.025$).
+- **Zero React State on Playback**: Viewport pan/zoom updates must mutate DOM element styles or CSS variables (`--pan-x`, `--pan-y`, `--zoom`) directly.
+
 ## Project Recovery, Continuity & Knowledge Preservation Protocol
 
 ### 1. Self-Explaining Architecture & START_HERE Entry Point
