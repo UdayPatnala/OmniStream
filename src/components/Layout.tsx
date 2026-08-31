@@ -19,26 +19,29 @@ export function Layout({ children }: { children: ReactNode }) {
     }
   }, [theme]);
 
-  // POV Landing: root path when not explicitly set to v1 or v2
-  const isPOVLanding =
+  const isRootLanding =
     location.pathname === '/' &&
     rootLandingPreference !== 'v1' &&
     rootLandingPreference !== 'v2';
 
   // Full-viewport passthroughs (no Header / Sidebar)
   const isFullViewport =
-    isPOVLanding ||
+    isRootLanding ||
     location.pathname === '/landing' ||
+    location.pathname === '/bento' ||
     location.pathname === '/gateway' ||
+    location.pathname === '/portal' ||
     location.pathname === '/cinemorph' ||
     location.pathname.startsWith('/theater/') ||
     (location.pathname === '/' && rootLandingPreference === 'ask');
 
   if (isFullViewport) {
-    // Light bg for POV Landing, dark for CineMorph / theater
-    const bg = isPOVLanding ? 'bg-[#F5F2EE]' : 'bg-[#030208]';
+    // Light editorial bg for Bento Landing, dark for CineMorph / theater
+    const bg = (isRootLanding || location.pathname === '/landing' || location.pathname === '/bento' || location.pathname === '/gateway' || location.pathname === '/portal') 
+      ? 'bg-[#F8F9FA]' 
+      : 'bg-[#030208]';
     return (
-      <div className={`w-full max-w-full ${bg}`} id="pov-scroll-root" style={{ overflowY: 'auto', overflowX: 'hidden', height: '100vh' }}>
+      <div className={`w-full max-w-full min-h-screen ${bg}`} style={{ overflowY: 'auto', overflowX: 'hidden', height: '100vh' }}>
         {children}
       </div>
     );

@@ -433,7 +433,7 @@ export const useAppStore = create<AppState>()(
       ambientGlow: true,
       toggleAmbientGlow: () => set((state) => ({ ambientGlow: !state.ambientGlow })),
 
-      cinemaMode: false,
+      cinemaMode: true,
       setCinemaMode: (cinemaMode) => set({ cinemaMode }),
 
       instantAutoPlay: true,
