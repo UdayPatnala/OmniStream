@@ -6,6 +6,7 @@ import { MoreVertical, Clock, Ban, Flag, Share2, Check } from 'lucide-react';
 import { useAppStore } from '../store';
 
 interface VideoCardProps {
+  key?: any;
   video: Video | SearchResult;
   progress?: number;
 }

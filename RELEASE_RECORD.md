@@ -27,10 +27,11 @@
 ## 2. Forensic Quality & Validation Gates
 
 - **TypeScript Compilation (`npx tsc --noEmit`)**: 0 errors
-- **Vitest Test Suite (`npm test -- --run`)**: 45 passed test suites / 206 passed tests
-- **Production Bundler (`npm run build`)**: Vite + esbuild bundling completed cleanly in 16.22s
+- **Vitest Test Suite (`npm test -- --run`)**: 47 passed test suites / 218 passed tests (100% pass across Tiers 1–5)
+- **Production Bundler (`npm run build`)**: Vite + esbuild bundling completed cleanly
 - **Security Audit (`npm audit`)**: 0 vulnerabilities found
 - **Data Preservation**: Backward-compatible schema validation; corrupt payloads automatically archived to `__corrupted_*` keys without data loss.
+- **Governing Protocol**: Detailed gates defined in [`OMNISTREAM_RELEASE_AND_QUALITY_GATES_PROTOCOL.md`](./OMNISTREAM_RELEASE_AND_QUALITY_GATES_PROTOCOL.md).
 
 ---
 

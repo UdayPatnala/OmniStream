@@ -1,5 +1,5 @@
 import { Search, Menu, Clock, X, Mic, Bell, Video as VideoIcon, Sparkles, Layers, Palette, Zap, Settings2 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { fetchSearchSuggestions } from '../lib/youtube';
 import { useAppStore } from '../store';
@@ -108,7 +108,7 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
     };
   }, [query]);
 
-  const handleSearch = async (e?: React.FormEvent, explicitQuery?: string) => {
+  const handleSearch = async (e?: FormEvent, explicitQuery?: string) => {
     if (e) e.preventDefault();
     const finalQuery = (explicitQuery || query).trim();
     if (finalQuery) {

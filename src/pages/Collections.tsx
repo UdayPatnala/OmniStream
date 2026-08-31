@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type FormEvent } from 'react';
 import { useAppStore } from '../store';
 import { VideoCard } from '../components/VideoCard';
 import { FolderHeart, Plus, Trash2, ChevronRight, Clock, ThumbsUp } from 'lucide-react';
@@ -24,7 +24,7 @@ export function Collections() {
   const allPlaylists: DisplayPlaylist[] = [watchLaterCol, likedCol, ...collections];
   const activePlaylist = allPlaylists.find(p => p.id === activeTabId) || watchLaterCol;
 
-  const handleCreate = (e: React.FormEvent) => {
+  const handleCreate = (e: FormEvent) => {
     e.preventDefault();
     if (newCollectionName.trim()) {
       createCollection(newCollectionName.trim());
