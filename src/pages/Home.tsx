@@ -109,7 +109,11 @@ export function Home() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 gap-y-8">
             {continueWatchingItems.map(item => (
-              <VideoCard key={`cw-${item.video.id}`} video={item.video} progress={item.progress} />
+              <VideoCard 
+                key={`cw-${item.video.id}`} 
+                video={item.video} 
+                progress={item.duration > 0 ? (item.progress / item.duration) * 100 : Math.min(100, item.progress)} 
+              />
             ))}
           </div>
         </section>
@@ -139,7 +143,11 @@ export function Home() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 gap-y-8">
             {mostWatchedItems.map(item => (
-              <VideoCard key={`mw-${item.video.id}`} video={item.video} progress={item.progress} />
+              <VideoCard 
+                key={`mw-${item.video.id}`} 
+                video={item.video} 
+                progress={item.duration > 0 ? (item.progress / item.duration) * 100 : Math.min(100, item.progress)} 
+              />
             ))}
           </div>
         </section>

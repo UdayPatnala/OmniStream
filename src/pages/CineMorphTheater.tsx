@@ -415,7 +415,19 @@ export function CineMorphTheater() {
   // ── Keyboard Shortcuts ──────────────────────────────────────────────────────
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if ((e.target as HTMLElement).tagName === 'INPUT') return;
+      const target = e.target as HTMLElement | null;
+      const activeTag = (document.activeElement?.tagName || '').toLowerCase();
+      const targetTag = (target?.tagName || '').toLowerCase();
+      if (
+        activeTag === 'input' || 
+        activeTag === 'textarea' || 
+        activeTag === 'select' ||
+        targetTag === 'input' ||
+        targetTag === 'textarea' ||
+        targetTag === 'select' ||
+        (document.activeElement as HTMLElement)?.isContentEditable ||
+        target?.isContentEditable
+      ) return;
       resetControlsTimer();
       switch (e.code) {
         case 'Space':

@@ -57,24 +57,24 @@ export function ChannelPage() {
   return (
     <div className="max-w-7xl mx-auto space-y-8 pb-12 py-4">
       {/* Banner */}
-      <div className="w-full h-48 md:h-64 rounded-[32px] bg-[#2B2930] overflow-hidden relative border border-white/5 shadow-2xl">
+      <div className="w-full h-48 md:h-64 rounded-3xl bg-utube-surface overflow-hidden relative border border-utube-border shadow-sm">
         {channel?.bannerUrl ? (
           <img src={channel.bannerUrl} alt="banner" className="w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full bg-gradient-to-r from-[#1C1B1F] via-[#381E72]/40 to-[#1C1B1F] flex items-center justify-center opacity-70" />
+          <div className="w-full h-full bg-gradient-to-r from-red-500/10 via-amber-500/10 to-red-500/10 flex items-center justify-center opacity-70" />
         )}
       </div>
 
       {/* Header Info */}
-      <div className="bg-[#1C1B1F] rounded-[32px] p-6 md:p-8 border border-white/5 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 shadow-xl">
+      <div className="bg-utube-card rounded-3xl p-6 md:p-8 border border-utube-border flex flex-col md:flex-row justify-between items-start md:items-center gap-6 shadow-sm">
         <div className="flex items-center gap-6">
           {loading || !channel ? (
-            <Skeleton className="w-24 h-24 rounded-full" />
+            <Skeleton className="w-20 h-20 md:w-24 md:h-24 rounded-full" />
           ) : (
             <img 
               src={channel.thumbnails.high || channel.thumbnails.medium || channel.thumbnails.default} 
               alt={channel.title} 
-              className="w-20 h-20 md:w-24 md:h-24 rounded-full border-2 border-[#D0BCFF] object-cover shadow-lg"
+              className="w-20 h-20 md:w-24 md:h-24 rounded-full border-2 border-utube-border object-cover shadow-sm"
             />
           )}
 
@@ -86,14 +86,14 @@ export function ChannelPage() {
               </>
             ) : (
               <>
-                <h1 className="text-2xl md:text-3xl font-bold text-[#E6E1E5] tracking-tight">{channel.title}</h1>
-                <div className="flex items-center gap-4 text-xs md:text-sm text-[#938F99]">
-                  <span className="flex items-center gap-1.5">
-                    <Users className="w-4 h-4 text-[#D0BCFF]" />
+                <h1 className="text-2xl md:text-3xl font-black text-utube-text tracking-tight">{channel.title}</h1>
+                <div className="flex items-center gap-4 text-xs md:text-sm text-utube-text-secondary">
+                  <span className="flex items-center gap-1.5 font-medium">
+                    <Users className="w-4 h-4 text-utube-primary" />
                     {formatViews(channel.subscriberCount || '0')} subscribers
                   </span>
-                  <span className="flex items-center gap-1.5">
-                    <VideoIcon className="w-4 h-4 text-[#D0BCFF]" />
+                  <span className="flex items-center gap-1.5 font-medium">
+                    <VideoIcon className="w-4 h-4 text-utube-primary" />
                     {formatViews(channel.videoCount || '0')} videos
                   </span>
                 </div>
@@ -105,10 +105,10 @@ export function ChannelPage() {
         {channel && (
           <button
             onClick={toggleSub}
-            className={`px-8 py-3.5 rounded-full font-semibold text-sm transition-all shadow-lg ${
+            className={`px-7 py-3 rounded-full font-bold text-xs uppercase tracking-wider transition-all shadow-sm cursor-pointer ${
               isSubscribed
-                ? 'bg-white/5 text-[#E6E1E5] hover:bg-white/10'
-                : 'bg-[#D0BCFF] text-[#381E72] hover:bg-[#EADDFF]'
+                ? 'bg-utube-surface text-utube-text-secondary hover:bg-utube-border/60 border border-utube-border'
+                : 'bg-utube-primary text-white hover:bg-utube-deep'
             }`}
           >
             {isSubscribed ? 'Subscribed' : 'Subscribe'}
@@ -118,15 +118,15 @@ export function ChannelPage() {
 
       {/* Description */}
       {channel?.description && (
-        <div className="bg-[#1C1B1F] rounded-[32px] p-6 text-sm border border-white/5">
-          <h3 className="font-semibold text-[#E6E1E5] mb-2 uppercase tracking-[0.2em] text-xs text-[#938F99]">About Channel</h3>
-          <p className="text-[#CAC4D0] leading-relaxed whitespace-pre-wrap">{channel.description}</p>
+        <div className="bg-utube-card rounded-3xl p-6 text-sm border border-utube-border shadow-sm">
+          <h3 className="font-bold text-utube-text-muted mb-2 uppercase tracking-widest text-xs">About Channel</h3>
+          <p className="text-utube-text-secondary leading-relaxed whitespace-pre-wrap">{channel.description}</p>
         </div>
       )}
 
       {/* Uploads Grid */}
-      <div className="space-y-6">
-        <h2 className="text-sm font-medium uppercase tracking-[0.2em] text-[#938F99]">Latest Uploads</h2>
+      <div className="space-y-4">
+        <h2 className="text-sm font-bold uppercase tracking-wider text-utube-text-muted">Latest Uploads</h2>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {loading ? (

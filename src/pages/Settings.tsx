@@ -444,32 +444,32 @@ export function SettingsPage() {
       </div>
 
       {/* About Application */}
-      <div className="bg-[#1C1B1F] p-6 rounded-[32px] border border-white/5 space-y-4 shadow-xl">
-        <div className="flex items-center gap-2 border-b border-white/5 pb-4">
-          <Info className="w-4 h-4 text-[#D0BCFF]" />
-          <h2 className="text-sm font-medium uppercase tracking-[0.2em] text-[#938F99]">About Application</h2>
+      <div className="bg-utube-card p-6 rounded-3xl border border-utube-border space-y-4 shadow-sm">
+        <div className="flex items-center gap-2 border-b border-utube-border pb-4">
+          <Info className="w-4 h-4 text-utube-primary" />
+          <h2 className="text-xs font-bold uppercase tracking-widest text-utube-text-muted">About Application</h2>
         </div>
 
-        <div className="space-y-3 text-sm text-[#CAC4D0]">
+        <div className="space-y-3 text-sm text-utube-text-secondary">
           <div className="flex justify-between items-center py-1">
-            <span className="text-[#938F99]">Application Name</span>
-            <span className="font-semibold text-[#E6E1E5]">OmniStream (CineMorph AI v2)</span>
+            <span className="text-utube-text-muted text-xs">Application Name</span>
+            <span className="font-bold text-utube-text">OmniStream (CineMorph AI v2)</span>
           </div>
-          <div className="flex justify-between items-center py-1 border-t border-white/5">
-            <span className="text-[#938F99]">Version</span>
-            <span className="font-mono text-xs text-[#D0BCFF]">v2.0.0</span>
+          <div className="flex justify-between items-center py-1 border-t border-utube-border">
+            <span className="text-utube-text-muted text-xs">Version</span>
+            <span className="font-mono text-xs text-utube-primary font-bold">v2.0.0</span>
           </div>
-          <div className="flex justify-between items-center py-1 border-t border-white/5">
-            <span className="text-[#938F99]">Developer & Author</span>
-            <span className="font-semibold text-[#E6E1E5]">Patnala Uday Kumar</span>
+          <div className="flex justify-between items-center py-1 border-t border-utube-border">
+            <span className="text-utube-text-muted text-xs">Developer & Author</span>
+            <span className="font-bold text-utube-text">Patnala Uday Kumar</span>
           </div>
-          <div className="flex justify-between items-center py-1 border-t border-white/5">
-            <span className="text-[#938F99]">Copyright</span>
-            <span className="text-xs">© Patnala Uday Kumar</span>
+          <div className="flex justify-between items-center py-1 border-t border-utube-border">
+            <span className="text-utube-text-muted text-xs">Copyright</span>
+            <span className="text-xs font-medium">© Patnala Uday Kumar</span>
           </div>
-          <div className="pt-2 border-t border-white/5 text-xs text-[#938F99] flex items-center justify-between">
-            <span className="flex items-center gap-1.5"><ShieldCheck className="w-4 h-4 text-emerald-400" /> Internal Developer Configuration</span>
-            <span className="flex items-center gap-1.5"><Heart className="w-3.5 h-3.5 text-red-400" /> Personal Use</span>
+          <div className="pt-2 border-t border-utube-border text-xs text-utube-text-muted flex items-center justify-between">
+            <span className="flex items-center gap-1.5 font-medium"><ShieldCheck className="w-4 h-4 text-emerald-500" /> Internal Developer Configuration</span>
+            <span className="flex items-center gap-1.5 font-medium"><Heart className="w-3.5 h-3.5 text-red-500" /> Personal Use</span>
           </div>
         </div>
       </div>

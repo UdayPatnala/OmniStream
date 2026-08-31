@@ -149,11 +149,11 @@ export function Search() {
         </div>
 
         {/* Secondary Specification Filters (Upload Date, Duration, Sort By) */}
-        <div className="flex flex-wrap items-center gap-3 pt-1 text-xs text-gray-400">
-          <span className="font-bold text-gray-300">Filters:</span>
+        <div className="flex flex-wrap items-center gap-3 pt-1 text-xs text-utube-text-secondary">
+          <span className="font-bold text-utube-text-muted">Filters:</span>
           
           <select 
-            className="bg-[#1f1e29] border border-white/10 text-xs text-gray-200 rounded-lg px-2.5 py-1 focus:outline-none focus:border-cyan-500 cursor-pointer"
+            className="bg-utube-card border border-utube-border text-xs text-utube-text rounded-xl px-3 py-1.5 focus:outline-none focus:border-utube-primary shadow-sm cursor-pointer"
             value={uploadDateFilter}
             onChange={(e) => setUploadDateFilter(e.target.value as any)}
           >
@@ -164,7 +164,7 @@ export function Search() {
           </select>
 
           <select 
-            className="bg-[#1f1e29] border border-white/10 text-xs text-gray-200 rounded-lg px-2.5 py-1 focus:outline-none focus:border-cyan-500 cursor-pointer"
+            className="bg-utube-card border border-utube-border text-xs text-utube-text rounded-xl px-3 py-1.5 focus:outline-none focus:border-utube-primary shadow-sm cursor-pointer"
             value={durationFilter}
             onChange={(e) => setDurationFilter(e.target.value as any)}
           >
@@ -174,7 +174,7 @@ export function Search() {
           </select>
 
           <select 
-            className="bg-[#1f1e29] border border-white/10 text-xs text-gray-200 rounded-lg px-2.5 py-1 focus:outline-none focus:border-cyan-500 cursor-pointer"
+            className="bg-utube-card border border-utube-border text-xs text-utube-text rounded-xl px-3 py-1.5 focus:outline-none focus:border-utube-primary shadow-sm cursor-pointer"
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as any)}
           >

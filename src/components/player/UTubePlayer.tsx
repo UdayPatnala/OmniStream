@@ -260,8 +260,19 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
   // Keyboard Shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
       const activeTag = (document.activeElement?.tagName || '').toLowerCase();
-      if (activeTag === 'input' || activeTag === 'textarea') return;
+      const targetTag = (target?.tagName || '').toLowerCase();
+      if (
+        activeTag === 'input' || 
+        activeTag === 'textarea' || 
+        activeTag === 'select' ||
+        targetTag === 'input' ||
+        targetTag === 'textarea' ||
+        targetTag === 'select' ||
+        (document.activeElement as HTMLElement)?.isContentEditable ||
+        target?.isContentEditable
+      ) return;
 
       switch (e.key.toLowerCase()) {
         case ' ':

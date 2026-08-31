@@ -35,7 +35,16 @@ export function VideoCard({ video, progress }: VideoCardProps) {
   }
 
   const savedPos = watchPositions[video.id];
-  const activeProgress = progress || (savedPos && savedPos.duration > 0 ? (savedPos.timestamp / savedPos.duration) * 100 : 0);
+  let activeProgress = 0;
+  if (progress !== undefined) {
+    if (savedPos && savedPos.duration > 0 && progress > 100) {
+      activeProgress = (progress / savedPos.duration) * 100;
+    } else {
+      activeProgress = progress;
+    }
+  } else if (savedPos && savedPos.duration > 0) {
+    activeProgress = (savedPos.timestamp / savedPos.duration) * 100;
+  }
   const inWatchLater = isInWatchLater(video.id);
 
   const videoObj: Video = {

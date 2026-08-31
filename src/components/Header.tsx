@@ -1,4 +1,4 @@
-import { Search, Menu, Clock, X, Mic, Bell, Video as VideoIcon, Sparkles, Layers, Palette, Zap, Settings2 } from 'lucide-react';
+import { Search, Menu, Clock, X, Mic, Bell, Video as VideoIcon, Sparkles, Layers, Palette, Zap, Settings2, Compass, Film } from 'lucide-react';
 import { useState, useEffect, type FormEvent } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { fetchSearchSuggestions } from '../lib/youtube';
@@ -341,13 +341,24 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
           )}
         </div>
 
-        <button className="p-2 text-utube-text-secondary hover:bg-utube-surface rounded-full transition-colors hidden sm:block">
-          <Layers className="w-5 h-5 text-utube-text-secondary" />
-        </button>
-        <button className="p-2 text-utube-text-secondary hover:bg-utube-surface rounded-full transition-colors hidden sm:block">
-          <Bell className="w-5 h-5 text-utube-text-secondary" />
-        </button>
-        <Link to="/settings" className="w-8 h-8 rounded-full bg-utube-primary hover:bg-utube-secondary text-white flex items-center justify-center font-bold text-xs ml-1 shadow-sm transition-colors">
+        {/* Dual-Engine Portal & CineMorph Quick Jump */}
+        <Link 
+          to="/portal" 
+          title="Switch Engine Portal (Bento Hub)"
+          className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-utube-surface hover:bg-utube-border/50 text-utube-text-secondary hover:text-utube-text border border-utube-border text-xs font-semibold transition-all"
+        >
+          <Compass className="w-3.5 h-3.5 text-utube-text-muted" />
+          <span>Hub</span>
+        </Link>
+        <Link 
+          to="/cinemorph" 
+          title="Launch CineMorph Virtual Theater"
+          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/30 text-xs font-bold transition-all shadow-sm group"
+        >
+          <Film className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400 group-hover:scale-110 transition-transform" />
+          <span className="font-cinematic">CineMorph</span>
+        </Link>
+        <Link to="/settings" title="Settings" className="w-8 h-8 rounded-full bg-utube-primary hover:bg-utube-secondary text-white flex items-center justify-center font-bold text-xs ml-1 shadow-sm transition-colors">
           U
         </Link>
       </div>
