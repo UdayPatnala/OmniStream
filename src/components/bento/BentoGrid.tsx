@@ -18,7 +18,6 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { ModeCard } from './ModeCard';
-import { TicketDrawer } from './TicketDrawer';
 import { GlobalSettingsDrawer } from '../settings/GlobalSettingsDrawer';
 import { OMSLogo } from '../common/OMSLogo';
 import { useCineMorphStore } from '../../state/useCineMorphStore';
@@ -169,11 +168,6 @@ export const BentoGrid: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
           <ModeCard mode="utube" className="lg:col-span-6 min-h-[440px]" />
           <ModeCard mode="cinemorph" className="lg:col-span-6 min-h-[440px]" />
-        </div>
-
-        {/* Admission Shelf & Active State Recovery */}
-        <div className="w-full">
-          <TicketDrawer />
         </div>
 
         {/* Remember Choice Bar */}

@@ -150,14 +150,11 @@ export const ModeCard: React.FC<ModeCardProps> = ({ mode, className = '' }) => {
 
         {/* Viewport Aspect Ratio Selector */}
         <div className="space-y-2">
-          <div className="text-[11px] font-bold text-cinemorph-text-muted uppercase tracking-wider">
-            Select Aperture Format
-          </div>
           <div className="grid grid-cols-3 gap-2">
             {[
-              { id: '1.43:1', label: 'True IMAX (1.43:1)' },
+              { id: 'original', label: 'Directorial Original' },
               { id: '1.90:1', label: 'IMAX (1.90:1)' },
-              { id: 'original', label: 'Directorial Original' }
+              { id: '1.43:1', label: 'True IMAX (1.43:1)' }
             ].map(r => (
               <button
                 key={r.id}

@@ -398,7 +398,7 @@ export const useAppStore = create<AppState>()(
       glowIntensity: 'off',
       setGlowIntensity: (glowIntensity) => set({ glowIntensity }),
 
-      frameAspectRatio: '16:9',
+      frameAspectRatio: 'original',
       setFrameAspectRatio: (frameAspectRatio) => set({ frameAspectRatio }),
 
       reframeMode: 'center',
@@ -502,7 +502,7 @@ export const useAppStore = create<AppState>()(
         ...currentState,
         ...(persistedState || {}),
         glowIntensity: persistedState?.glowIntensity || 'off',
-        frameAspectRatio: persistedState?.frameAspectRatio || '16:9',
+        frameAspectRatio: persistedState?.frameAspectRatio || 'original',
         reframeMode: persistedState?.reframeMode || 'center',
         cinemorphTheme: persistedState?.cinemorphTheme || 'cinematic-dark',
         versionMode: persistedState?.versionMode || 'v2',

@@ -2,15 +2,17 @@ import React from 'react';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+import { ThresholdPortal } from '../components/threshold/ThresholdPortal';
 import { BentoGrid } from '../components/bento/BentoGrid';
 import { ModeCard } from '../components/bento/ModeCard';
 import { TicketDrawer } from '../components/bento/TicketDrawer';
 import { useTicketStore } from '../state/useTicketStore';
 import { useCineMorphStore } from '../state/useCineMorphStore';
 
-describe('Bento Grid & Landing Components', () => {
+describe('Threshold & Landing Portal Components', () => {
   beforeEach(() => {
     localStorage.clear();
+    sessionStorage.clear();
     useTicketStore.setState({
       tickets: [],
       isPrintingAnimationActive: false,
@@ -29,6 +31,21 @@ describe('Bento Grid & Landing Components', () => {
     });
   });
 
+  it('renders ThresholdPortal with both world identities and OMNISTREAM mark', () => {
+    render(
+      <MemoryRouter>
+        <ThresholdPortal />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText(/OMNISTREAM/i)).toBeInTheDocument();
+    expect(screen.getByText(/U-TUBE/i)).toBeInTheDocument();
+    expect(screen.getByText(/CINEMORPH/i)).toBeInTheDocument();
+    expect(screen.getByText(/DISCOVERY FLOW/i)).toBeInTheDocument();
+    expect(screen.getByText(/THEATER APERTURE/i)).toBeInTheDocument();
+    expect(screen.getByText(/AN/i)).toBeInTheDocument();
+  });
+
   it('renders BentoGrid header and both mode cards', () => {
     render(
       <MemoryRouter>
@@ -39,7 +56,6 @@ describe('Bento Grid & Landing Components', () => {
     expect(screen.getAllByText(/OMNISTREAM/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/U-TUBE/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/CINEMORPH/i).length).toBeGreaterThan(0);
-    expect(screen.getByText(/Admission Tickets Shelf/i)).toBeInTheDocument();
   });
 
   it('renders empty admission drawer state when no tickets exist', () => {

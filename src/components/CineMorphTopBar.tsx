@@ -133,18 +133,21 @@ export const CineMorphTopBar: React.FC<CineMorphTopBarProps> = () => {
             <div className="absolute top-full right-0 mt-2 w-52 bg-[#181924] border border-amber-500/30 rounded-xl shadow-2xl p-2.5 z-50 flex flex-col gap-2 text-xs">
               <div>
                 <div className="px-2 py-1 font-semibold text-amber-400 text-[10px] uppercase">Aspect Ratio</div>
-                <div className="grid grid-cols-2 gap-1 mt-1">
-                  {(['1.43:1', '1.90:1', '21:9', '16:9', '4:3', '1:1'] as FrameAspectRatio[]).map((aspect) => (
+                <div className="grid grid-cols-3 gap-1 mt-1">
+                  {(['original', '1.90:1', '1.43:1'] as FrameAspectRatio[]).map((aspect) => (
                     <button
                       key={aspect}
-                      onClick={() => setFrameAspectRatio(aspect)}
-                      className={`px-2 py-1 rounded-lg text-center transition-all ${
+                      onClick={() => {
+                        setFrameAspectRatio(aspect);
+                        setShowFrameMenu(false);
+                      }}
+                      className={`px-2 py-1.5 rounded-lg text-center text-[10px] font-bold transition-all cursor-pointer ${
                         frameAspectRatio === aspect
-                          ? 'bg-amber-600 text-white font-bold'
+                          ? 'bg-amber-600 text-white shadow-sm'
                           : 'bg-[#090a0f] text-gray-300 hover:bg-white/10'
                       }`}
                     >
-                      {aspect}
+                      {aspect === 'original' ? 'Original' : aspect}
                     </button>
                   ))}
                 </div>

@@ -183,11 +183,9 @@ export function SettingsPage() {
               onChange={(e) => setFrameAspectRatio(e.target.value as any)}
               className="w-full h-12 px-4 rounded-2xl border border-utube-border bg-utube-surface text-utube-text focus:outline-none focus:border-utube-primary cursor-pointer shadow-sm"
             >
-              <option value="16:9">16:9 Standard Widescreen</option>
-              <option value="21:9">21:9 UltraWide Cinema</option>
-              <option value="4:3">4:3 Classic IMAX</option>
-              <option value="1:1">1:1 Square</option>
-              <option value="4.3:1">4.3:1 IMAX Aspect Ratio</option>
+              <option value="original">Directorial Original (Default - 100% Uncropped)</option>
+              <option value="1.90:1">IMAX Digital (1.90:1)</option>
+              <option value="1.43:1">True IMAX GT (1.43:1)</option>
             </select>
           </div>
 

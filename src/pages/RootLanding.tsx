@@ -1,7 +1,7 @@
 import React from 'react';
-import { BentoGrid } from '../components/bento/BentoGrid';
+import { ThresholdPortal } from '../components/threshold/ThresholdPortal';
 
 export function RootLanding() {
-  return <BentoGrid />;
+  return <ThresholdPortal />;
 }
 

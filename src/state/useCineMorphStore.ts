@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { storageService } from '../services/storageService';
 
-export type AspectRatioMode = '1.43:1' | '1.90:1' | 'original' | '4:3';
+export type AspectRatioMode = 'original' | '1.90:1' | '1.43:1' | '4:3';
 export type FramingRuleMode = 'rule_of_thirds' | 'leading_lines' | 'frame_in_frame' | 'screen_direction' | 'auto';
 
 export interface CineMorphVideoSource {
@@ -39,7 +39,7 @@ const STORAGE_KEY_CINEMORPH = 'omnistream-cinemorph-store';
 export const useCineMorphStore = create<CineMorphStoreState>()(
   persist(
     (set) => ({
-      aspectRatio: '1.90:1',
+      aspectRatio: 'original',
       isOffline: false,
       videoSource: null,
       framingRule: 'auto',
@@ -49,7 +49,7 @@ export const useCineMorphStore = create<CineMorphStoreState>()(
       isPlaying: false,
 
       setAspectRatio: (ratio: AspectRatioMode) => {
-        const validRatios: AspectRatioMode[] = ['1.43:1', '1.90:1', 'original', '4:3'];
+        const validRatios: AspectRatioMode[] = ['original', '1.90:1', '1.43:1', '4:3'];
         set({ aspectRatio: validRatios.includes(ratio) ? ratio : 'original' });
       },
 

@@ -190,12 +190,11 @@ export const GlobalSettingsDrawer: React.FC<GlobalSettingsDrawerProps> = ({ isOp
             <h3 className="text-xs font-bold text-utube-text-muted uppercase tracking-wider">
               CineMorph Viewport Format
             </h3>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               {[
-                { id: '1.43:1', label: 'True IMAX (1.43:1)' },
+                { id: 'original', label: 'Original (Default)' },
                 { id: '1.90:1', label: 'IMAX (1.90:1)' },
-                { id: '21:9', label: 'Cinema (21:9)' },
-                { id: '16:9', label: 'Widescreen (16:9)' }
+                { id: '1.43:1', label: 'True IMAX (1.43:1)' }
               ].map(r => (
                 <button
                   key={r.id}

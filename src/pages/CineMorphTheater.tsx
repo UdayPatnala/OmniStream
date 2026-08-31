@@ -585,21 +585,15 @@ export function CineMorphTheater() {
   };
 
   const cycleAspectRatio = () => {
-    const ratios: FrameAspectRatio[] = ['1.90:1', '1.43:1', '21:9', '16:9', 'original'];
+    const ratios: FrameAspectRatio[] = ['original', '1.90:1', '1.43:1'];
     const currentIdx = ratios.indexOf(frameAspectRatio);
-    const nextRatio = currentIdx === -1 ? '1.90:1' : ratios[(currentIdx + 1) % ratios.length];
+    const nextRatio = currentIdx === -1 ? 'original' : ratios[(currentIdx + 1) % ratios.length];
     setFrameAspectRatio(nextRatio);
     const label = nextRatio === 'original' 
-      ? 'Original (Native Source)' 
+      ? 'Original (Native Source - 100% Uncropped)' 
       : nextRatio === '1.43:1' 
-      ? 'Large Format 1.43 (Vertical Aperture)' 
-      : nextRatio === '1.90:1' 
-      ? 'Large Format 1.90 (Wide Aperture)' 
-      : nextRatio === '21:9' 
-      ? '21:9 UltraWide Cinema' 
-      : nextRatio === '16:9'
-      ? '16:9 Standard'
-      : nextRatio;
+      ? 'True IMAX (1.43:1)' 
+      : 'IMAX (1.90:1)';
     showToast(`🎬 Viewport Reframe: ${label}`);
   };
 
@@ -861,14 +855,12 @@ export function CineMorphTheater() {
             ? '12px 12px 28px 28px / 12px 12px 16px 16px'
             : '10px',
           transform: isOriginalMode
-            ? (curvedScreenActive ? 'perspective(1100px) rotateX(-0.6deg) scaleX(0.995)' : 'none')
+            ? 'none'
             : presentationMode === 'cinema' 
             ? (frameAspectRatio === '4.3:1' ? 'perspective(1200px) rotateX(1deg) scale(1.12)' : 'perspective(1200px) rotateX(0.8deg)') 
             : 'none',
           boxShadow: isOriginalMode
-            ? (curvedScreenActive 
-                ? '0 0 90px rgba(0,0,0,0.95), 0 25px 60px rgba(0,0,0,0.9)' 
-                : '0 10px 30px rgba(0,0,0,0.5)')
+            ? '0 10px 30px rgba(0,0,0,0.5)'
             : presentationMode === 'cinema' 
             ? '0 0 120px rgba(0,0,0,0.98), inset 0 0 40px rgba(0,0,0,0.9)' 
             : '0 20px 25px -5px rgba(0,0,0,0.1)'
@@ -1164,8 +1156,8 @@ export function CineMorphTheater() {
         </div>
       </div>
 
-      {/* ── Natural Cinema Auditorium Seating (Below Screen • Zero Obstruction) ── */}
-      {theaterSeatingEnabled && (
+      {/* ── Natural Cinema Auditorium Seating (Rendered ONLY in IMAX / True IMAX • Zero Obstruction) ── */}
+      {theaterSeatingEnabled && isIMAXMode && (
         <div className="absolute bottom-0 inset-x-0 h-10 sm:h-14 pointer-events-none z-10 flex flex-col justify-end items-center px-4 sm:px-12 select-none">
           {/* Natural Auditorium VIP Recliner Row */}
           <div className="w-full max-w-5xl flex justify-between items-end gap-4 sm:gap-8 opacity-90">
