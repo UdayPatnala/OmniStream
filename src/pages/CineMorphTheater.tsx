@@ -778,7 +778,7 @@ export function CineMorphTheater() {
       onTouchStart={resetControlsTimer}
     >
       {/* ── Dynamic Reactive Ambilight Bloom (Auditorium Ambient Glow) ── */}
-      {presentationMode === 'cinema' && glowIntensity !== 'off' && (
+      {glowIntensity !== 'off' && (
         <div
           ref={bloomRef}
           className="absolute inset-0 pointer-events-none transition-all duration-700 z-0"
@@ -806,7 +806,7 @@ export function CineMorphTheater() {
       </div>
 
       {/* ── Grand IMAX Laser Cinema Auditorium Architectural Layers ── */}
-      {presentationMode === 'cinema' && (
+      {true && (
         <>
           {/* Ceiling Arch Starfield & Scalloped Halogen Spotlights (matching IMAX reference) */}
           <div className="absolute top-0 inset-x-0 h-36 bg-gradient-to-b from-black via-black/80 to-transparent pointer-events-none z-1 flex flex-col justify-start items-center pt-1 overflow-hidden opacity-95">
@@ -1218,18 +1218,18 @@ export function CineMorphTheater() {
       </div>
 
       {/* ── High-Fidelity 2-Tier IMAX Auditorium Theater Seating ── */}
-      {presentationMode === 'cinema' && theaterSeatingEnabled && (
-        <div className="absolute bottom-0 inset-x-0 h-20 sm:h-28 pointer-events-none z-20 flex flex-col justify-end items-center px-2 sm:px-6">
+      {theaterSeatingEnabled && (
+        <div className="absolute bottom-0 inset-x-0 h-24 sm:h-32 pointer-events-none z-25 flex flex-col justify-end items-center px-2 sm:px-6 select-none">
           {/* Back Tier Row (Midground Auditorium Seats — receded, dimmer) */}
-          <div className="w-full max-w-5xl flex justify-between items-end gap-2 sm:gap-4 opacity-60 mb-[-4px] sm:mb-[-6px]">
+          <div className="w-full max-w-5xl flex justify-between items-end gap-2 sm:gap-4 opacity-80 mb-[-4px] sm:mb-[-6px]">
             {/* Left Bank Back Row */}
             <div className="flex-1 flex gap-1 sm:gap-2 justify-end">
               {[1, 2, 3, 4, 5, 6].map((s) => (
                 <div
                   key={`bk-l-${s}`}
-                  className="flex-1 max-w-[52px] h-6 sm:h-9 rounded-t-xl bg-gradient-to-b from-[#240c12] via-[#14060a] to-[#080204] border-t border-rose-900/30 flex flex-col items-center pt-0.5 shadow-md"
+                  className="flex-1 max-w-[52px] h-7 sm:h-10 rounded-t-xl bg-gradient-to-b from-[#4a1a24] via-[#2d0e15] to-[#120407] border-t border-rose-600/40 flex flex-col items-center pt-0.5 shadow-lg"
                 >
-                  <div className="w-3/4 h-2 sm:h-2.5 rounded-t-lg bg-gradient-to-b from-[#331119] to-[#1c080d] border-t border-rose-800/30" />
+                  <div className="w-3/4 h-2.5 sm:h-3 rounded-t-lg bg-gradient-to-b from-[#6b2535] to-[#3a131c] border-t border-rose-500/50 shadow-inner" />
                 </div>
               ))}
             </div>
@@ -1242,9 +1242,9 @@ export function CineMorphTheater() {
               {[1, 2, 3, 4, 5, 6].map((s) => (
                 <div
                   key={`bk-r-${s}`}
-                  className="flex-1 max-w-[52px] h-6 sm:h-9 rounded-t-xl bg-gradient-to-b from-[#240c12] via-[#14060a] to-[#080204] border-t border-rose-900/30 flex flex-col items-center pt-0.5 shadow-md"
+                  className="flex-1 max-w-[52px] h-7 sm:h-10 rounded-t-xl bg-gradient-to-b from-[#4a1a24] via-[#2d0e15] to-[#120407] border-t border-rose-600/40 flex flex-col items-center pt-0.5 shadow-lg"
                 >
-                  <div className="w-3/4 h-2 sm:h-2.5 rounded-t-lg bg-gradient-to-b from-[#331119] to-[#1c080d] border-t border-rose-800/30" />
+                  <div className="w-3/4 h-2.5 sm:h-3 rounded-t-lg bg-gradient-to-b from-[#6b2535] to-[#3a131c] border-t border-rose-500/50 shadow-inner" />
                 </div>
               ))}
             </div>
@@ -1257,22 +1257,22 @@ export function CineMorphTheater() {
               {[1, 2, 3, 4, 5].map((s) => (
                 <div
                   key={`fl-${s}`}
-                  className="flex-1 h-12 sm:h-18 rounded-t-2xl bg-gradient-to-b from-[#3a131b] via-[#1e090e] to-[#080204] border-t-2 border-rose-500/30 relative flex flex-col items-center justify-start pt-1 shadow-[0_-4px_20px_rgba(0,0,0,0.8)]"
+                  className="flex-1 h-14 sm:h-20 rounded-t-2xl bg-gradient-to-b from-[#6e1e2d] via-[#42111b] to-[#140407] border-t-2 border-rose-400/60 relative flex flex-col items-center justify-start pt-1.5 shadow-[0_-6px_25px_rgba(0,0,0,0.95)]"
                 >
                   {/* Plush Headrest Cushion */}
-                  <div className="w-[85%] h-3.5 sm:h-5 rounded-t-xl bg-gradient-to-b from-[#4a1823] to-[#250a11] border-t border-rose-400/40 shadow-inner" />
+                  <div className="w-[85%] h-4 sm:h-6 rounded-t-xl bg-gradient-to-b from-[#8f283b] to-[#541623] border-t border-rose-300/60 shadow-inner" />
                   {/* Armrest Separators */}
-                  <div className="absolute -right-1 bottom-0 w-2 h-6 sm:h-8 bg-[#140508] rounded-t-md border-t border-rose-500/20 shadow-lg" />
-                  <div className="absolute -left-1 bottom-0 w-2 h-6 sm:h-8 bg-[#140508] rounded-t-md border-t border-rose-500/20 shadow-lg" />
+                  <div className="absolute -right-1.5 bottom-0 w-2.5 h-7 sm:h-10 bg-[#25070d] rounded-t-md border-t border-rose-400/40 shadow-xl" />
+                  <div className="absolute -left-1.5 bottom-0 w-2.5 h-7 sm:h-10 bg-[#25070d] rounded-t-md border-t border-rose-400/40 shadow-xl" />
                 </div>
               ))}
             </div>
 
             {/* Center Aisle with Soft Low Floor Step Light */}
-            <div className="w-8 sm:w-16 h-7 flex items-end justify-center pb-0.5">
+            <div className="w-8 sm:w-16 h-8 flex items-end justify-center pb-1">
               <div className="flex flex-col items-center gap-0.5">
-                <div className="w-4 h-1 rounded-full bg-cyan-400/60 shadow-[0_0_12px_rgba(34,211,238,0.9)]" />
-                <div className="text-[7px] font-mono text-cyan-300/70 tracking-widest uppercase">AISLE</div>
+                <div className="w-5 h-1.5 rounded-full bg-cyan-400/80 shadow-[0_0_15px_rgba(34,211,238,1)]" />
+                <div className="text-[7.5px] font-mono text-cyan-200/90 font-bold tracking-widest uppercase">AISLE</div>
               </div>
             </div>
 
@@ -1281,13 +1281,13 @@ export function CineMorphTheater() {
               {[1, 2, 3, 4, 5].map((s) => (
                 <div
                   key={`fr-${s}`}
-                  className="flex-1 h-12 sm:h-18 rounded-t-2xl bg-gradient-to-b from-[#3a131b] via-[#1e090e] to-[#080204] border-t-2 border-rose-500/30 relative flex flex-col items-center justify-start pt-1 shadow-[0_-4px_20px_rgba(0,0,0,0.8)]"
+                  className="flex-1 h-14 sm:h-20 rounded-t-2xl bg-gradient-to-b from-[#6e1e2d] via-[#42111b] to-[#140407] border-t-2 border-rose-400/60 relative flex flex-col items-center justify-start pt-1.5 shadow-[0_-6px_25px_rgba(0,0,0,0.95)]"
                 >
                   {/* Plush Headrest Cushion */}
-                  <div className="w-[85%] h-3.5 sm:h-5 rounded-t-xl bg-gradient-to-b from-[#4a1823] to-[#250a11] border-t border-rose-400/40 shadow-inner" />
+                  <div className="w-[85%] h-4 sm:h-6 rounded-t-xl bg-gradient-to-b from-[#8f283b] to-[#541623] border-t border-rose-300/60 shadow-inner" />
                   {/* Armrest Separators */}
-                  <div className="absolute -left-1 bottom-0 w-2 h-6 sm:h-8 bg-[#140508] rounded-t-md border-t border-rose-500/20 shadow-lg" />
-                  <div className="absolute -right-1 bottom-0 w-2 h-6 sm:h-8 bg-[#140508] rounded-t-md border-t border-rose-500/20 shadow-lg" />
+                  <div className="absolute -left-1.5 bottom-0 w-2.5 h-7 sm:h-10 bg-[#25070d] rounded-t-md border-t border-rose-400/40 shadow-xl" />
+                  <div className="absolute -right-1.5 bottom-0 w-2.5 h-7 sm:h-10 bg-[#25070d] rounded-t-md border-t border-rose-400/40 shadow-xl" />
                 </div>
               ))}
             </div>
