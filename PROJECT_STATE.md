@@ -32,5 +32,5 @@
 ---
 
 ## 3. Active Checkpoint & Recovery Reference
-- **Current Git Commit**: `240dbe0` (`v2.0.0-release`)
+- **Current Git Commit**: `2c46b23` (`v2.0.0-release`)
 - **Rollback Strategy**: All domain stores support backward-compatible state hydration; fallback chains automatically degrade to Tier 1 Center Crop or Native Audio.
