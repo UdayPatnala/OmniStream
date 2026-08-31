@@ -36,10 +36,10 @@ describe('Bento Grid & Landing Components', () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByText(/OMNISTREAM/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/OMNISTREAM/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/U-TUBE/i).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/CineMorph/i).length).toBeGreaterThan(0);
-    expect(screen.getByText(/Torn Admission Tickets Shelf/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/CINEMORPH/i).length).toBeGreaterThan(0);
+    expect(screen.getByText(/Admission Tickets Shelf/i)).toBeInTheDocument();
   });
 
   it('renders empty admission drawer state when no tickets exist', () => {
@@ -49,7 +49,7 @@ describe('Bento Grid & Landing Components', () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByText(/Admission Drawer Empty/i)).toBeInTheDocument();
+    expect(screen.getByText(/Admission Shelf Empty/i)).toBeInTheDocument();
   });
 
   it('renders saved tickets and triggers resume upon click', () => {
@@ -87,8 +87,8 @@ describe('Bento Grid & Landing Components', () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByText('CineMorph')).toBeInTheDocument();
-    expect(screen.getByText(/Immersive 3D Theatrical Environment/i)).toBeInTheDocument();
+    expect(screen.getByText('CINEMORPH')).toBeInTheDocument();
+    expect(screen.getByText(/Virtual Theater Experience/i)).toBeInTheDocument();
     expect(screen.getByText('Enter CineMorph')).toBeInTheDocument();
   });
 
@@ -99,15 +99,15 @@ describe('Bento Grid & Landing Components', () => {
       </MemoryRouter>
     );
 
-    const imaxBtn = screen.getByText('1.43 IMAX');
+    const imaxBtn = screen.getByText('True IMAX (1.43:1)');
     fireEvent.click(imaxBtn);
     expect(useCineMorphStore.getState().aspectRatio).toBe('1.43:1');
 
-    const imax190Btn = screen.getByText('1.90 IMAX');
+    const imax190Btn = screen.getByText('IMAX (1.90:1)');
     fireEvent.click(imax190Btn);
     expect(useCineMorphStore.getState().aspectRatio).toBe('1.90:1');
 
-    const origBtn = screen.getByText('Original');
+    const origBtn = screen.getByText('Directorial Original');
     fireEvent.click(origBtn);
     expect(useCineMorphStore.getState().aspectRatio).toBe('original');
   });

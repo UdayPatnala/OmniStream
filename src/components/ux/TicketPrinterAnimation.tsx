@@ -138,12 +138,65 @@ export const TicketPrinterAnimation: React.FC<TicketPrinterAnimationProps> = ({
 
     let isCancelled = false;
 
-    // Stage Timeline Execution:
-    // We make it instant to remove the print animation, but keep the ticket displayed on screen
-    const runAnimationSequence = async () => {
+    // Check for user reduced motion preference
+    const prefersReducedMotion = typeof window !== 'undefined' && 
+      window.matchMedia && 
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (prefersReducedMotion) {
       setStage('ready');
       setPrintProgress(100);
       setIsVibrating(false);
+      return;
+    }
+
+    const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+    // Tactile 5-Stage Physical Thermal Printing Timeline (~2.8s total)
+    const runAnimationSequence = async () => {
+      // Stage 1: Thermal Head Calibration & Stepper Warmup (350ms)
+      setStage('starting');
+      setPrintProgress(10);
+      setIsVibrating(true);
+      playPrinterClick(680);
+      await wait(350);
+      if (isCancelled) return;
+
+      // Stage 2: Top Header & Movie Title Inking (650ms)
+      setStage('printing');
+      setPrintProgress(35);
+      playPrinterClick(820);
+      await wait(300);
+      if (isCancelled) return;
+      playPrinterClick(860);
+      setPrintProgress(60);
+      await wait(350);
+      if (isCancelled) return;
+
+      // Stage 3: Seat Assignment & Timecode Stamp (650ms)
+      setStage('almost_done');
+      setPrintProgress(82);
+      playPrinterClick(920);
+      await wait(300);
+      if (isCancelled) return;
+      playPrinterClick(980);
+      setPrintProgress(95);
+      await wait(350);
+      if (isCancelled) return;
+
+      // Stage 4: Barcode & Perforation Cut (450ms)
+      setStage('ticket_out');
+      setPrintProgress(100);
+      setIsVibrating(false);
+      playPrinterClick(1150);
+      await wait(450);
+      if (isCancelled) return;
+
+      // Stage 5: Ticket Settles & Ready for Pickup
+      setStage('bounce_settle');
+      await wait(250);
+      if (isCancelled) return;
+      setStage('ready');
     };
 
     runAnimationSequence();

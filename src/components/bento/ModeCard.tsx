@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Play,
@@ -6,15 +6,17 @@ import {
   Maximize2,
   ArrowRight,
   ShieldCheck,
-  Cpu,
-  Layers,
   Zap,
   History,
   Search,
   Ticket,
-  Volume2
+  HardDrive,
+  Tv,
+  Sparkles
 } from 'lucide-react';
 import { useCineMorphStore } from '../../state/useCineMorphStore';
+import { useAppStore } from '../../store';
+import { useTicketStore } from '../../state/useTicketStore';
 
 interface ModeCardProps {
   mode: 'utube' | 'cinemorph';
@@ -23,190 +25,192 @@ interface ModeCardProps {
 
 export const ModeCard: React.FC<ModeCardProps> = ({ mode, className = '' }) => {
   const navigate = useNavigate();
+  const { aspectRatio, setAspectRatio } = useCineMorphStore();
+  const { history, subscriptions, setVersionMode, setFrameAspectRatio } = useAppStore();
+  const { tickets } = useTicketStore();
+  const [quickQuery, setQuickQuery] = useState('');
 
-  // U-TUBE Card
+  const historyCount = Object.keys(history).length;
+  const subsCount = subscriptions.length;
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!quickQuery.trim()) return;
+    setVersionMode('v1');
+    navigate(`/search?q=${encodeURIComponent(quickQuery.trim())}`);
+  };
+
+  // ── U-TUBE Discovery Workstation Portal ──
   if (mode === 'utube') {
     return (
       <div 
-        onClick={() => navigate('/home')}
-        className={`relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-7 sm:p-8 shadow-sm transition-all duration-300 hover:border-red-300 hover:shadow-xl flex flex-col justify-between cursor-pointer group ${className}`}
+        className={`relative overflow-hidden rounded-3xl border border-utube-border bg-utube-card p-6 sm:p-8 shadow-sm transition-all duration-300 hover:border-utube-primary/50 hover:shadow-lg flex flex-col justify-between group ${className}`}
       >
-        <div className="relative z-10 space-y-5">
+        <div className="relative z-10 space-y-6">
+          {/* Header */}
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3.5">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-50 text-red-600 shadow-sm border border-red-100 group-hover:scale-105 transition-transform">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-utube-surface text-utube-primary border border-utube-border shadow-sm group-hover:scale-105 transition-transform">
                 <Play className="h-6 w-6 fill-current" />
               </div>
               <div>
-                <h2 className="text-2xl font-black tracking-tight text-slate-900 group-hover:text-red-600 transition-colors">U-TUBE</h2>
-                <p className="text-xs text-slate-500 font-medium">Ad-Free Video Discovery & Clean Playback</p>
+                <h2 className="text-xl sm:text-2xl font-black tracking-tight text-utube-text group-hover:text-utube-primary transition-colors font-cinematic-title">
+                  U-TUBE
+                </h2>
+                <p className="text-xs text-utube-text-muted font-medium">Ad-Free Stream Discovery & Watchlist</p>
               </div>
             </div>
-            <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-50 text-red-600 text-[10px] font-mono font-bold uppercase border border-red-200">
-              Web Stream
+            <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-utube-surface text-utube-primary text-[10px] font-mono font-bold uppercase border border-utube-border">
+              Stream Engine
             </span>
           </div>
 
-          <p className="text-sm text-slate-600 leading-relaxed">
-            A fast, familiar, and distraction-free YouTube experience. Discover recommended content, search videos instantly, and watch with zero ads or tracking interruptions.
-          </p>
+          {/* Direct Live Search Bar Input */}
+          <form onSubmit={handleSearchSubmit} className="relative">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-utube-text-muted" />
+            <input
+              type="text"
+              value={quickQuery}
+              onChange={(e) => setQuickQuery(e.target.value)}
+              placeholder="Search ad-free streams or jump to topic..."
+              className="w-full h-11 pl-10 pr-24 rounded-2xl border border-utube-border bg-utube-surface text-xs text-utube-text placeholder-utube-text-muted focus:outline-none focus:border-utube-primary transition-all shadow-sm"
+            />
+            <button
+              type="submit"
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 px-3 py-1 rounded-xl bg-utube-primary hover:opacity-90 text-white text-[11px] font-bold transition-all cursor-pointer"
+            >
+              Search
+            </button>
+          </form>
 
-          {/* Interactive Mini UI Preview */}
-          <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2.5">
-            <div className="flex items-center justify-between text-xs text-slate-700 font-bold">
-              <span className="flex items-center gap-1.5">
-                <Search className="w-3.5 h-3.5 text-red-500" />
-                Live Feed & Top-3 Search Engine
-              </span>
-              <span className="text-[10px] font-mono text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                4h Auto-Cache
-              </span>
+          {/* Quick Telemetry & Status Badges */}
+          <div className="grid grid-cols-3 gap-2.5 pt-1">
+            <div className="p-2.5 rounded-2xl bg-utube-surface border border-utube-border text-center">
+              <div className="text-sm font-black text-utube-text">{historyCount}</div>
+              <div className="text-[10px] font-medium text-utube-text-muted">History Videos</div>
             </div>
-            <div className="grid grid-cols-3 gap-2">
-              <div className="aspect-video rounded-lg bg-slate-200 overflow-hidden relative border border-slate-300">
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-1">
-                  <span className="text-[8px] font-mono font-bold text-white">4K Stream</span>
-                </div>
-              </div>
-              <div className="aspect-video rounded-lg bg-slate-200 overflow-hidden relative border border-slate-300">
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-1">
-                  <span className="text-[8px] font-mono font-bold text-white">Subscribed</span>
-                </div>
-              </div>
-              <div className="aspect-video rounded-lg bg-slate-200 overflow-hidden relative border border-slate-300">
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-1">
-                  <span className="text-[8px] font-mono font-bold text-white">Keyword</span>
-                </div>
-              </div>
+            <div className="p-2.5 rounded-2xl bg-utube-surface border border-utube-border text-center">
+              <div className="text-sm font-black text-utube-text">{subsCount}</div>
+              <div className="text-[10px] font-medium text-utube-text-muted">Subscriptions</div>
             </div>
-          </div>
-
-          <div className="flex flex-wrap gap-2 pt-1">
-            <div className="flex items-center gap-1.5 rounded-lg bg-slate-100 px-2.5 py-1 text-[11px] text-slate-700 border border-slate-200">
-              <Zap className="h-3.5 w-3.5 text-red-500" />
-              <span>Zero Ads</span>
-            </div>
-            <div className="flex items-center gap-1.5 rounded-lg bg-slate-100 px-2.5 py-1 text-[11px] text-slate-700 border border-slate-200">
-              <History className="h-3.5 w-3.5 text-red-500" />
-              <span>Local History</span>
-            </div>
-            <div className="flex items-center gap-1.5 rounded-lg bg-slate-100 px-2.5 py-1 text-[11px] text-slate-700 border border-slate-200">
-              <ShieldCheck className="h-3.5 w-3.5 text-red-500" />
-              <span>Private Subs</span>
+            <div className="p-2.5 rounded-2xl bg-utube-surface border border-utube-border text-center">
+              <div className="text-sm font-black text-emerald-600">Zero</div>
+              <div className="text-[10px] font-medium text-utube-text-muted">Ads & Trackers</div>
             </div>
           </div>
         </div>
 
-        <div className="relative z-10 pt-6 mt-6 border-t border-slate-100 flex items-center justify-between">
-          <span className="text-[11px] font-mono text-slate-400">DISCOVER & WATCH</span>
-          <div className="flex items-center gap-1.5 rounded-xl bg-red-600 px-5 py-2.5 text-xs font-bold text-white group-hover:bg-red-700 transition-colors shadow-sm">
-            <span>Enter U-TUBE</span>
-            <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
+        {/* Action Footer */}
+        <div className="relative z-10 pt-6 mt-6 border-t border-utube-border flex items-center justify-between">
+          <div className="flex items-center gap-2 text-xs text-utube-text-muted font-mono">
+            <span className="w-2 h-2 rounded-full bg-utube-primary" />
+            <span>Fast Cache Feed</span>
           </div>
+
+          <button
+            onClick={() => {
+              setVersionMode('v1');
+              navigate('/home');
+            }}
+            className="flex items-center gap-2 rounded-2xl bg-utube-primary hover:opacity-95 text-white px-5 py-2.5 text-xs font-bold transition-all shadow-sm hover:scale-105 active:scale-95 cursor-pointer"
+          >
+            <span>Launch U-Tube</span>
+            <ArrowRight className="h-4 w-4" />
+          </button>
         </div>
       </div>
     );
   }
 
-  // CineMorph Card
+  // ── CINEMORPH Fixed-Aperture Theater Portal ──
   return (
-    <div
-      onClick={() => navigate('/cinemorph')}
-      className={`relative overflow-hidden rounded-3xl border border-amber-200 bg-[#FDFBF7] p-7 sm:p-8 shadow-sm transition-all duration-300 hover:border-amber-400 hover:shadow-xl flex flex-col justify-between cursor-pointer group ${className}`}
+    <div 
+      className={`relative overflow-hidden rounded-3xl border border-cinemorph-border bg-cinemorph-card p-6 sm:p-8 shadow-sm transition-all duration-300 hover:border-cinemorph-primary/50 hover:shadow-lg flex flex-col justify-between group ${className}`}
     >
-      <div className="relative z-10 space-y-5">
+      <div className="relative z-10 space-y-6">
+        {/* Header */}
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3.5">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-50 border border-amber-200 text-amber-700 shadow-sm group-hover:scale-105 transition-transform">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-cinemorph-surface text-cinemorph-primary border border-cinemorph-border shadow-sm group-hover:scale-105 transition-transform">
               <Film className="h-6 w-6" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-2xl font-black tracking-widest text-slate-900 group-hover:text-amber-700 transition-colors font-cinematic-title uppercase">CineMorph</h2>
-              </div>
-              <p className="text-xs text-slate-500 font-medium">Immersive 3D Theatrical Environment</p>
+              <h2 className="text-xl sm:text-2xl font-black tracking-tight text-cinemorph-text group-hover:text-cinemorph-primary transition-colors font-cinematic-title">
+                CINEMORPH
+              </h2>
+              <p className="text-xs text-cinemorph-text-muted font-medium font-cinematic">
+                Fixed-Aperture Virtual Theater Experience
+              </p>
             </div>
           </div>
-          <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-[10px] font-mono font-bold uppercase border border-amber-300">
-            Local & Web
+          <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cinemorph-surface text-cinemorph-primary text-[10px] font-mono font-bold uppercase border border-cinemorph-border">
+            IMAX Engine
           </span>
         </div>
 
-        <p className="text-sm text-slate-600 leading-relaxed">
-          Project your local files or online links into a fixed-aperture cinema. Featuring real-time ML-driven dynamic framing, thermal ticket printing, and vintage spatial acoustics.
-        </p>
-
-        {/* Interactive Aspect Ratio Controls */}
-        <div className="p-3.5 rounded-2xl bg-amber-50/60 border border-amber-200 space-y-2.5">
-          <div className="flex items-center justify-between text-xs text-amber-950 font-bold">
-            <span className="flex items-center gap-1.5">
-              <Maximize2 className="w-3.5 h-3.5 text-amber-700" />
-              Fixed Aperture Geometry
-            </span>
-            <span className="text-[10px] font-mono text-amber-800 bg-amber-100 px-2 py-0.5 rounded border border-amber-300">
-              Auto-Frame
-            </span>
+        {/* Viewport Aspect Ratio Selector */}
+        <div className="space-y-2">
+          <div className="text-[11px] font-bold text-cinemorph-text-muted uppercase tracking-wider">
+            Select Aperture Format
           </div>
-
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                useCineMorphStore.getState().setAspectRatio('1.43:1');
-              }}
-              className="flex items-center gap-1.5 rounded-lg bg-white hover:bg-amber-100 px-3 py-1.5 text-[11px] font-bold text-amber-900 border border-amber-300 transition-colors cursor-pointer shadow-sm"
-            >
-              <Maximize2 className="h-3.5 w-3.5 text-amber-700" />
-              <span>1.43 IMAX</span>
-            </button>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                useCineMorphStore.getState().setAspectRatio('1.90:1');
-              }}
-              className="flex items-center gap-1.5 rounded-lg bg-white hover:bg-amber-100 px-3 py-1.5 text-[11px] font-bold text-amber-900 border border-amber-300 transition-colors cursor-pointer shadow-sm"
-            >
-              <Maximize2 className="h-3.5 w-3.5 text-amber-700" />
-              <span>1.90 IMAX</span>
-            </button>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                useCineMorphStore.getState().setAspectRatio('original');
-              }}
-              className="flex items-center gap-1.5 rounded-lg bg-white hover:bg-amber-100 px-3 py-1.5 text-[11px] font-bold text-amber-900 border border-amber-300 transition-colors cursor-pointer shadow-sm"
-            >
-              <Layers className="h-3.5 w-3.5 text-amber-700" />
-              <span>Original</span>
-            </button>
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { id: '1.43:1', label: 'True IMAX (1.43:1)' },
+              { id: '1.90:1', label: 'IMAX (1.90:1)' },
+              { id: 'original', label: 'Directorial Original' }
+            ].map(r => (
+              <button
+                key={r.id}
+                onClick={() => {
+                  setAspectRatio(r.id as any);
+                  setFrameAspectRatio(r.id as any);
+                }}
+                className={`px-2.5 py-2 rounded-xl text-xs font-bold border text-center transition-all cursor-pointer ${
+                  aspectRatio === r.id
+                    ? 'bg-cinemorph-surface border-cinemorph-primary text-cinemorph-primary shadow-sm ring-1 ring-cinemorph-primary'
+                    : 'bg-cinemorph-surface/40 border-cinemorph-border text-cinemorph-text-secondary hover:bg-cinemorph-surface'
+                }`}
+              >
+                {r.label}
+              </button>
+            ))}
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2 pt-1">
-          <div className="flex items-center gap-1.5 rounded-lg bg-amber-100/60 px-2.5 py-1 text-[11px] text-amber-900 border border-amber-200">
-            <Cpu className="h-3.5 w-3.5 text-amber-700" />
-            <span>ML Smart Framing</span>
+        {/* Quick Telemetry & Status Badges */}
+        <div className="grid grid-cols-3 gap-2.5 pt-1">
+          <div className="p-2.5 rounded-2xl bg-cinemorph-surface border border-cinemorph-border text-center">
+            <div className="text-sm font-black text-cinemorph-text">{tickets.length}</div>
+            <div className="text-[10px] font-medium text-cinemorph-text-muted">Saved Tickets</div>
           </div>
-          <div className="flex items-center gap-1.5 rounded-lg bg-amber-100/60 px-2.5 py-1 text-[11px] text-amber-900 border border-amber-200">
-            <Ticket className="h-3.5 w-3.5 text-amber-700" />
-            <span>Thermal Tickets</span>
+          <div className="p-2.5 rounded-2xl bg-cinemorph-surface border border-cinemorph-border text-center">
+            <div className="text-sm font-black text-cinemorph-primary">13-Stage</div>
+            <div className="text-[10px] font-medium text-cinemorph-text-muted">Smart Reframe</div>
           </div>
-          <div className="flex items-center gap-1.5 rounded-lg bg-amber-100/60 px-2.5 py-1 text-[11px] text-amber-900 border border-amber-200">
-            <Volume2 className="h-3.5 w-3.5 text-amber-700" />
-            <span>Web Audio DSP</span>
+          <div className="p-2.5 rounded-2xl bg-cinemorph-surface border border-cinemorph-border text-center">
+            <div className="text-sm font-black text-emerald-600">Spatial</div>
+            <div className="text-[10px] font-medium text-cinemorph-text-muted">Parametric Audio</div>
           </div>
         </div>
       </div>
 
-      <div className="relative z-10 pt-6 mt-6 border-t border-amber-200/60 flex items-center justify-between">
-        <span className="text-[11px] font-mono text-amber-800">LOCAL & ONLINE MEDIA</span>
-        <div className="flex items-center gap-1.5 rounded-xl bg-amber-700 px-5 py-2.5 text-xs font-bold text-white group-hover:bg-amber-800 transition-colors shadow-sm">
-          <span>Enter CineMorph</span>
-          <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
+      {/* Action Footer */}
+      <div className="relative z-10 pt-6 mt-6 border-t border-cinemorph-border flex items-center justify-between">
+        <div className="flex items-center gap-2 text-xs text-cinemorph-text-muted font-mono">
+          <span className="w-2 h-2 rounded-full bg-cinemorph-primary" />
+          <span>Auditorium Ready</span>
         </div>
+
+        <button
+          onClick={() => {
+            setVersionMode('v2');
+            navigate('/cinemorph');
+          }}
+          className="flex items-center gap-2 rounded-2xl bg-cinemorph-primary hover:opacity-95 text-white px-5 py-2.5 text-xs font-bold transition-all shadow-sm hover:scale-105 active:scale-95 cursor-pointer font-cinematic"
+        >
+          <span>Enter CineMorph</span>
+          <ArrowRight className="h-4 w-4" />
+        </button>
       </div>
     </div>
   );

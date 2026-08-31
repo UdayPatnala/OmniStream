@@ -43,8 +43,8 @@ export function SettingsPage() {
         </div>
       )}
       <div>
-        <h1 className="text-2xl font-semibold mb-2 text-[#E6E1E5]">Settings</h1>
-        <p className="text-[#938F99]">Manage your U Tube preferences and personal application configuration.</p>
+        <h1 className="text-2xl font-black mb-1.5 text-utube-text font-cinematic-title uppercase tracking-wide">Settings</h1>
+        <p className="text-sm text-utube-text-muted">Manage your engine preferences and personal workstation configuration.</p>
       </div>
 
       {/* Playback & Appearance Preferences */}
@@ -306,10 +306,10 @@ export function SettingsPage() {
         </div>
 
         {/* Export & Import Backup */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-2 border-t border-white/5">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-2 border-t border-utube-border">
           <div>
-            <h3 className="font-medium text-[#E6E1E5]">Personal Data Backup</h3>
-            <p className="text-xs text-[#938F99]">Export your history, subscriptions, and collections to JSON or restore from file.</p>
+            <h3 className="font-bold text-utube-text">Personal Data Backup</h3>
+            <p className="text-xs text-utube-text-muted">Export your history, subscriptions, and collections to JSON or restore from file.</p>
           </div>
           <div className="flex items-center gap-2">
             <button
