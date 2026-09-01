@@ -791,40 +791,57 @@ export function CineMorphTheater() {
       {/* ── The Cinema Screen Container ── */}
       <div
         onClick={handleScreenClick}
-        className="relative transition-all duration-500 ease-out flex items-center justify-center z-10 overflow-hidden shadow-[0_25px_80px_rgba(0,0,0,0.95)] border border-white/10 bg-black cursor-pointer mb-6 sm:mb-8"
+        className={`relative transition-all duration-500 ease-out flex items-center justify-center z-10 overflow-hidden border border-white/10 bg-black cursor-pointer mb-6 sm:mb-8 ${
+          isOriginalMode
+            ? 'shadow-[0_15px_40px_rgba(0,0,0,0.6)]'
+            : frameAspectRatio === '1.43:1'
+            ? 'shadow-[0_0_110px_rgba(0,0,0,0.98),-18px_0_36px_-10px_rgba(0,0,0,0.85),18px_0_36px_-10px_rgba(0,0,0,0.85)]'
+            : 'shadow-[0_0_90px_rgba(0,0,0,0.95),-14px_0_30px_-8px_rgba(0,0,0,0.8),14px_0_30px_-8px_rgba(0,0,0,0.8)]'
+        }`}
         style={{
           aspectRatio: frameStyle.aspectRatioStyle,
           width: '100%',
           maxWidth: isFullscreen
             ? `min(98vw, calc(94vh * (${frameStyle.aspectRatioStyle})))`
             : frameAspectRatio === '1.43:1'
-            ? `min(92vw, calc(70vh * (${frameStyle.aspectRatioStyle})))`
+            ? `min(92vw, calc(72vh * (${frameStyle.aspectRatioStyle})))`
             : frameAspectRatio === '4.3:1'
             ? `min(96vw, calc(74vh * (${frameStyle.aspectRatioStyle})))`
             : `min(92vw, calc(70vh * (${frameStyle.aspectRatioStyle})))`,
           maxHeight: isFullscreen 
             ? '95vh' 
             : frameAspectRatio === '1.43:1' 
-            ? '70vh' 
+            ? '72vh' 
             : frameAspectRatio === '4.3:1' 
             ? '74vh' 
             : '70vh',
           filter: 'none',
           borderRadius: isOriginalMode
             ? '8px'
-            : '12px',
+            : frameAspectRatio === '1.43:1'
+            ? '14px 14px 34px 34px / 8px 8px 18px 18px'
+            : frameAspectRatio === '1.90:1'
+            ? '12px 12px 28px 28px / 6px 6px 14px 14px'
+            : '10px',
           transform: isOriginalMode
             ? 'none'
             : presentationMode === 'cinema' 
-            ? (frameAspectRatio === '4.3:1' ? 'perspective(1200px) rotateX(0.5deg) scale(1.05)' : 'perspective(1200px) rotateX(0.4deg)') 
+            ? frameAspectRatio === '1.43:1'
+              ? 'perspective(1400px) rotateX(0.35deg)'
+              : frameAspectRatio === '1.90:1'
+              ? 'perspective(1600px) rotateX(0.45deg)'
+              : 'none'
             : 'none',
-          boxShadow: isOriginalMode
-            ? '0 10px 30px rgba(0,0,0,0.5)'
-            : presentationMode === 'cinema' 
-            ? '0 0 90px rgba(0,0,0,0.95)' 
-            : '0 20px 25px -5px rgba(0,0,0,0.1)'
         }}
       >
+        {/* Subtle Horizontal Curved Screen Side Depth Vignettes (IMAX & True IMAX Only) */}
+        {isIMAXMode && (
+          <>
+            <div className="absolute left-0 top-0 bottom-0 w-8 sm:w-16 pointer-events-none z-20 bg-gradient-to-r from-black/50 via-black/15 to-transparent" />
+            <div className="absolute right-0 top-0 bottom-0 w-8 sm:w-16 pointer-events-none z-20 bg-gradient-to-l from-black/50 via-black/15 to-transparent" />
+          </>
+        )}
+
         {/* Subtitles / CC Visual Text Overlay */}
         {subtitlesOn && !showIntroBumper && theaterState !== 'ended' && (
           <div className="absolute bottom-8 inset-x-0 z-30 flex justify-center pointer-events-none px-6 animate-in fade-in duration-200">
