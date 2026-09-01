@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
-import { ChevronRight, Film, Sparkles, Check, Clapperboard, Layers } from 'lucide-react';
+import { ChevronRight, Film, Sparkles, Check, Clapperboard } from 'lucide-react';
 import { useTicketStore } from '../../state/useTicketStore';
 import { useCineMorphStore, AspectRatioMode } from '../../state/useCineMorphStore';
 
@@ -11,12 +11,13 @@ interface TicketPrinterAnimationProps {
 
 type PrintStage = 
   | 'idle'           // Stage 1: Printer idle, slot closed, light dim
-  | 'starting'       // Stage 2: LED turns green, paper starts feeding
-  | 'printing'       // Stage 3: Ticket comes out, title & poster preview emerge
-  | 'almost_done'    // Stage 4: Seat assignment & aperture details appear
-  | 'ticket_out'     // Stage 5: Micro brand marks & barcode complete
-  | 'bounce_settle'  // Stage 6: Small physical bounce overshoot
-  | 'ready';         // Stage 7: Ready to take ticket and enter
+  | 'starting'       // Stage 2: LED activates, stepper calibration, paper feeding starts
+  | 'header_ink'     // Stage 3: Top header & perforation notch emerge
+  | 'poster_reveal'  // Stage 4: Square cinematic poster & feature title emerge
+  | 'seat_stamp'     // Stage 5: Seat assignment & aperture details stamped
+  | 'micro_marks'    // Stage 6: Studio micro-marks & thermal barcode complete
+  | 'bounce_settle'  // Stage 7: Physical overshoot bounce & blade cut
+  | 'ready';         // Stage 8: Ready to take ticket and enter theater
 
 export const TicketPrinterAnimation: React.FC<TicketPrinterAnimationProps> = ({
   onComplete,
@@ -31,7 +32,7 @@ export const TicketPrinterAnimation: React.FC<TicketPrinterAnimationProps> = ({
 
   const { aspectRatio } = useCineMorphStore();
 
-  // Animation Stage State (1 to 7)
+  // Animation Stage State
   const [stage, setStage] = useState<PrintStage>('idle');
   const [printProgress, setPrintProgress] = useState<number>(0); // 0% to 100%
   const [isVibrating, setIsVibrating] = useState<boolean>(false);
@@ -147,7 +148,7 @@ export const TicketPrinterAnimation: React.FC<TicketPrinterAnimationProps> = ({
     } catch (e) {}
   };
 
-  // Main 7-Stage Progressive Animation Sequence (~3.4s total)
+  // Main Progressive Animation Sequence (~5.2s total physical ritual)
   useEffect(() => {
     if (!isPrintingAnimationActive) {
       setStage('idle');
@@ -173,57 +174,58 @@ export const TicketPrinterAnimation: React.FC<TicketPrinterAnimationProps> = ({
     const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
     const runAnimationSequence = async () => {
-      // Stage 1: Stepper Calibration & Heatup (400ms)
+      // Stage 1: Stepper Calibration & Heatup (600ms)
       setStage('starting');
-      setPrintProgress(12);
+      setPrintProgress(8);
       setIsVibrating(true);
       playPrinterClick(680);
-      await wait(400);
+      await wait(600);
       if (isCancelled) return;
 
-      // Stage 2: Top Header & Movie Title Emergence (600ms)
-      setStage('printing');
-      setPrintProgress(32);
+      // Stage 2: Top Header & Movie Title Emergence (900ms)
+      setStage('header_ink');
+      setPrintProgress(22);
+      playPrinterClick(780);
+      await wait(450);
+      if (isCancelled) return;
       playPrinterClick(820);
-      await wait(300);
-      if (isCancelled) return;
-      playPrinterClick(850);
-      setPrintProgress(52);
-      await wait(300);
-      if (isCancelled) return;
-
-      // Stage 3: Poster Thumbnail Artwork Reveal (650ms)
-      playPrinterClick(880);
-      setPrintProgress(70);
-      await wait(350);
-      if (isCancelled) return;
-      playPrinterClick(920);
-      setPrintProgress(82);
-      await wait(300);
-      if (isCancelled) return;
-
-      // Stage 4: Seat Assignment & Screen Aperture Stamp (550ms)
-      setStage('almost_done');
-      setPrintProgress(92);
-      playPrinterClick(960);
-      await wait(300);
-      if (isCancelled) return;
-      playPrinterClick(1050);
-      setPrintProgress(98);
-      await wait(250);
-      if (isCancelled) return;
-
-      // Stage 5: Micro-Marks, Barcode & Perforation Cut (450ms)
-      setStage('ticket_out');
-      setPrintProgress(100);
-      setIsVibrating(false);
-      playPrinterClick(1180);
+      setPrintProgress(38);
       await wait(450);
       if (isCancelled) return;
 
-      // Stage 6: Physical Bounce Settle & Admission Ready
+      // Stage 3: Square Cinematic Poster Artwork Reveal (1100ms)
+      setStage('poster_reveal');
+      playPrinterClick(860);
+      setPrintProgress(55);
+      await wait(550);
+      if (isCancelled) return;
+      playPrinterClick(900);
+      setPrintProgress(72);
+      await wait(550);
+      if (isCancelled) return;
+
+      // Stage 4: Seat Assignment & Screen Aperture Stamp (850ms)
+      setStage('seat_stamp');
+      setPrintProgress(85);
+      playPrinterClick(950);
+      await wait(450);
+      if (isCancelled) return;
+      playPrinterClick(1020);
+      setPrintProgress(94);
+      await wait(400);
+      if (isCancelled) return;
+
+      // Stage 5: Studio Micro-Marks & Barcode Inking (750ms)
+      setStage('micro_marks');
+      setPrintProgress(100);
+      setIsVibrating(false);
+      playPrinterClick(1150);
+      await wait(750);
+      if (isCancelled) return;
+
+      // Stage 6: Physical Bounce Settle & Overshoot
       setStage('bounce_settle');
-      await wait(300);
+      await wait(400);
       if (isCancelled) return;
       setStage('ready');
     };
@@ -341,7 +343,7 @@ export const TicketPrinterAnimation: React.FC<TicketPrinterAnimationProps> = ({
             className={`w-full bg-[#fdfbf7] text-[#1a1510] rounded-b-xl border-x-2 border-b-2 border-[#e6decb] shadow-[0_25px_60px_rgba(0,0,0,0.85)] relative font-mono transition-transform ease-out ${
               stage === 'bounce_settle' 
                 ? 'animate-[ticketBounce_0.4s_cubic-bezier(0.34,1.56,0.64,1)]' 
-                : 'duration-200'
+                : 'duration-300'
             }`}
             style={{
               transform: `translateY(${paperTranslateY})`,
@@ -364,14 +366,15 @@ export const TicketPrinterAnimation: React.FC<TicketPrinterAnimationProps> = ({
               </div>
             </div>
 
-            {/* Content Poster / Thumbnail Preview Section */}
+            {/* Content Poster / Thumbnail Preview Section (Cropped Near-Square) */}
             <div className="relative z-10 pt-2.5 pb-1 px-4 flex flex-col items-center">
-              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-xl bg-zinc-200 border-2 border-[#ded4bd] overflow-hidden shadow-inner flex items-center justify-center relative">
+              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-xl bg-zinc-200 border-2 border-[#ded4bd] overflow-hidden shadow-inner flex items-center justify-center relative aspect-square">
                 {posterSource && imageLoaded ? (
                   <img
                     src={posterSource}
                     alt={activeTicket?.movieTitle || 'Movie poster'}
                     className="w-full h-full object-cover grayscale contrast-110 opacity-90"
+                    loading="eager"
                   />
                 ) : (
                   <div className="flex flex-col items-center justify-center p-2 text-zinc-400 gap-1">
@@ -467,15 +470,16 @@ export const TicketPrinterAnimation: React.FC<TicketPrinterAnimationProps> = ({
                 <span>
                   {stage === 'idle' && 'Initializing Thermal Printer...'}
                   {stage === 'starting' && 'Feeding Ticket Paper...'}
-                  {stage === 'printing' && 'Inking Poster & Feature Title...'}
-                  {stage === 'almost_done' && 'Stamping Seat Assignment & Aperture...'}
-                  {stage === 'ticket_out' && 'Affixing Studio Signatures & Barcode...'}
+                  {stage === 'header_ink' && 'Inking Header & Perforation...'}
+                  {stage === 'poster_reveal' && 'Printing Poster & Feature Title...'}
+                  {stage === 'seat_stamp' && 'Stamping Seat Assignment & Aperture...'}
+                  {stage === 'micro_marks' && 'Affixing Studio Signatures & Barcode...'}
                   {stage === 'bounce_settle' && 'Ticket Ready...'}
                 </span>
               </div>
               <div className="w-56 h-1 rounded-full bg-white/10 overflow-hidden mx-auto">
                 <div 
-                  className="h-full bg-gradient-to-r from-amber-500 to-amber-300 transition-all duration-150"
+                  className="h-full bg-gradient-to-r from-amber-500 to-amber-300 transition-all duration-200"
                   style={{ width: `${printProgress}%` }}
                 />
               </div>
