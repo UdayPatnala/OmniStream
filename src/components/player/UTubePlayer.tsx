@@ -447,15 +447,14 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
         onMouseLeave={() => isPlaying && setControlsVisible(false)}
         className={`relative bg-black overflow-hidden select-none group font-sans transition-all duration-500 z-20 ${
           theaterMode
-            ? 'aspect-video w-full max-w-[min(94vw,calc(70vh*1.778))] max-h-[70vh] my-auto border border-sky-800/40 shadow-[0_0_120px_rgba(2,132,199,0.3),0_20px_60px_rgba(0,0,0,0.95)]'
+            ? 'aspect-video w-full max-w-[min(88vw,calc(56vh*1.778))] max-h-[56vh] mb-10 sm:mb-14 shadow-[0_0_120px_rgba(2,132,199,0.35),0_25px_60px_rgba(0,0,0,0.95)]'
             : `w-full aspect-video rounded-2xl shadow-2xl ${className}`
         }`}
         style={
           theaterMode
             ? {
-                perspective: '800px',
-                transform: 'perspective(800px) rotateX(1.8deg)',
-                borderRadius: '16px 16px 36px 36px / 10px 10px 22px 22px',
+                clipPath: 'polygon(0% 0%, 15% 1.5%, 30% 3.8%, 50% 6.0%, 70% 3.8%, 85% 1.5%, 100% 0%, 100% 100%, 85% 98.5%, 70% 96.2%, 50% 94.0%, 30% 96.2%, 15% 98.5%, 0% 100%)',
+                WebkitClipPath: 'polygon(0% 0%, 15% 1.5%, 30% 3.8%, 50% 6.0%, 70% 3.8%, 85% 1.5%, 100% 0%, 100% 100%, 85% 98.5%, 70% 96.2%, 50% 94.0%, 30% 96.2%, 15% 98.5%, 0% 100%)',
               }
             : undefined
         }

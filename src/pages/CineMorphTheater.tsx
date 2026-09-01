@@ -791,43 +791,36 @@ export function CineMorphTheater() {
       {/* ── The Cinema Screen Container ── */}
       <div
         onClick={handleScreenClick}
-        className={`relative transition-all duration-500 ease-out flex items-center justify-center z-10 overflow-hidden border border-white/10 bg-black cursor-pointer mb-6 sm:mb-8 ${
+        className={`relative transition-all duration-500 ease-out flex items-center justify-center z-10 overflow-hidden bg-black cursor-pointer mb-14 sm:mb-20 ${
           isOriginalMode
-            ? 'shadow-[0_15px_40px_rgba(0,0,0,0.6)]'
+            ? 'shadow-[0_20px_50px_rgba(0,0,0,0.8)] border border-white/10 rounded-xl'
             : frameAspectRatio === '1.43:1'
-            ? 'shadow-[0_0_110px_rgba(0,0,0,0.98),-18px_0_36px_-10px_rgba(0,0,0,0.85),18px_0_36px_-10px_rgba(0,0,0,0.85)]'
-            : 'shadow-[0_0_90px_rgba(0,0,0,0.95),-14px_0_30px_-8px_rgba(0,0,0,0.8),14px_0_30px_-8px_rgba(0,0,0,0.8)]'
+            ? 'shadow-[0_0_120px_rgba(217,119,6,0.22),0_25px_60px_rgba(0,0,0,0.95)]'
+            : 'shadow-[0_0_90px_rgba(217,119,6,0.18),0_25px_60px_rgba(0,0,0,0.95)]'
         }`}
         style={{
           aspectRatio: frameStyle.aspectRatioStyle,
           width: '100%',
           maxWidth: isFullscreen
-            ? `min(98vw, calc(88vh * (${frameStyle.aspectRatioStyle})))`
+            ? `min(94vw, calc(82vh * (${frameStyle.aspectRatioStyle})))`
             : frameAspectRatio === '1.43:1'
-            ? `min(90vw, calc(68vh * (${frameStyle.aspectRatioStyle})))`
-            : `min(90vw, calc(62vh * (${frameStyle.aspectRatioStyle})))`,
+            ? `min(82vw, calc(58vh * (${frameStyle.aspectRatioStyle})))`
+            : `min(86vw, calc(54vh * (${frameStyle.aspectRatioStyle})))`,
           maxHeight: isFullscreen 
-            ? '88vh' 
+            ? '82vh' 
             : frameAspectRatio === '1.43:1' 
-            ? '68vh' 
-            : '62vh',
-          filter: 'none',
-          borderRadius: isOriginalMode
-            ? '8px'
-            : frameAspectRatio === '1.43:1'
-            ? '16px 16px 36px 36px / 8px 8px 18px 18px'
-            : frameAspectRatio === '1.90:1'
-            ? '14px 14px 30px 30px / 6px 6px 14px 14px'
-            : '10px',
-          transform: isOriginalMode
+            ? '58vh' 
+            : '54vh',
+          clipPath: isOriginalMode
             ? 'none'
-            : presentationMode === 'cinema' 
-            ? frameAspectRatio === '1.43:1'
-              ? 'perspective(1000px) rotateX(1.4deg)'
-              : frameAspectRatio === '1.90:1'
-              ? 'perspective(1200px) rotateX(1.1deg)'
-              : 'none'
-            : 'none',
+            : frameAspectRatio === '1.43:1'
+            ? 'polygon(0% 0%, 15% 1.0%, 30% 2.6%, 50% 4.0%, 70% 2.6%, 85% 1.0%, 100% 0%, 100% 100%, 85% 99.0%, 70% 97.4%, 50% 96.0%, 30% 97.4%, 15% 99.0%, 0% 100%)'
+            : 'polygon(0% 0%, 15% 0.7%, 30% 1.8%, 50% 2.8%, 70% 1.8%, 85% 0.7%, 100% 0%, 100% 100%, 85% 99.3%, 70% 98.2%, 50% 97.2%, 30% 98.2%, 15% 99.3%, 0% 100%)',
+          WebkitClipPath: isOriginalMode
+            ? 'none'
+            : frameAspectRatio === '1.43:1'
+            ? 'polygon(0% 0%, 15% 1.0%, 30% 2.6%, 50% 4.0%, 70% 2.6%, 85% 1.0%, 100% 0%, 100% 100%, 85% 99.0%, 70% 97.4%, 50% 96.0%, 30% 97.4%, 15% 99.0%, 0% 100%)'
+            : 'polygon(0% 0%, 15% 0.7%, 30% 1.8%, 50% 2.8%, 70% 1.8%, 85% 0.7%, 100% 0%, 100% 100%, 85% 99.3%, 70% 98.2%, 50% 97.2%, 30% 98.2%, 15% 99.3%, 0% 100%)',
         }}
       >
         {/* Subtitles / CC Visual Text Overlay */}
