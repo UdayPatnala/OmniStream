@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAppStore } from '../store';
-import { audioEngine, AudioPreset } from '../lib/audioEngine';
+import { audioEngine } from '../lib/cinemorph/audioEngine';
+import { AudioPreset } from '../types';
 import { Volume2, X, Sliders, Sparkles, Disc, Zap, RotateCcw } from 'lucide-react';
 
 export const CineMorphAudioStudioModal: React.FC = () => {
@@ -12,7 +13,7 @@ export const CineMorphAudioStudioModal: React.FC = () => {
 
     let animId: number;
     const updateSpectrum = () => {
-      const data = audioEngine.getFrequencyData();
+      const data = audioEngine.getSpectrumData();
       if (data && data.length > 0) {
         const sampled: number[] = [];
         const step = Math.floor(data.length / 16);
@@ -34,7 +35,7 @@ export const CineMorphAudioStudioModal: React.FC = () => {
     { id: 'original', label: 'Flat / Original', desc: 'Direct unmodified audio' },
     { id: 'bass-heavy', label: 'Cinema Sub-Bass', desc: 'Deep low-end rumble for blockbusters' },
     { id: 'dialogue-boost', label: 'Vocal Enhance', desc: 'Crisp speech clarity across noisy scenes' },
-    { id: 'spatial-theater', label: 'Spatial 3D', desc: 'Immersive soundstage convolution' },
+    { id: 'spatial-3d', label: 'Spatial 3D', desc: 'Immersive soundstage convolution' },
     { id: 'night-compression', label: 'Night Mode', desc: 'Normalized dynamic range for quiet listening' },
   ];
 

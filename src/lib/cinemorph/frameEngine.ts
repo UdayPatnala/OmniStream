@@ -96,17 +96,6 @@ export function calculateFrameStyle(
       cropOverlay = true;
       break;
 
-    case '4.3:1':
-      paddingTop = '23.255%';
-      aspectRatioStyle = '43 / 10';
-      if (reframeMode === 'face-priority') {
-        videoScaleTransform = 'scale(1.45) translateY(-5%)';
-      } else {
-        videoScaleTransform = 'scale(1.35) translateY(-2%)';
-      }
-      cropOverlay = true;
-      break;
-
     case '16:9':
     default:
       paddingTop = '56.25%';
@@ -129,8 +118,7 @@ export function calculateFrameStyle(
       aspectRatio === '1.90:1' ? 'aspect-[190/100]' :
       aspectRatio === '21:9' ? 'aspect-[21/9]' : 
       aspectRatio === '4:3' ? 'aspect-[4/3]' : 
-      aspectRatio === '1:1' ? 'aspect-square' : 
-      aspectRatio === '4.3:1' ? 'aspect-[43/10]' : 'aspect-video',
+      aspectRatio === '1:1' ? 'aspect-square' : 'aspect-video',
     aspectRatioStyle,
     videoScaleTransform,
     cropOverlay,

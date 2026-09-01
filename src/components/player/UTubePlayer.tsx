@@ -168,18 +168,18 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
   // Save history on initial playback
   useEffect(() => {
     if (video?.id) {
-      addToHistory(video);
+      addToHistory(video, currentTime, duration);
     }
-  }, [video, addToHistory]);
+  }, [video, addToHistory, currentTime, duration]);
 
   // Save watch position on unmount
   useEffect(() => {
     return () => {
       if (video?.id && currentTime > 0) {
-        saveWatchPosition(video.id, currentTime);
+        saveWatchPosition(video.id, currentTime, duration);
       }
     };
-  }, [video?.id, currentTime, saveWatchPosition]);
+  }, [video?.id, currentTime, duration, saveWatchPosition]);
 
   // Play / Pause
   const togglePlay = useCallback(() => {

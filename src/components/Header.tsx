@@ -1,4 +1,4 @@
-import { Search, Menu, Clock, X, Mic, Layers } from 'lucide-react';
+import { Search, Menu, Clock, X, Mic, Layers, Sparkles } from 'lucide-react';
 import { useState, useEffect, type FormEvent } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { fetchSearchSuggestions } from '../lib/youtube';

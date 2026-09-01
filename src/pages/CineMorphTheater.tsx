@@ -805,15 +805,11 @@ export function CineMorphTheater() {
             ? `min(98vw, calc(94vh * (${frameStyle.aspectRatioStyle})))`
             : frameAspectRatio === '1.43:1'
             ? `min(92vw, calc(72vh * (${frameStyle.aspectRatioStyle})))`
-            : frameAspectRatio === '4.3:1'
-            ? `min(96vw, calc(74vh * (${frameStyle.aspectRatioStyle})))`
             : `min(92vw, calc(70vh * (${frameStyle.aspectRatioStyle})))`,
           maxHeight: isFullscreen 
             ? '95vh' 
             : frameAspectRatio === '1.43:1' 
             ? '72vh' 
-            : frameAspectRatio === '4.3:1' 
-            ? '74vh' 
             : '70vh',
           filter: 'none',
           borderRadius: isOriginalMode
@@ -1009,9 +1005,9 @@ export function CineMorphTheater() {
                   {video?.title || localItem?.name || 'Feature Presentation'}
                 </h3>
                 <div className="flex items-center justify-center gap-3 text-xs text-white/50 font-mono">
-                  <span>Aperture: {aspectRatio}</span>
+                  <span>Aperture: {frameAspectRatio}</span>
                   <span>•</span>
-                  <span>Audio: {audioPreset.toUpperCase()}</span>
+                  <span>Audio: {audioEQ.preset.toUpperCase()}</span>
                 </div>
               </div>
 

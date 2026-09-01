@@ -15,7 +15,7 @@ describe('Tier 5 Adversarial: High-Load Aspect Ratio Toggling & Invalid Input Ha
   });
 
   it('T5-AR-01: 1,000 rapid cycles across valid ratios maintain strictly finite numeric transforms', () => {
-    const validRatios: FrameAspectRatio[] = ['1.43:1', '1.90:1', 'original', '4:3', '21:9', '1:1', 'auto', '4.3:1', '16:9'];
+    const validRatios: FrameAspectRatio[] = ['1.43:1', '1.90:1', 'original', '4:3', '21:9', '1:1', 'auto', '16:9'];
     const reframeModes: FrameReframeMode[] = ['center', 'face-priority', 'smart-pan-zoom'];
 
     for (let i = 0; i < 1000; i++) {

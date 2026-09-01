@@ -129,9 +129,6 @@ class AdaptiveCinemaEngine {
         explainabilityLabel = 'Large Format 1.90 (Wide Immersive Aperture)';
         targetScale = reframeMode === 'face-priority' ? 1.12 : 1.08;
         targetTranslateY = reframeMode === 'face-priority' ? -2 : 0;
-      } else if (aspectRatio === '4.3:1') {
-        targetScale = reframeMode === 'face-priority' ? 1.45 : 1.35;
-        targetTranslateY = reframeMode === 'face-priority' ? -5 : -2;
       } else if (aspectRatio === '21:9') {
         targetScale = reframeMode === 'face-priority' ? 1.35 : 1.33;
         targetTranslateY = reframeMode === 'face-priority' ? -4 : -2;
