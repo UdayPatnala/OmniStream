@@ -61,9 +61,11 @@ export function Search() {
     }
   };
 
-  const handleInstantAutoPlayHero = async () => {
-    if (query) {
-      await playbackService.executePipeline(query, navigate);
+  const handlePlayTopMatch = () => {
+    if (topMatch) {
+      navigate(`/watch/${topMatch.id}`);
+    } else if (query) {
+      playbackService.executePipeline(query, navigate);
     }
   };
 
@@ -118,7 +120,7 @@ export function Search() {
           </div>
 
           <button
-            onClick={handleInstantAutoPlayHero}
+            onClick={handlePlayTopMatch}
             className="w-full md:w-auto px-6 py-2.5 rounded-full bg-utube-primary hover:bg-utube-secondary text-white font-bold text-xs uppercase tracking-wider transition-all shadow-md flex items-center justify-center gap-2 shrink-0 cursor-pointer active:scale-95"
           >
             <Play className="w-4 h-4 fill-current" />

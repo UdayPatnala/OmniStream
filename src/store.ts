@@ -105,9 +105,6 @@ interface AppState {
   cinemaMode: boolean;
   setCinemaMode: (val: boolean) => void;
 
-  instantAutoPlay: boolean;
-  setInstantAutoPlay: (enabled: boolean) => void;
-
   pipelineCandidates: Video[];
   currentCandidateIndex: number;
   setPipelineCandidates: (candidates: Video[], index?: number) => void;
@@ -436,9 +433,6 @@ export const useAppStore = create<AppState>()(
       cinemaMode: true,
       setCinemaMode: (cinemaMode) => set({ cinemaMode }),
 
-      instantAutoPlay: true,
-      setInstantAutoPlay: (instantAutoPlay) => set({ instantAutoPlay }),
-
       pipelineCandidates: [],
       currentCandidateIndex: 0,
       setPipelineCandidates: (candidates, index = 0) => set({
@@ -506,7 +500,6 @@ export const useAppStore = create<AppState>()(
         reframeMode: persistedState?.reframeMode || 'center',
         cinemorphTheme: persistedState?.cinemorphTheme || 'cinematic-dark',
         versionMode: persistedState?.versionMode || 'v2',
-        instantAutoPlay: persistedState?.instantAutoPlay ?? true,
         audioEQ: {
           preset: 'dialogue-boost',
           bassBoost: 4,

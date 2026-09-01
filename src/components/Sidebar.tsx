@@ -1,6 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import {
-  Home, Tv, FolderHeart, History, Settings,
+  Home, Tv, FolderHeart, History,
   Music, Gamepad2, Film, Compass, Layers
 } from 'lucide-react';
 import { cn } from '../lib/utils';
@@ -239,26 +239,6 @@ export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
             )}
           </NavLink>
         ))}
-      </div>
-
-      {/* ── U-Tube preferences (bottom) — Settings is global; linked but clearly scoped ── */}
-      <div className="mt-auto pt-3 border-t border-utube-border">
-        <NavLink
-          to="/settings"
-          className={({ isActive }) => cn(
-            "flex items-center gap-5 px-3 py-2.5 rounded-xl text-sm transition-colors",
-            isActive
-              ? "bg-utube-surface text-utube-primary font-bold"
-              : "text-utube-text-secondary hover:bg-utube-surface"
-          )}
-        >
-          {({ isActive }) => (
-            <>
-              <Settings className={cn("w-5 h-5 shrink-0 transition-colors", isActive ? 'text-utube-primary' : 'text-utube-text-secondary')} />
-              <span className="truncate">Preferences</span>
-            </>
-          )}
-        </NavLink>
       </div>
     </aside>
   );

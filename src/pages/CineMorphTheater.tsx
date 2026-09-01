@@ -1078,40 +1078,40 @@ export function CineMorphTheater() {
 
       {/* ── Natural Cinema Auditorium Seating (Rendered ONLY in IMAX / True IMAX • Zero Screen Obstruction) ── */}
       {theaterSeatingEnabled && isIMAXMode && (
-        <div className="absolute bottom-0 inset-x-0 h-8 sm:h-10 pointer-events-none z-10 flex flex-col justify-end items-center px-4 sm:px-12 select-none">
-          {/* Natural Auditorium VIP Recliner Row */}
-          <div className="w-full max-w-5xl flex justify-between items-end gap-4 sm:gap-8 opacity-60">
+        <div className="absolute bottom-0 inset-x-0 h-6 sm:h-7 pointer-events-none z-10 flex flex-col justify-end items-center px-4 sm:px-12 select-none">
+          {/* Natural Auditorium VIP Recliner Row with Lower Profile for Clear Sightlines */}
+          <div className="w-full max-w-4xl flex justify-between items-end gap-3 sm:gap-6 opacity-45">
             {/* Left Seat Bank */}
-            <div className="flex-1 flex gap-1.5 sm:gap-2.5 justify-end">
+            <div className="flex-1 flex gap-1 sm:gap-2 justify-end">
               {[1, 2, 3, 4, 5].map((s) => (
                 <div
                   key={`seat-l-${s}`}
-                  className="flex-1 max-w-[50px] h-6 sm:h-9 rounded-t-xl bg-gradient-to-b from-[#24060c] via-[#120205] to-[#040001] border-t border-rose-950/30 relative flex flex-col items-center justify-start pt-0.5 shadow-2xl"
+                  className="flex-1 max-w-[44px] h-5 sm:h-6 rounded-t-lg bg-gradient-to-b from-[#24060c] via-[#120205] to-[#040001] border-t border-rose-950/30 relative flex flex-col items-center justify-start pt-0.5 shadow-2xl"
                 >
                   {/* Subtle Plush Headrest */}
-                  <div className="w-[80%] h-2 sm:h-3 rounded-t-lg bg-gradient-to-b from-[#330911] to-[#180407] border-t border-rose-900/20 shadow-inner" />
+                  <div className="w-[75%] h-1.5 sm:h-2 rounded-t bg-gradient-to-b from-[#330911] to-[#180407] border-t border-rose-900/20 shadow-inner" />
                   {/* Armrests */}
-                  <div className="absolute -left-1 bottom-0 w-1 h-3 sm:h-5 bg-[#0a0102] rounded-t-sm border-t border-white/5" />
-                  <div className="absolute -right-1 bottom-0 w-1 h-3 sm:h-5 bg-[#0a0102] rounded-t-sm border-t border-white/5" />
+                  <div className="absolute -left-0.5 bottom-0 w-1 h-2.5 sm:h-3.5 bg-[#0a0102] rounded-t-sm border-t border-white/5" />
+                  <div className="absolute -right-0.5 bottom-0 w-1 h-2.5 sm:h-3.5 bg-[#0a0102] rounded-t-sm border-t border-white/5" />
                 </div>
               ))}
             </div>
 
             {/* Natural Dark Center Aisle Gap */}
-            <div className="w-8 sm:w-16 h-2" />
+            <div className="w-6 sm:w-12 h-1.5" />
 
             {/* Right Seat Bank */}
-            <div className="flex-1 flex gap-1.5 sm:gap-2.5 justify-start">
+            <div className="flex-1 flex gap-1 sm:gap-2 justify-start">
               {[1, 2, 3, 4, 5].map((s) => (
                 <div
                   key={`seat-r-${s}`}
-                  className="flex-1 max-w-[50px] h-6 sm:h-9 rounded-t-xl bg-gradient-to-b from-[#24060c] via-[#120205] to-[#040001] border-t border-rose-950/30 relative flex flex-col items-center justify-start pt-0.5 shadow-2xl"
+                  className="flex-1 max-w-[44px] h-5 sm:h-6 rounded-t-lg bg-gradient-to-b from-[#24060c] via-[#120205] to-[#040001] border-t border-rose-950/30 relative flex flex-col items-center justify-start pt-0.5 shadow-2xl"
                 >
                   {/* Subtle Plush Headrest */}
-                  <div className="w-[80%] h-2 sm:h-3 rounded-t-lg bg-gradient-to-b from-[#330911] to-[#180407] border-t border-rose-900/20 shadow-inner" />
+                  <div className="w-[75%] h-1.5 sm:h-2 rounded-t bg-gradient-to-b from-[#330911] to-[#180407] border-t border-rose-900/20 shadow-inner" />
                   {/* Armrests */}
-                  <div className="absolute -left-1 bottom-0 w-1 h-3 sm:h-5 bg-[#0a0102] rounded-t-sm border-t border-white/5" />
-                  <div className="absolute -right-1 bottom-0 w-1 h-3 sm:h-5 bg-[#0a0102] rounded-t-sm border-t border-white/5" />
+                  <div className="absolute -left-0.5 bottom-0 w-1 h-2.5 sm:h-3.5 bg-[#0a0102] rounded-t-sm border-t border-white/5" />
+                  <div className="absolute -right-0.5 bottom-0 w-1 h-2.5 sm:h-3.5 bg-[#0a0102] rounded-t-sm border-t border-white/5" />
                 </div>
               ))}
             </div>
@@ -1119,24 +1119,23 @@ export function CineMorphTheater() {
         </div>
       )}
 
-
-      {/* ── Floating Controls Deck (Vanishing Interface) ── */}
+      {/* ── Floating Controls Deck (Sleek Vanishing Cinematic Interface) ── */}
       <div
-        className={`absolute bottom-6 left-1/2 -translate-x-1/2 z-30 w-[92%] max-w-4xl transition-all duration-500 ${
+        className={`absolute bottom-4 sm:bottom-5 left-1/2 -translate-x-1/2 z-30 w-[94%] max-w-3xl transition-all duration-500 ${
           controlsVisible || theaterState !== 'playing' ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6 pointer-events-none'
         }`}
         aria-hidden={!controlsVisible && theaterState === 'playing'}
       >
-        <div className="bg-[#120e0b]/90 backdrop-blur-2xl border border-amber-500/20 text-amber-100 rounded-2xl p-3 sm:p-4 shadow-[0_20px_50px_rgba(0,0,0,0.85)] space-y-3">
+        <div className="bg-[#120e0b]/92 backdrop-blur-2xl border border-amber-500/25 text-amber-100 rounded-xl px-3 py-1.5 sm:px-4 sm:py-2 shadow-[0_15px_40px_rgba(0,0,0,0.9)] space-y-1.5">
           {/* Interactive Seekbar with Hover Tooltip */}
           <div 
-            className="relative group cursor-pointer"
+            className="relative group cursor-pointer py-0.5"
             onMouseMove={handleScrubberMouseMove}
             onMouseLeave={handleScrubberMouseLeave}
           >
             {hoverPosPercent !== null && hoverTime !== null && (
               <div 
-                className="absolute -top-7 -translate-x-1/2 px-2 py-0.5 rounded bg-black/95 border border-amber-500/30 text-[10px] font-mono text-amber-300 pointer-events-none shadow-lg"
+                className="absolute -top-6 -translate-x-1/2 px-1.5 py-0.5 rounded bg-black/95 border border-amber-500/30 text-[9px] font-mono text-amber-300 pointer-events-none shadow-lg"
                 style={{ left: `${hoverPosPercent}%` }}
               >
                 {formatTime(hoverTime)}
@@ -1151,7 +1150,7 @@ export function CineMorphTheater() {
               value={played}
               onChange={handleSeekChange}
               onMouseUp={handleSeekMouseUp}
-              className="w-full h-1.5 group-hover:h-2 transition-all appearance-none bg-white/15 rounded-full cursor-pointer"
+              className="w-full h-1 group-hover:h-1.5 transition-all appearance-none bg-white/15 rounded-full cursor-pointer"
               style={{
                 background: `linear-gradient(to right, rgba(245,158,11,0.95) 0%, rgba(245,158,11,0.95) ${played * 100}%, rgba(255,255,255,0.15) ${played * 100}%, rgba(255,255,255,0.15) 100%)`,
               }}
@@ -1160,35 +1159,35 @@ export function CineMorphTheater() {
           </div>
 
           {/* Controls Bar Row */}
-          <div className="flex items-center justify-between gap-2 sm:gap-4">
+          <div className="flex items-center justify-between gap-1.5 sm:gap-3">
             {/* Left Controls */}
-            <div className="flex items-center gap-2 sm:gap-3">
+            <div className="flex items-center gap-1.5 sm:gap-2">
               <button
                 onClick={exitTheater}
-                className="p-1.5 text-amber-300/70 hover:text-amber-100 transition-colors rounded-lg hover:bg-amber-500/10"
+                className="p-1 text-amber-300/70 hover:text-amber-100 transition-colors rounded-lg hover:bg-amber-500/10"
                 aria-label="Leave cinema"
                 title="Exit Cinema"
               >
-                <ArrowLeft className="w-4 h-4" />
+                <ArrowLeft className="w-3.5 h-3.5" />
               </button>
 
               {activeVideo && !isLocalMedia && (
                 <button
                   onClick={handoffToUTube}
-                  className="hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-xl bg-red-600/20 hover:bg-red-600/30 text-red-300 border border-red-500/30 text-[11px] font-bold transition-all cursor-pointer"
+                  className="hidden sm:flex items-center gap-1 px-2 py-0.5 rounded-lg bg-red-600/20 hover:bg-red-600/30 text-red-300 border border-red-500/30 text-[10px] font-bold transition-all cursor-pointer"
                   title="Switch to U-Tube Standard Web Player"
                 >
-                  <Tv className="w-3.5 h-3.5" />
+                  <Tv className="w-3 h-3" />
                   <span>U-Tube</span>
                 </button>
               )}
 
               <button
                 onClick={togglePlay}
-                className="p-2.5 rounded-full bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-500/30 transition-all shadow-md active:scale-95"
+                className="p-1.5 rounded-full bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-500/30 transition-all shadow-md active:scale-95 cursor-pointer"
                 aria-label={playing ? 'Pause' : 'Play'}
               >
-                {playing ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 fill-current" />}
+                {playing ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 fill-current" />}
               </button>
 
               <button
@@ -1198,10 +1197,10 @@ export function CineMorphTheater() {
                   if (isLocalMedia && localVideoRef.current) localVideoRef.current.muted = nm;
                   else sendIframeCommand(nm ? 'mute' : 'unMute');
                 }}
-                className="p-1.5 text-amber-300/70 hover:text-amber-100 transition-colors"
+                className="p-1 text-amber-300/70 hover:text-amber-100 transition-colors"
                 aria-label={muted ? 'Unmute' : 'Mute'}
               >
-                {muted || volume === 0 ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                {muted || volume === 0 ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
               </button>
 
               <input
@@ -1222,25 +1221,25 @@ export function CineMorphTheater() {
                     sendIframeCommand('setVolume', [Math.round(nv * 100)]);
                   }
                 }}
-                className="w-16 sm:w-20 h-1 appearance-none bg-amber-900/40 rounded-full cursor-pointer hidden sm:block"
+                className="w-14 sm:w-16 h-1 appearance-none bg-amber-900/40 rounded-full cursor-pointer hidden sm:block"
                 aria-label="Volume"
               />
 
-              <span className="text-[11px] text-amber-200/60 tabular-nums font-mono">
+              <span className="text-[10px] text-amber-200/60 tabular-nums font-mono">
                 {formatTime(played * duration)} / {formatTime(duration)}
               </span>
             </div>
 
             {/* Right Tools: Aspect Ratios, Audio Modes, Studio Drawer, Fullscreen */}
-            <div className="flex items-center gap-2 sm:gap-2.5">
+            <div className="flex items-center gap-1.5 sm:gap-2">
               {/* Aspect Ratio Selector Pills (True IMAX, IMAX, Original) */}
-              <div className="flex items-center gap-1 bg-black/40 p-1 rounded-xl border border-amber-500/20">
+              <div className="flex items-center gap-0.5 bg-black/40 p-0.5 rounded-lg border border-amber-500/20">
                 <button
                   onClick={() => { 
                     setFrameAspectRatio('1.43:1'); 
                     showToast('🎬 Aspect Ratio: True IMAX (1.43:1)'); 
                   }}
-                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                  className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
                     frameAspectRatio === '1.43:1' 
                       ? 'bg-amber-500 text-black shadow-sm' 
                       : 'text-amber-200/70 hover:text-amber-100 hover:bg-white/5'
@@ -1254,7 +1253,7 @@ export function CineMorphTheater() {
                     setFrameAspectRatio('1.90:1'); 
                     showToast('🎬 Aspect Ratio: IMAX (1.90:1)'); 
                   }}
-                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                  className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
                     frameAspectRatio === '1.90:1' 
                       ? 'bg-amber-500 text-black shadow-sm' 
                       : 'text-amber-200/70 hover:text-amber-100 hover:bg-white/5'
@@ -1268,7 +1267,7 @@ export function CineMorphTheater() {
                     setFrameAspectRatio('original'); 
                     showToast('🎬 Aspect Ratio: Original Native Source'); 
                   }}
-                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                  className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
                     frameAspectRatio === 'original' 
                       ? 'bg-amber-500 text-black shadow-sm' 
                       : 'text-amber-200/70 hover:text-amber-100 hover:bg-white/5'
@@ -1282,10 +1281,10 @@ export function CineMorphTheater() {
               {/* Audio Mode Preset Selector (3D Spatial, Dialogue Boost, Bass, etc.) */}
               <button
                 onClick={cycleAudioPreset}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-xs font-semibold text-purple-200 transition-all cursor-pointer active:scale-95 shadow-sm"
+                className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-[10px] font-semibold text-purple-200 transition-all cursor-pointer active:scale-95 shadow-sm"
                 title="Cycle Audio Mode Preset (3D Spatial, Dialogue Boost, Cinema Bass, Night Mode, Original)"
               >
-                <Sliders className="w-3.5 h-3.5 text-purple-400" />
+                <Sliders className="w-3 h-3 text-purple-400" />
                 <span className="capitalize hidden sm:inline">
                   {audioEQ.preset === 'spatial-3d' 
                     ? '3D Spatial' 
@@ -1297,15 +1296,15 @@ export function CineMorphTheater() {
                     ? 'Night Mode' 
                     : 'Original Audio'}
                 </span>
-                <span className="sm:hidden text-[11px]">Audio</span>
+                <span className="sm:hidden text-[10px]">Audio</span>
               </button>
 
               {/* OMS Studio Controls Drawer Toggle Button */}
               <button
                 onClick={() => setShowStudioDrawer(s => !s)}
-                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
                   showStudioDrawer 
-                    ? 'bg-cyan-500/20 text-cyan-200 border border-cyan-400/50 shadow-lg shadow-cyan-500/30' 
+                    ? 'bg-cyan-500/20 text-cyan-200 border border-cyan-400/50 shadow-md shadow-cyan-500/30' 
                     : 'bg-black/40 text-amber-200 border border-amber-500/30 hover:bg-amber-500/20'
                 }`}
                 title="Open OMS Studio (Audio Tracks, Video Tracks, Subtitles, Speed, Seating)"

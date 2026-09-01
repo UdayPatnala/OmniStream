@@ -1,4 +1,4 @@
-import { Search, Menu, Clock, X, Mic, Layers, Settings2 } from 'lucide-react';
+import { Search, Menu, Clock, X, Mic, Layers } from 'lucide-react';
 import { useState, useEffect, type FormEvent } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { fetchSearchSuggestions } from '../lib/youtube';
@@ -20,11 +20,6 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
   const [pipelineState, setPipelineState] = useState<PlaybackState>('IDLE');
   const [isListening, setIsListening] = useState(false);
   const navigate = useNavigate();
-
-  const {
-    instantAutoPlay,
-    setInstantAutoPlay,
-  } = useAppStore();
 
   const startVoiceSearch = () => {
     if (typeof window === 'undefined') return;
@@ -158,26 +153,13 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
           </div>
         </Link>
 
-        {/* Instant Auto-Play Badge */}
-        <div className="hidden md:flex items-center gap-2 ml-2">
-          <button 
-            onClick={() => setInstantAutoPlay(!instantAutoPlay)}
-            className={`hidden lg:flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border transition-colors ${
-              instantAutoPlay ? 'bg-utube-surface border-utube-border text-utube-primary' : 'bg-utube-bg border-utube-border text-utube-text-secondary hover:bg-utube-surface'
-            }`}
-          >
-            <Settings2 className="w-3 h-3" />
-            <span>Instant Play {instantAutoPlay ? 'ON' : 'OFF'}</span>
-          </button>
-
-          {/* Live Pipeline State Machine Badge */}
-          {pipelineState !== 'IDLE' && pipelineState !== 'PLAYING' && (
-            <div className="flex items-center gap-1.5 px-3 py-1 bg-purple-50 border border-purple-200 text-purple-700 rounded-full text-xs font-bold animate-pulse">
-              <Sparkles className="w-3.5 h-3.5 text-purple-500 animate-spin" />
-              <span>{pipelineState}...</span>
-            </div>
-          )}
-        </div>
+        {/* Live Pipeline State Machine Badge */}
+        {pipelineState !== 'IDLE' && pipelineState !== 'PLAYING' && (
+          <div className="hidden md:flex items-center gap-1.5 px-3 py-1 bg-purple-50 border border-purple-200 text-purple-700 rounded-full text-xs font-bold animate-pulse ml-2">
+            <Sparkles className="w-3.5 h-3.5 text-purple-500 animate-spin" />
+            <span>{pipelineState}...</span>
+          </div>
+        )}
       </div>
 
       {/* Center: Search Bar & Voice Input */}
@@ -284,29 +266,15 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
         </button>
       </div>
 
-      {/* Right: Cross-engine navigation + profile */}
+      {/* Right: Return to OmniStream Master Gateway */}
       <div className="flex items-center gap-2">
-        {/* OmniStream gateway escape */}
         <Link
           to="/"
-          title="Return to OmniStream spatial gateway"
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-utube-surface hover:bg-utube-border/50 text-utube-text-secondary hover:text-utube-text border border-utube-border text-xs font-semibold transition-all"
+          title="Return to OmniStream Gateway"
+          className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-utube-surface hover:bg-utube-border text-utube-text-secondary hover:text-utube-text border border-utube-border text-xs font-bold transition-all shadow-sm cursor-pointer active:scale-95"
         >
-          <Layers className="w-3.5 h-3.5 text-utube-text-muted" />
+          <Layers className="w-3.5 h-3.5 text-utube-primary" />
           <span>OmniStream</span>
-        </Link>
-
-        {/* Official U-Tube Preferences Button */}
-        <Link 
-          to="/settings" 
-          title="U-Tube Preferences" 
-          className="w-8 h-8 rounded-full bg-black/5 dark:bg-white/10 hover:scale-105 transition-all flex items-center justify-center p-1 border border-utube-border ml-1 shadow-sm cursor-pointer"
-        >
-          <img 
-            src="/utube_artwork.png" 
-            alt="U-Tube Preferences" 
-            className="w-full h-full object-contain filter drop-shadow-sm" 
-          />
         </Link>
       </div>
     </header>
