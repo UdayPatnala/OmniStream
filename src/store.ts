@@ -93,9 +93,6 @@ interface AppState {
   setAudioEQ: (config: Partial<AppState['audioEQ']>) => void;
   resetAudioEQ: () => void;
 
-  audioStudioOpen: boolean;
-  setAudioStudioOpen: (open: boolean) => void;
-
   telemetryOpen: boolean;
   setTelemetryOpen: (open: boolean) => void;
 
@@ -420,9 +417,6 @@ export const useAppStore = create<AppState>()(
           drcLoudness: false,
         }
       }),
-
-      audioStudioOpen: false,
-      setAudioStudioOpen: (audioStudioOpen) => set({ audioStudioOpen }),
 
       telemetryOpen: false,
       setTelemetryOpen: (telemetryOpen) => set({ telemetryOpen }),

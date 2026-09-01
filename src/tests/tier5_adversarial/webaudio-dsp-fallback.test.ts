@@ -135,6 +135,6 @@ describe('Tier 5 Adversarial: Web Audio DSP Context Failures & Silent Fallbacks'
 
     expect((audioEngine as any).isInitialized).toBe(false);
     expect((audioEngine as any).audioCtx).toBeNull();
-    expect((audioEngine as any).bassFilter).toBeNull();
+    expect((audioEngine as any).analyser).toBeNull();
   });
 });

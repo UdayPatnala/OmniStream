@@ -645,24 +645,6 @@ export function CineMorphTheater() {
   };
 
   // ── Quick Cyclers ───────────────────────────────────────────────────────────
-  const cycleAudioPreset = () => {
-    const presets: AudioPreset[] = ['dialogue-boost', 'spatial-3d', 'bass-heavy', 'night-compression', 'original'];
-    const currentIdx = presets.indexOf(audioEQ.preset as AudioPreset);
-    const nextPreset = presets[(currentIdx + 1) % presets.length];
-    const newConfig = audioEngine.getPresetConfig(nextPreset);
-    setAudioEQ(newConfig);
-    if (isLocalMedia && localVideoRef.current) {
-      audioEngine.init(localVideoRef.current);
-    }
-    audioEngine.applyConfig(newConfig);
-    const detail = newConfig.bassBoost > 0 
-      ? `+${newConfig.bassBoost}dB Bass Boost` 
-      : newConfig.dialogueClarity > 0 
-      ? `+${newConfig.dialogueClarity}dB Vocal Boost` 
-      : 'Original Curve';
-    showToast(`🎧 Audio Studio: ${nextPreset.toUpperCase().replace('-', ' ')} (${detail})`);
-  };
-
   const cycleAspectRatio = () => {
     const ratios: FrameAspectRatio[] = ['original', '1.90:1', '1.43:1'];
     const currentIdx = ratios.indexOf(frameAspectRatio);
@@ -871,13 +853,13 @@ export function CineMorphTheater() {
           clipPath: isOriginalMode
             ? 'none'
             : frameAspectRatio === '1.43:1'
-            ? 'polygon(0% 0%, 10% 0.50%, 25% 1.05%, 50% 1.40%, 75% 1.05%, 90% 0.50%, 100% 0%, 100% 100%, 90% 99.50%, 75% 98.95%, 50% 98.60%, 25% 98.95%, 10% 99.50%, 0% 100%)'
-            : 'polygon(0% 0%, 10% 0.32%, 25% 0.68%, 50% 0.90%, 75% 0.68%, 90% 0.32%, 100% 0%, 100% 100%, 90% 99.68%, 75% 99.32%, 50% 99.10%, 25% 99.32%, 10% 99.68%, 0% 100%)',
+            ? 'polygon(0% 0.80%, 0.25% 0.30%, 0.80% 0.10%, 10% 0.50%, 25% 1.05%, 50% 1.40%, 75% 1.05%, 90% 0.50%, 99.20% 0.10%, 99.75% 0.30%, 100% 0.80%, 100% 99.20%, 99.75% 99.70%, 99.20% 99.90%, 90% 99.50%, 75% 98.95%, 50% 98.60%, 25% 98.95%, 10% 99.50%, 0.80% 99.90%, 0.25% 99.70%, 0% 99.20%)'
+            : 'polygon(0% 0.80%, 0.25% 0.30%, 0.80% 0.10%, 10% 0.32%, 25% 0.68%, 50% 0.90%, 75% 0.68%, 90% 0.32%, 99.20% 0.10%, 99.75% 0.30%, 100% 0.80%, 100% 99.20%, 99.75% 99.70%, 99.20% 99.90%, 90% 99.68%, 75% 99.32%, 50% 99.10%, 25% 99.32%, 10% 99.68%, 0.80% 99.90%, 0.25% 99.70%, 0% 99.20%)',
           WebkitClipPath: isOriginalMode
             ? 'none'
             : frameAspectRatio === '1.43:1'
-            ? 'polygon(0% 0%, 10% 0.50%, 25% 1.05%, 50% 1.40%, 75% 1.05%, 90% 0.50%, 100% 0%, 100% 100%, 90% 99.50%, 75% 98.95%, 50% 98.60%, 25% 98.95%, 10% 99.50%, 0% 100%)'
-            : 'polygon(0% 0%, 10% 0.32%, 25% 0.68%, 50% 0.90%, 75% 0.68%, 90% 0.32%, 100% 0%, 100% 100%, 90% 99.68%, 75% 99.32%, 50% 99.10%, 25% 99.32%, 10% 99.68%, 0% 100%)',
+            ? 'polygon(0% 0.80%, 0.25% 0.30%, 0.80% 0.10%, 10% 0.50%, 25% 1.05%, 50% 1.40%, 75% 1.05%, 90% 0.50%, 99.20% 0.10%, 99.75% 0.30%, 100% 0.80%, 100% 99.20%, 99.75% 99.70%, 99.20% 99.90%, 90% 99.50%, 75% 98.95%, 50% 98.60%, 25% 98.95%, 10% 99.50%, 0.80% 99.90%, 0.25% 99.70%, 0% 99.20%)'
+            : 'polygon(0% 0.80%, 0.25% 0.30%, 0.80% 0.10%, 10% 0.32%, 25% 0.68%, 50% 0.90%, 75% 0.68%, 90% 0.32%, 99.20% 0.10%, 99.75% 0.30%, 100% 0.80%, 100% 99.20%, 99.75% 99.70%, 99.20% 99.90%, 90% 99.68%, 75% 99.32%, 50% 99.10%, 25% 99.32%, 10% 99.68%, 0.80% 99.90%, 0.25% 99.70%, 0% 99.20%)',
         }}
       >
         {/* Subtitles / CC Visual Text Overlay */}
@@ -1432,27 +1414,6 @@ export function CineMorphTheater() {
                   Original
                 </button>
               </div>
-
-              {/* Audio Mode Preset Selector (3D Spatial, Dialogue Boost, Bass, etc.) */}
-              <button
-                onClick={cycleAudioPreset}
-                className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-[10px] font-semibold text-purple-200 transition-all cursor-pointer active:scale-95 shadow-sm"
-                title="Cycle Audio Mode Preset (3D Spatial, Dialogue Boost, Cinema Bass, Night Mode, Original)"
-              >
-                <Sliders className="w-3 h-3 text-purple-400" />
-                <span className="capitalize hidden sm:inline">
-                  {audioEQ.preset === 'spatial-3d' 
-                    ? '3D Spatial' 
-                    : audioEQ.preset === 'dialogue-boost' 
-                    ? 'Dialogue Boost' 
-                    : audioEQ.preset === 'bass-heavy' 
-                    ? 'Cinema Bass' 
-                    : audioEQ.preset === 'night-compression' 
-                    ? 'Night Mode' 
-                    : 'Original Audio'}
-                </span>
-                <span className="sm:hidden text-[10px]">Audio</span>
-              </button>
 
               {/* OMS Studio Controls Drawer Toggle Button */}
               <button
