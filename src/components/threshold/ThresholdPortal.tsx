@@ -1,12 +1,16 @@
 /**
  * ThresholdPortal.tsx — OmniStream Cosmic Dual-Portal Gateway
  *
- * Visual reference implementation:
- *   - Upper Center: Concentric OmniStream cosmic ring + cinematic OMNISTREAM typography
- *   - Left Wing: Crimson U-Tube orb portal with custom 3D red "U" artwork
- *   - Right Wing: Electric blue CineMorph orb portal with illuminated curved-screen artwork
- *   - Lower Center: Reflective spatial floor with "CHOOSE YOUR STREAM" choice indicator
- *   - Zero marketing jargon, pure spatial immersion and intentional destination choice
+ * Implements the exact visual references for both:
+ *   - Dark Theme (Deep Obsidian Cosmic Space)
+ *   - Light Theme (Pearlescent Ethereal Alabaster)
+ *
+ * Featuring:
+ *   - Upper Center: Concentric radiant cosmic ring + OMNISTREAM cinematic typography
+ *   - Left Wing: Crimson silk energy streams + 3D U-Tube orb portal with custom artwork
+ *   - Right Wing: Electric blue silk energy streams + 3D CineMorph orb portal with custom artwork
+ *   - Reflective Ground Plane: Concentric floor ripple rings + "CHOOSE YOUR STREAM" indicator
+ *   - Interactive: Cursor-reactive light field, particle dust, keyboard hotkeys, and seamless transitions
  */
 
 import React, {
@@ -182,18 +186,87 @@ export const ThresholdPortal: React.FC = () => {
       style={{
         background: isDark
           ? cmActive
-            ? '#03050a'
+            ? 'radial-gradient(ellipse at 70% 40%, #040914 0%, #020408 60%, #010204 100%)'
             : uActive
-            ? '#080304'
-            : '#05060a'
-          : uActive
-          ? '#FAF6F4'
+            ? 'radial-gradient(ellipse at 30% 40%, #120305 0%, #070102 60%, #010204 100%)'
+            : 'radial-gradient(ellipse at 50% 30%, #070a14 0%, #03050a 50%, #010204 100%)'
           : cmActive
-          ? '#F4F7FA'
-          : '#F7F5F0',
+          ? 'radial-gradient(ellipse at 70% 40%, #EDF4FA 0%, #F5F8FC 60%, #FFFFFF 100%)'
+          : uActive
+          ? 'radial-gradient(ellipse at 30% 40%, #FAEEEE 0%, #FCF6F6 60%, #FFFFFF 100%)'
+          : 'radial-gradient(ellipse at 50% 30%, #FFFFFF 0%, #F5F7FA 50%, #ECEFF4 100%)',
         transition: 'background 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
       }}
     >
+      {/* ── Dynamic Silk Energy Tendrils SVG Overlay ── */}
+      <svg
+        className="absolute inset-0 w-full h-full pointer-events-none z-0 opacity-60 transition-opacity duration-700"
+        viewBox="0 0 1440 900"
+        preserveAspectRatio="none"
+        fill="none"
+      >
+        {/* Left Crimson Silk Lines */}
+        <path
+          d="M-50 450 C 200 420, 300 580, 500 500 C 650 440, 700 480, 720 450"
+          stroke={isDark ? 'url(#crimsonFlowDark)' : 'url(#crimsonFlowLight)'}
+          strokeWidth="1.5"
+          strokeDasharray="4 6"
+          className="animate-pulse"
+        />
+        <path
+          d="M-100 300 C 150 250, 250 450, 480 430 C 600 420, 680 440, 720 450"
+          stroke={isDark ? 'url(#crimsonFlowDark)' : 'url(#crimsonFlowLight)'}
+          strokeWidth="2"
+          opacity="0.7"
+        />
+        <path
+          d="M-80 600 C 120 620, 280 500, 450 540 C 600 580, 680 480, 720 450"
+          stroke={isDark ? 'url(#crimsonFlowDark)' : 'url(#crimsonFlowLight)'}
+          strokeWidth="1"
+          opacity="0.5"
+        />
+
+        {/* Right Cyan Silk Lines */}
+        <path
+          d="M1490 450 C 1240 420, 1140 580, 940 500 C 790 440, 740 480, 720 450"
+          stroke={isDark ? 'url(#cyanFlowDark)' : 'url(#cyanFlowLight)'}
+          strokeWidth="1.5"
+          strokeDasharray="4 6"
+          className="animate-pulse"
+        />
+        <path
+          d="M1540 300 C 1290 250, 1190 450, 960 430 C 840 420, 760 440, 720 450"
+          stroke={isDark ? 'url(#cyanFlowDark)' : 'url(#cyanFlowLight)'}
+          strokeWidth="2"
+          opacity="0.7"
+        />
+        <path
+          d="M1520 600 C 1320 620, 1160 500, 990 540 C 840 580, 760 480, 720 450"
+          stroke={isDark ? 'url(#cyanFlowDark)' : 'url(#cyanFlowLight)'}
+          strokeWidth="1"
+          opacity="0.5"
+        />
+
+        <defs>
+          <linearGradient id="crimsonFlowDark" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#E50914" stopOpacity="0.8" />
+            <stop offset="100%" stopColor="#E50914" stopOpacity="0.0" />
+          </linearGradient>
+          <linearGradient id="crimsonFlowLight" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#FF334B" stopOpacity="0.6" />
+            <stop offset="100%" stopColor="#FF334B" stopOpacity="0.0" />
+          </linearGradient>
+          <linearGradient id="cyanFlowDark" x1="100%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#00A8FF" stopOpacity="0.8" />
+            <stop offset="100%" stopColor="#00A8FF" stopOpacity="0.0" />
+          </linearGradient>
+          <linearGradient id="cyanFlowLight" x1="100%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#00A8FF" stopOpacity="0.6" />
+            <stop offset="100%" stopColor="#00A8FF" stopOpacity="0.0" />
+          </linearGradient>
+        </defs>
+      </svg>
+
       {/* ── Volumetric Nebula Particle & Glow Fields (RAF-Controlled) ── */}
       <div
         ref={lightRef}
@@ -202,29 +275,27 @@ export const ThresholdPortal: React.FC = () => {
         style={{
           background: isDark
             ? uActive
-              ? 'radial-gradient(ellipse 900px 700px at 28% 50%, rgba(229,9,20,0.22) 0%, transparent 70%)'
+              ? 'radial-gradient(ellipse 900px 700px at 28% 50%, rgba(229,9,20,0.25) 0%, transparent 70%)'
               : cmActive
-              ? 'radial-gradient(ellipse 900px 700px at 72% 50%, rgba(0,168,255,0.24) 0%, transparent 70%)'
-              : 'radial-gradient(ellipse 700px 500px at 25% 50%, rgba(229,9,20,0.12) 0%, transparent 65%), radial-gradient(ellipse 700px 500px at 75% 50%, rgba(0,168,255,0.14) 0%, transparent 65%)'
+              ? 'radial-gradient(ellipse 900px 700px at 72% 50%, rgba(0,168,255,0.28) 0%, transparent 70%)'
+              : 'radial-gradient(ellipse 700px 500px at 25% 50%, rgba(229,9,20,0.14) 0%, transparent 65%), radial-gradient(ellipse 700px 500px at 75% 50%, rgba(0,168,255,0.16) 0%, transparent 65%)'
             : uActive
-            ? 'radial-gradient(ellipse 900px 700px at 28% 50%, rgba(229,9,20,0.14) 0%, transparent 70%)'
+            ? 'radial-gradient(ellipse 900px 700px at 28% 50%, rgba(229,9,20,0.16) 0%, transparent 70%)'
             : cmActive
-            ? 'radial-gradient(ellipse 900px 700px at 72% 50%, rgba(0,168,255,0.16) 0%, transparent 70%)'
-            : 'radial-gradient(ellipse 700px 500px at 25% 50%, rgba(229,9,20,0.08) 0%, transparent 65%), radial-gradient(ellipse 700px 500px at 75% 50%, rgba(0,168,255,0.08) 0%, transparent 65%)',
+            ? 'radial-gradient(ellipse 900px 700px at 72% 50%, rgba(0,168,255,0.18) 0%, transparent 70%)'
+            : 'radial-gradient(ellipse 700px 500px at 25% 50%, rgba(229,9,20,0.09) 0%, transparent 65%), radial-gradient(ellipse 700px 500px at 75% 50%, rgba(0,168,255,0.09) 0%, transparent 65%)',
         }}
       />
 
-      {/* ── Deep Space Particle Shimmer (Dark Mode) ── */}
-      {isDark && (
-        <div className="absolute inset-0 pointer-events-none z-0 opacity-40">
-          <div className="absolute top-[20%] left-[15%] w-1 h-1 bg-red-400 rounded-full blur-[1px] animate-pulse" />
-          <div className="absolute top-[35%] left-[8%] w-1.5 h-1.5 bg-rose-500 rounded-full blur-[1px]" />
-          <div className="absolute top-[65%] left-[22%] w-1 h-1 bg-red-300 rounded-full" />
-          <div className="absolute top-[18%] right-[16%] w-1.5 h-1.5 bg-cyan-300 rounded-full blur-[1px] animate-pulse" />
-          <div className="absolute top-[40%] right-[10%] w-1 h-1 bg-blue-400 rounded-full" />
-          <div className="absolute top-[70%] right-[20%] w-1 h-1 bg-sky-300 rounded-full blur-[0.5px]" />
-        </div>
-      )}
+      {/* ── Micro Particle Dust Overlay ── */}
+      <div className="absolute inset-0 pointer-events-none z-0 opacity-50">
+        <div className="absolute top-[22%] left-[18%] w-1.5 h-1.5 bg-red-500 rounded-full blur-[0.5px] animate-pulse" />
+        <div className="absolute top-[38%] left-[10%] w-1 h-1 bg-rose-400 rounded-full" />
+        <div className="absolute top-[68%] left-[24%] w-1.5 h-1.5 bg-red-400 rounded-full blur-[0.5px]" />
+        <div className="absolute top-[20%] right-[19%] w-1.5 h-1.5 bg-cyan-400 rounded-full blur-[0.5px] animate-pulse" />
+        <div className="absolute top-[42%] right-[12%] w-1 h-1 bg-blue-400 rounded-full" />
+        <div className="absolute top-[72%] right-[22%] w-1.5 h-1.5 bg-sky-400 rounded-full blur-[0.5px]" />
+      </div>
 
       {/* ── Top Header Controls (Settings, Theme, Offline) ── */}
       <header className="relative z-30 w-full px-6 sm:px-12 py-5 flex items-center justify-between pointer-events-auto">
@@ -278,9 +349,9 @@ export const ThresholdPortal: React.FC = () => {
             }}
           >
             {theme === 'light' ? (
-              <Sun className="w-4 h-4" />
+              <Sun className="w-4 h-4 text-amber-500" />
             ) : theme === 'dark' ? (
-              <Moon className="w-4 h-4" />
+              <Moon className="w-4 h-4 text-cyan-400" />
             ) : (
               <Laptop className="w-4 h-4" />
             )}
@@ -314,30 +385,30 @@ export const ThresholdPortal: React.FC = () => {
             transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
             className="relative w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center mb-3"
           >
-            {/* Outer Halo */}
+            {/* Outer Radiant Glow */}
             <div
               className="absolute inset-0 rounded-full blur-md opacity-80"
               style={{
                 background: 'radial-gradient(circle, rgba(0,168,255,0.8) 0%, rgba(229,9,20,0.6) 50%, transparent 80%)',
               }}
             />
-            {/* Concentric Ring 1 */}
+            {/* Rotating Celestial Dashed Ring */}
             <motion.div
               animate={{ rotate: 360 }}
               transition={{ duration: 30, repeat: Infinity, ease: 'linear' }}
-              className="absolute inset-0 rounded-full border border-cyan-400/40 border-dashed"
+              className="absolute -inset-1 rounded-full border border-cyan-400/50 border-dashed"
             />
-            {/* Concentric Ring 2 */}
+            {/* Gradient Cosmic Ring */}
             <div
-              className="w-10 h-10 sm:w-11 sm:h-11 rounded-full p-[2px] shadow-[0_0_20px_rgba(0,168,255,0.6)]"
+              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full p-[2px] shadow-[0_0_25px_rgba(0,168,255,0.6)]"
               style={{
-                background: 'linear-gradient(135deg, #00A8FF 0%, #E50914 100%)',
+                background: 'linear-gradient(135deg, #00A8FF 0%, #FF334B 50%, #00A8FF 100%)',
               }}
             >
               <div
                 className="w-full h-full rounded-full"
                 style={{
-                  background: isDark ? '#05060A' : '#F7F5F0',
+                  background: isDark ? '#05060A' : '#FFFFFF',
                 }}
               />
             </div>
@@ -353,10 +424,10 @@ export const ThresholdPortal: React.FC = () => {
             <h1
               className="font-cinematic-title font-black uppercase text-center tracking-[0.55em] sm:tracking-[0.7em] text-xl sm:text-3xl md:text-4xl"
               style={{
-                color: isDark ? '#EDEFF5' : '#1A1A18',
+                color: isDark ? '#EDEFF5' : '#0B1B3D',
                 textShadow: isDark
                   ? '0 0 35px rgba(255,255,255,0.25)'
-                  : '0 2px 10px rgba(0,0,0,0.05)',
+                  : '0 2px 12px rgba(11,27,61,0.08)',
               }}
             >
               OMNISTREAM
@@ -388,16 +459,16 @@ export const ThresholdPortal: React.FC = () => {
               onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && enter('utube')}
               className={`relative w-56 h-56 sm:w-64 sm:h-64 md:w-72 md:h-72 rounded-full transition-all duration-700 cursor-pointer flex items-center justify-center outline-none focus-visible:ring-4 focus-visible:ring-red-500/50 ${
                 uActive
-                  ? 'scale-105 shadow-[0_0_80px_rgba(229,9,20,0.5)]'
+                  ? 'scale-105 shadow-[0_0_80px_rgba(229,9,20,0.55)]'
                   : 'hover:scale-[1.03] active:scale-[0.98]'
               }`}
             >
               {/* Outer Radiant Crimson Ring */}
               <div
-                className={`absolute inset-0 rounded-full p-[2px] transition-all duration-500 ${
+                className={`absolute inset-0 rounded-full p-[2.5px] transition-all duration-500 ${
                   uActive
-                    ? 'shadow-[0_0_40px_rgba(229,9,20,0.8)]'
-                    : 'opacity-80 group-hover:opacity-100'
+                    ? 'shadow-[0_0_40px_rgba(229,9,20,0.85)]'
+                    : 'opacity-85 group-hover:opacity-100'
                 }`}
                 style={{
                   background:
@@ -406,18 +477,18 @@ export const ThresholdPortal: React.FC = () => {
               >
                 {/* Inner Portal Spherical Body */}
                 <div
-                  className="w-full h-full rounded-full flex items-center justify-center p-6 relative overflow-hidden"
+                  className="w-full h-full rounded-full flex items-center justify-center p-6 relative overflow-hidden transition-colors duration-500"
                   style={{
                     background: isDark
                       ? 'radial-gradient(circle at 50% 40%, #1c0607 0%, #0c0203 70%, #000000 100%)'
-                      : 'radial-gradient(circle at 50% 40%, #ffffff 0%, #f7eaeb 70%, #edd8d9 100%)',
+                      : 'radial-gradient(circle at 50% 35%, #ffffff 0%, #fcf3f3 60%, #fae8e8 100%)',
                     boxShadow: isDark
                       ? 'inset 0 0 40px rgba(229,9,20,0.4), inset 0 0 15px rgba(0,0,0,0.8)'
-                      : 'inset 0 0 30px rgba(229,9,20,0.15)',
+                      : 'inset 0 0 35px rgba(229,9,20,0.18), 0 10px 30px rgba(229,9,20,0.08)',
                   }}
                 >
                   {/* Concentric Glass Ring Overlay */}
-                  <div className="absolute inset-3 rounded-full border border-red-500/20 pointer-events-none" />
+                  <div className="absolute inset-3 rounded-full border border-red-500/25 pointer-events-none" />
 
                   {/* The Custom U-Tube Artwork Image */}
                   <img
@@ -438,7 +509,7 @@ export const ThresholdPortal: React.FC = () => {
                 <motion.div
                   animate={{ rotate: 360 }}
                   transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
-                  className="absolute -inset-2 rounded-full border border-red-500/20 border-dashed pointer-events-none"
+                  className="absolute -inset-2 rounded-full border border-red-500/25 border-dashed pointer-events-none"
                 />
               )}
             </button>
@@ -460,7 +531,7 @@ export const ThresholdPortal: React.FC = () => {
                     ? '#E50914'
                     : isDark
                     ? '#EDEFF5'
-                    : '#1A1A18',
+                    : '#0B1B3D',
                 }}
               >
                 U-TUBE
@@ -471,7 +542,9 @@ export const ThresholdPortal: React.FC = () => {
                 className={`mt-1.5 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 ${
                   uActive
                     ? 'bg-[#E50914] text-white shadow-[0_0_15px_#E50914] scale-110'
-                    : 'bg-red-500/10 text-red-500 border border-red-500/20'
+                    : isDark
+                    ? 'bg-red-500/10 text-red-500 border border-red-500/20'
+                    : 'bg-red-50 text-red-500 border border-red-200 shadow-sm'
                 }`}
               >
                 <ChevronDown className="w-3.5 h-3.5" />
@@ -507,16 +580,16 @@ export const ThresholdPortal: React.FC = () => {
               onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && enter('cinemorph')}
               className={`relative w-56 h-56 sm:w-64 sm:h-64 md:w-72 md:h-72 rounded-full transition-all duration-700 cursor-pointer flex items-center justify-center outline-none focus-visible:ring-4 focus-visible:ring-blue-500/50 ${
                 cmActive
-                  ? 'scale-105 shadow-[0_0_80px_rgba(0,168,255,0.5)]'
+                  ? 'scale-105 shadow-[0_0_80px_rgba(0,168,255,0.55)]'
                   : 'hover:scale-[1.03] active:scale-[0.98]'
               }`}
             >
               {/* Outer Radiant Electric-Blue Ring */}
               <div
-                className={`absolute inset-0 rounded-full p-[2px] transition-all duration-500 ${
+                className={`absolute inset-0 rounded-full p-[2.5px] transition-all duration-500 ${
                   cmActive
-                    ? 'shadow-[0_0_40px_rgba(0,168,255,0.8)]'
-                    : 'opacity-80 group-hover:opacity-100'
+                    ? 'shadow-[0_0_40px_rgba(0,168,255,0.85)]'
+                    : 'opacity-85 group-hover:opacity-100'
                 }`}
                 style={{
                   background:
@@ -525,18 +598,18 @@ export const ThresholdPortal: React.FC = () => {
               >
                 {/* Inner Portal Spherical Body */}
                 <div
-                  className="w-full h-full rounded-full flex items-center justify-center p-6 relative overflow-hidden"
+                  className="w-full h-full rounded-full flex items-center justify-center p-6 relative overflow-hidden transition-colors duration-500"
                   style={{
                     background: isDark
                       ? 'radial-gradient(circle at 50% 40%, #051424 0%, #020912 70%, #000000 100%)'
-                      : 'radial-gradient(circle at 50% 40%, #ffffff 0%, #e6f3fa 70%, #d4eaf5 100%)',
+                      : 'radial-gradient(circle at 50% 35%, #ffffff 0%, #f0f7fc 60%, #e2f0fa 100%)',
                     boxShadow: isDark
                       ? 'inset 0 0 40px rgba(0,168,255,0.4), inset 0 0 15px rgba(0,0,0,0.8)'
-                      : 'inset 0 0 30px rgba(0,168,255,0.15)',
+                      : 'inset 0 0 35px rgba(0,168,255,0.18), 0 10px 30px rgba(0,168,255,0.08)',
                   }}
                 >
                   {/* Concentric Glass Ring Overlay */}
-                  <div className="absolute inset-3 rounded-full border border-cyan-400/20 pointer-events-none" />
+                  <div className="absolute inset-3 rounded-full border border-cyan-400/25 pointer-events-none" />
 
                   {/* The Custom CineMorph Artwork Image */}
                   <img
@@ -557,7 +630,7 @@ export const ThresholdPortal: React.FC = () => {
                 <motion.div
                   animate={{ rotate: -360 }}
                   transition={{ duration: 25, repeat: Infinity, ease: 'linear' }}
-                  className="absolute -inset-2 rounded-full border border-cyan-400/20 border-dashed pointer-events-none"
+                  className="absolute -inset-2 rounded-full border border-cyan-400/25 border-dashed pointer-events-none"
                 />
               )}
             </button>
@@ -579,7 +652,7 @@ export const ThresholdPortal: React.FC = () => {
                     ? '#00A8FF'
                     : isDark
                     ? '#EDEFF5'
-                    : '#1A1A18',
+                    : '#0B1B3D',
                 }}
               >
                 CINEMORPH
@@ -590,7 +663,9 @@ export const ThresholdPortal: React.FC = () => {
                 className={`mt-1.5 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 ${
                   cmActive
                     ? 'bg-[#00A8FF] text-white shadow-[0_0_15px_#00A8FF] scale-110'
-                    : 'bg-cyan-500/10 text-cyan-500 border border-cyan-500/20'
+                    : isDark
+                    ? 'bg-cyan-500/10 text-cyan-500 border border-cyan-500/20'
+                    : 'bg-cyan-50 text-cyan-500 border border-cyan-200 shadow-sm'
                 }`}
               >
                 <ChevronDown className="w-3.5 h-3.5" />
@@ -599,12 +674,12 @@ export const ThresholdPortal: React.FC = () => {
           </div>
         </div>
 
-        {/* ── 3. Choice Indicator (Lower Area) ── */}
+        {/* ── 3. Choice Indicator & Reflective Floor (Lower Area) ── */}
         <div className="mt-8 sm:mt-12 flex flex-col items-center text-center pointer-events-none">
           <span
             className="text-[11px] sm:text-xs font-mono uppercase tracking-[0.45em] font-bold transition-colors duration-500"
             style={{
-              color: isDark ? 'rgba(236,238,242,0.45)' : 'rgba(26,26,24,0.45)',
+              color: isDark ? 'rgba(236,238,242,0.45)' : 'rgba(11,27,61,0.5)',
             }}
           >
             CHOOSE YOUR STREAM
@@ -612,7 +687,7 @@ export const ThresholdPortal: React.FC = () => {
           <div
             className="mt-2 w-8 h-[1px] mx-auto opacity-50"
             style={{
-              background: isDark ? '#FFFFFF' : '#000000',
+              background: isDark ? '#FFFFFF' : '#0B1B3D',
             }}
           />
         </div>
@@ -677,7 +752,7 @@ export const ThresholdPortal: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-            style={{ background: '#020912' }}
+            style={{ background: isDark ? '#020912' : '#F0F7FC' }}
           >
             <motion.div
               initial={{ opacity: 0, scale: 0.92 }}
@@ -688,7 +763,7 @@ export const ThresholdPortal: React.FC = () => {
               <span className="text-[10px] font-mono tracking-[0.35em] uppercase text-[#00A8FF] font-bold">
                 Opening Aperture
               </span>
-              <div className="font-cinematic-title font-black uppercase text-5xl sm:text-7xl text-[#F0EEE8]">
+              <div className="font-cinematic-title font-black uppercase text-5xl sm:text-7xl text-[#0B1B3D] dark:text-[#F0EEE8]">
                 CINEMORPH
               </div>
             </motion.div>

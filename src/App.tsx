@@ -33,12 +33,12 @@ function RouteFallback() {
   );
 }
 
-// Routes root based on user preference — BentoGrid is the master gateway
+// Routes root based on user preference — RootLanding (Cosmic Threshold) is the master gateway
 function RootRouter() {
   const rootLandingPreference = useAppStore((s) => s.rootLandingPreference);
   if (rootLandingPreference === 'v1') return <Home />;
   if (rootLandingPreference === 'v2') return <CineMorphLanding />;
-  return <BentoGrid />;
+  return <RootLanding />;
 }
 
 export default function App() {
@@ -57,10 +57,10 @@ export default function App() {
       <Suspense fallback={<RouteFallback />}>
         <Routes>
           <Route path="/" element={<RootRouter />} />
-          <Route path="/bento" element={<BentoGrid />} />
-          <Route path="/landing" element={<BentoGrid />} />
-          <Route path="/gateway" element={<BentoGrid />} />
+          <Route path="/landing" element={<RootLanding />} />
+          <Route path="/gateway" element={<RootLanding />} />
           <Route path="/portal" element={<RootLanding />} />
+          <Route path="/bento" element={<BentoGrid />} />
           <Route path="/home" element={<Home />} />
           <Route path="/feed" element={<Home />} />
           <Route path="/cinemorph" element={<CineMorphLanding />} />

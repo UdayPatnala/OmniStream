@@ -36,15 +36,7 @@ export function Layout({ children }: { children: ReactNode }) {
     (location.pathname === '/' && rootLandingPreference === 'ask');
 
   if (isFullViewport) {
-    // Light editorial bg for Bento Landing, dark for CineMorph / theater
-    const bg = (isRootLanding || location.pathname === '/landing' || location.pathname === '/bento' || location.pathname === '/gateway' || location.pathname === '/portal') 
-      ? 'bg-utube-bg' 
-      : 'bg-[#030208]';
-    return (
-      <div className={`w-full max-w-full min-h-screen ${bg}`} style={{ overflowY: 'auto', overflowX: 'hidden', height: '100vh' }}>
-        {children}
-      </div>
-    );
+    return <>{children}</>;
   }
 
 
