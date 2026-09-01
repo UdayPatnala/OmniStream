@@ -8,7 +8,7 @@ This document serves as the authoritative, permanent version timeline and Git re
 
 | Version | Date | Type | Quick Summary | Git Tag | Commit |
 |---|---|:---:|---|:---:|:---:|
-| **v1.5.2** | 2026-09-01 | `MINOR` | Lightweight client-side media demuxing engine for MP4/MKV/WebM/MOV/Audio with multi-track audio detection, original Unicode title preservation, live hardware/WebAudio stream switching, and codec playability verification. | `v1.5.2` | `TBD` |
+| **v1.5.2** | 2026-09-01 | `MINOR` | Lightweight client-side media demuxing engine for MP4/MKV/WebM/MOV/Audio with multi-track audio detection, original Unicode title preservation, live hardware/WebAudio stream switching, and codec playability verification. | `v1.5.2` | [`3467c79`](https://github.com/UdayPatnala/OmniStream/commit/3467c79) |
 | **v1.5.1** | 2026-09-01 | `PATCH` | Calibrated exact concave cinema screen curvature hierarchy (Original: 0%, CineMorph IMAX: 0.65%, True IMAX: 0.95%, U-Tube: 1.25%) with 3-tier proportional auditorium seating and zero video distortion. | `v1.5.1` | [`8a42eaa`](https://github.com/UdayPatnala/OmniStream/commit/8a42eaa) |
 | **v1.5.0** | 2026-09-01 | `MINOR` | Stable baseline checkpoint uniting U-Tube and CineMorph under central gateway. | `v1.5.0` | [`1431a08`](https://github.com/UdayPatnala/OmniStream/commit/1431a08) |
 | **v1.0.0** | 2026-08-30 | `MAJOR` | Initial OmniStream unified dual-engine architecture release. | `v1.0.0` | [`initial`](https://github.com/UdayPatnala/OmniStream/commit/initial) |
@@ -51,7 +51,7 @@ Implemented a high-performance, lightweight ($< 2 \text{ MB}$ header slice) clie
 - Core Media Stream Types (`types.ts`)
 
 #### Git Metadata
-- **Commit Hash**: `TBD`
+- **Commit Hash**: `3467c79`
 - **Commit Message**: `feat(media): implement client-side MP4/MKV demuxing, multi-track audio detection, and authentic track switching`
 - **Git Release Tag**: `v1.5.2`
 - **Recovery Command**: `git checkout v1.5.2`
