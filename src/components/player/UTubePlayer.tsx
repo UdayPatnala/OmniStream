@@ -439,18 +439,35 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
         </>
       )}
 
-      {/* ── True Full-Screen Immersive Video Viewport Container ── */}
+      {/* ── True Full-Screen Immersive Video Viewport Container with Default Cinema Horizontal Curvature ── */}
       <div
         ref={containerRef}
         onMouseMove={resetControlsTimer}
         onMouseEnter={() => setControlsVisible(true)}
         onMouseLeave={() => isPlaying && setControlsVisible(false)}
-        className={`relative w-full bg-black rounded-2xl overflow-hidden shadow-2xl select-none group font-sans ${
+        className={`relative w-full bg-black overflow-hidden select-none group font-sans transition-all duration-500 ${
           theaterMode
-            ? 'flex-1 aspect-video w-full border border-sky-900/40 shadow-[0_20px_60px_rgba(0,0,0,0.95)]'
-            : `aspect-video ${className}`
+            ? 'flex-1 aspect-video w-full border border-sky-800/40 shadow-[0_25px_80px_rgba(0,0,0,0.98),-16px_0_32px_-8px_rgba(2,132,199,0.25),16px_0_32px_-8px_rgba(2,132,199,0.25)]'
+            : `aspect-video rounded-2xl shadow-2xl ${className}`
         }`}
+        style={
+          theaterMode
+            ? {
+                perspective: '1500px',
+                transform: 'perspective(1500px) rotateX(0.4deg)',
+                borderRadius: '12px 12px 28px 28px / 6px 6px 14px 14px',
+              }
+            : undefined
+        }
       >
+        {/* Subtle Horizontal Curved Screen Side Depth Vignettes (U-Tube Theater Default) */}
+        {theaterMode && (
+          <>
+            <div className="absolute left-0 top-0 bottom-0 w-6 sm:w-14 pointer-events-none z-20 bg-gradient-to-r from-black/55 via-black/15 to-transparent" />
+            <div className="absolute right-0 top-0 bottom-0 w-6 sm:w-14 pointer-events-none z-20 bg-gradient-to-l from-black/55 via-black/15 to-transparent" />
+          </>
+        )}
+
         {/* ── Video Surface (YouTube Embed) ── */}
         <iframe
           ref={iframeRef}
