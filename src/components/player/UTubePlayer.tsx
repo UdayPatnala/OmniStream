@@ -18,10 +18,12 @@ import {
   Check,
   ChevronRight,
   Sparkles,
+  Layers,
+  X,
 } from 'lucide-react';
 import { Video } from '../../types';
 import { useAppStore } from '../../store';
-import { useTicketStore } from '../../state/useTicketStore';
+import { omsTransitionService } from '../../services/omsTransitionService';
 
 export interface UTubePlayerProps {
   video: Video;
@@ -30,6 +32,7 @@ export interface UTubePlayerProps {
   initialTime?: number;
   theaterMode?: boolean;
   onToggleTheaterMode?: () => void;
+  onTimeUpdate?: (currentTime: number, duration: number, isPlaying: boolean) => void;
   className?: string;
 }
 
@@ -40,6 +43,7 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
   initialTime = 0,
   theaterMode = false,
   onToggleTheaterMode,
+  onTimeUpdate,
   className = '',
 }) => {
   const navigate = useNavigate();
@@ -116,9 +120,9 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
   useEffect(() => {
     pollTimerRef.current = setInterval(() => {
       if (isPlaying && !isScrubbing) {
-        // Increment locally or query iframe
         setCurrentTime((prev) => {
           const next = duration > 0 ? Math.min(duration, prev + 0.25) : prev + 0.25;
+          onTimeUpdate?.(next, duration, isPlaying);
           return next;
         });
       }
@@ -127,7 +131,7 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
     return () => {
       if (pollTimerRef.current) clearInterval(pollTimerRef.current);
     };
-  }, [isPlaying, isScrubbing, duration]);
+  }, [isPlaying, isScrubbing, duration, onTimeUpdate]);
 
   // Listen for iframe postMessages
   useEffect(() => {
@@ -137,6 +141,7 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
         if (data && data.event === 'infoDelivery' && data.info) {
           if (typeof data.info.currentTime === 'number' && !isScrubbing) {
             setCurrentTime(data.info.currentTime);
+            onTimeUpdate?.(data.info.currentTime, duration, isPlaying);
           }
           if (typeof data.info.duration === 'number' && data.info.duration > 0) {
             setDuration(data.info.duration);
@@ -149,28 +154,34 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
             else if (data.info.playerState === 2) setIsPlaying(false);
             else if (data.info.playerState === 0) {
               setIsPlaying(false);
-              if (autoPlayOn && onNext) onNext();
+              onNext?.();
             }
           }
         }
-      } catch (e) {
-        // non-JSON postMessage
-      }
+      } catch (_) {}
     };
 
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [isScrubbing, autoPlayOn, onNext]);
+  }, [isScrubbing, duration, isPlaying, onNext, onTimeUpdate]);
 
-  // Save history on unmount or time updates
+  // Save history on initial playback
   useEffect(() => {
-    if (currentTime > 0) {
-      saveWatchPosition(video.id, currentTime, duration || 600);
-      addToHistory(video, Math.floor(currentTime), duration || 600);
+    if (video?.id) {
+      addToHistory(video);
     }
-  }, [currentTime, duration, video, saveWatchPosition, addToHistory]);
+  }, [video, addToHistory]);
 
-  // Play / Pause toggle
+  // Save watch position on unmount
+  useEffect(() => {
+    return () => {
+      if (video?.id && currentTime > 0) {
+        saveWatchPosition(video.id, currentTime);
+      }
+    };
+  }, [video?.id, currentTime, saveWatchPosition]);
+
+  // Play / Pause
   const togglePlay = useCallback(() => {
     if (isPlaying) {
       sendIframeCommand('pauseVideo');
@@ -183,18 +194,18 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
     }
   }, [isPlaying, sendIframeCommand, showToast]);
 
-  // Seek forward/backward
+  // Seek relative
   const seekRelative = useCallback(
-    (offsetSec: number) => {
-      const targetTime = Math.max(0, Math.min(duration || 99999, currentTime + offsetSec));
-      setCurrentTime(targetTime);
-      sendIframeCommand('seekTo', [targetTime, true]);
-      showToast(offsetSec > 0 ? `⏩ +${offsetSec}s` : `⏪ ${offsetSec}s`);
+    (offsetSecs: number) => {
+      const target = Math.max(0, Math.min(duration || Infinity, currentTime + offsetSecs));
+      setCurrentTime(target);
+      sendIframeCommand('seekTo', [target, true]);
+      showToast(offsetSecs > 0 ? `⏩ +${offsetSecs}s` : `⏪ ${offsetSecs}s`);
     },
     [currentTime, duration, sendIframeCommand, showToast]
   );
 
-  // Volume change
+  // Volume
   const handleVolumeChange = useCallback(
     (newVol: number) => {
       setVolume(newVol);
@@ -260,19 +271,12 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
   // Keyboard Shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement | null;
-      const activeTag = (document.activeElement?.tagName || '').toLowerCase();
-      const targetTag = (target?.tagName || '').toLowerCase();
       if (
-        activeTag === 'input' || 
-        activeTag === 'textarea' || 
-        activeTag === 'select' ||
-        targetTag === 'input' ||
-        targetTag === 'textarea' ||
-        targetTag === 'select' ||
-        (document.activeElement as HTMLElement)?.isContentEditable ||
-        target?.isContentEditable
-      ) return;
+        ['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName) ||
+        (e.target as HTMLElement)?.isContentEditable
+      ) {
+        return;
+      }
 
       switch (e.key.toLowerCase()) {
         case ' ':
@@ -281,20 +285,14 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
           togglePlay();
           break;
         case 'j':
+        case 'arrowleft':
           e.preventDefault();
           seekRelative(-10);
           break;
         case 'l':
-          e.preventDefault();
-          seekRelative(10);
-          break;
-        case 'arrowleft':
-          e.preventDefault();
-          seekRelative(-5);
-          break;
         case 'arrowright':
           e.preventDefault();
-          seekRelative(5);
+          seekRelative(10);
           break;
         case 'arrowup':
           e.preventDefault();
@@ -318,7 +316,9 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
           break;
         case 't':
           e.preventDefault();
-          if (onToggleTheaterMode) onToggleTheaterMode();
+          onToggleTheaterMode?.();
+          break;
+        default:
           break;
       }
     };
@@ -336,27 +336,18 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
     onToggleTheaterMode,
   ]);
 
-  // Seamless Handoff to CineMorph Theater
-  const handleHandoffToCineMorph = () => {
-    // Save current exact playback timestamp in Ticket store and navigation state
-    useTicketStore.getState().saveTicketProgress({
-      movieTitle: video.title,
-      sourceUrl: video.id,
-      isLocal: false,
-      timestampSeconds: currentTime,
-      durationSeconds: duration || 600,
-      aspectRatio: '1.90:1',
-      framingRule: 'auto',
-    });
-
-    showToast('🎟 Transferring to CineMorph Virtual Cinema...');
-    navigate(`/theater/${video.id}`, {
-      state: {
-        startTime: currentTime,
-        autoPlay: isPlaying,
-        title: video.title,
+  // OMS Contextual Experience Handoff
+  const handleOMSHandoff = async () => {
+    showToast('✨ Initiating OMS Experience Handoff...');
+    await omsTransitionService.executeUTubeToCineMorphHandoff(
+      {
+        video,
+        currentTime,
+        duration,
+        isPlaying,
       },
-    });
+      navigate
+    );
   };
 
   // Progress Bar Seek Calculation
@@ -393,346 +384,405 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
   const bufferedPercent = Math.min(100, bufferedFraction * 100);
 
+  // ── Render: Theater A (U-Tube Blue Theater Environment) vs Standard Player ────
   return (
     <div
-      ref={containerRef}
-      onMouseMove={resetControlsTimer}
-      onMouseEnter={() => setControlsVisible(true)}
-      onMouseLeave={() => isPlaying && setControlsVisible(false)}
-      className={`relative w-full aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl select-none group font-sans ${className}`}
+      className={
+        theaterMode
+          ? 'relative w-full py-6 sm:py-8 px-2 sm:px-6 bg-gradient-to-b from-[#080d18] via-[#050810] to-[#020408] rounded-3xl border border-sky-950/60 shadow-[0_20px_80px_rgba(2,132,199,0.12)] overflow-hidden transition-all duration-500 my-4'
+          : 'relative w-full'
+      }
     >
-      {/* ── Video Surface (Official YouTube Iframe Embed) ── */}
-      <iframe
-        ref={iframeRef}
-        id="utube-video-iframe"
-        src={`https://www.youtube-nocookie.com/embed/${video.id}?autoplay=1&enablejsapi=1&origin=${encodeURIComponent(
-          typeof window !== 'undefined' ? window.location.origin : ''
-        )}&rel=0&playsinline=1&controls=0&modestbranding=1`}
-        title={video.title}
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        allowFullScreen
-        className="w-full h-full border-0 pointer-events-auto"
-      />
+      {/* ── Theater A: Architectural Blue Side-Wall Strip Lights ── */}
+      {theaterMode && (
+        <>
+          {/* Ambient Blue Radial Backlight */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] h-[80%] bg-sky-600/10 rounded-full blur-[140px] pointer-events-none" />
 
-      {/* ── HUD Toast Feedback ── */}
-      {toastMessage && (
-        <div className="absolute top-6 left-1/2 -translate-x-1/2 z-40 px-4 py-2 rounded-xl bg-black/85 backdrop-blur-md border border-white/20 text-white text-xs font-bold shadow-2xl animate-in fade-in zoom-in-95 duration-150 flex items-center gap-2">
-          <span>{toastMessage}</span>
-        </div>
+          {/* Left Wall Strip Light */}
+          <div className="absolute left-2 sm:left-4 top-12 bottom-20 w-1 sm:w-1.5 bg-gradient-to-b from-transparent via-sky-400 to-transparent rounded-full shadow-[0_0_15px_rgba(56,189,248,0.7)] opacity-70 pointer-events-none" />
+
+          {/* Right Wall Strip Light */}
+          <div className="absolute right-2 sm:right-4 top-12 bottom-20 w-1 sm:w-1.5 bg-gradient-to-b from-transparent via-sky-400 to-transparent rounded-full shadow-[0_0_15px_rgba(56,189,248,0.7)] opacity-70 pointer-events-none" />
+
+          {/* Top Control Bar in U-Tube Theater */}
+          <div className="relative z-30 w-full flex items-center justify-between px-2 sm:px-4 pb-4">
+            <div className="flex items-center gap-2 text-xs text-sky-300 font-bold uppercase tracking-wider font-sans">
+              <span className="w-2 h-2 rounded-full bg-sky-400 animate-pulse shadow-[0_0_8px_rgba(56,189,248,0.9)]" />
+              <span>U-Tube Modern Cinema</span>
+              <span className="text-[10px] font-mono font-medium text-sky-400/60 lowercase hidden sm:inline">
+                (theater layout)
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {/* OMS Contextual Experience Transition Button */}
+              <button
+                onClick={handleOMSHandoff}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-300 text-xs font-bold transition-all shadow-sm cursor-pointer"
+                title="Transition active viewing context to CineMorph Virtual Theater"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                <span>OMS Immersion</span>
+              </button>
+
+              {/* Exit Theater Mode */}
+              <button
+                onClick={onToggleTheaterMode}
+                className="p-1.5 rounded-full bg-sky-950/60 hover:bg-sky-900/60 border border-sky-800/40 text-sky-300 hover:text-white text-xs transition-colors cursor-pointer"
+                title="Exit Theater Mode (t)"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </>
       )}
 
-      {/* ── Interactive Overlay Scrim & Controls ── */}
+      {/* ── Curved Screen Viewport Container ── */}
       <div
-        className={`absolute inset-0 z-30 flex flex-col justify-between p-4 sm:p-5 pointer-events-none transition-opacity duration-300 ${
-          controlsVisible ? 'opacity-100' : 'opacity-0'
+        ref={containerRef}
+        onMouseMove={resetControlsTimer}
+        onMouseEnter={() => setControlsVisible(true)}
+        onMouseLeave={() => isPlaying && setControlsVisible(false)}
+        className={`relative w-full aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl select-none group font-sans ${
+          theaterMode
+            ? 'border border-sky-900/50 shadow-[0_15px_40px_rgba(0,0,0,0.9)] max-w-5xl mx-auto'
+            : className
         }`}
+        style={
+          theaterMode
+            ? {
+                transform: 'perspective(1200px) rotateX(0.6deg)',
+              }
+            : undefined
+        }
       >
-        {/* Top Header Scrim (Title & Seamless Handoff Button) */}
-        <div className="w-full flex items-center justify-between gap-4 pointer-events-auto">
-          <h2 className="text-white text-sm sm:text-base font-semibold drop-shadow-md truncate max-w-xl">
-            {video.title}
-          </h2>
+        {/* ── Video Surface (YouTube Embed) ── */}
+        <iframe
+          ref={iframeRef}
+          id="utube-video-iframe"
+          src={`https://www.youtube-nocookie.com/embed/${video.id}?autoplay=1&enablejsapi=1&origin=${encodeURIComponent(
+            typeof window !== 'undefined' ? window.location.origin : ''
+          )}&rel=0&playsinline=1&controls=0&modestbranding=1`}
+          title={video.title}
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowFullScreen
+          className="w-full h-full border-0 pointer-events-auto"
+        />
 
-          <div className="flex items-center gap-2">
-            {/* Seamless CineMorph Theater Switcher */}
-            <button
-              onClick={handleHandoffToCineMorph}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500 hover:bg-amber-400 text-black text-xs font-black tracking-wide shadow-lg shadow-amber-500/20 hover:scale-105 transition-all cursor-pointer"
-              title="Open video in CineMorph Virtual Cinema Theater"
-            >
-              <Film className="w-3.5 h-3.5" />
-              <span>Cinema Mode</span>
-            </button>
+        {/* ── HUD Toast Feedback ── */}
+        {toastMessage && (
+          <div className="absolute top-6 left-1/2 -translate-x-1/2 z-40 px-4 py-2 rounded-xl bg-black/85 backdrop-blur-md border border-white/20 text-white text-xs font-bold shadow-2xl animate-in fade-in zoom-in-95 duration-150 flex items-center gap-2">
+            <span>{toastMessage}</span>
           </div>
-        </div>
+        )}
 
-        {/* Center Play/Pause Click Surface */}
+        {/* ── Master Interactive Controls Scrim ── */}
         <div
-          onClick={togglePlay}
-          className="flex-1 w-full flex items-center justify-center cursor-pointer pointer-events-auto"
+          className={`absolute inset-0 z-30 flex flex-col justify-between p-3 sm:p-5 transition-opacity duration-300 pointer-events-none ${
+            controlsVisible || !isPlaying ? 'opacity-100' : 'opacity-0'
+          }`}
         >
-          {!isPlaying && (
-            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-red-600/90 text-white flex items-center justify-center shadow-2xl hover:scale-110 transition-transform">
-              <Play className="w-8 h-8 sm:w-10 sm:h-10 fill-white translate-x-0.5" />
-            </div>
-          )}
-        </div>
+          {/* Top Header Scrim */}
+          <div className="w-full flex items-center justify-between gap-4 pointer-events-auto">
+            <h2 className="text-white text-sm sm:text-base font-semibold drop-shadow-md truncate max-w-xl">
+              {video.title}
+            </h2>
 
-        {/* Bottom Controls Deck */}
-        <div className="w-full space-y-2 pointer-events-auto bg-gradient-to-t from-black/90 via-black/50 to-transparent p-2 sm:p-3 rounded-2xl">
-          {/* ── YouTube-Style Interactive Red Progress Bar ── */}
-          <div
-            ref={progressTrackRef}
-            onClick={handleProgressBarClick}
-            onMouseMove={handleProgressBarMouseMove}
-            onMouseLeave={() => setHoverTime(null)}
-            className="relative w-full h-1.5 hover:h-2.5 bg-white/25 rounded-full cursor-pointer transition-all flex items-center group/track"
-          >
-            {/* Buffered Progress */}
-            <div
-              className="absolute left-0 top-0 bottom-0 bg-white/40 rounded-full transition-all duration-200"
-              style={{ width: `${bufferedPercent}%` }}
-            />
-
-            {/* Current Played Progress (YouTube Red) */}
-            <div
-              className="absolute left-0 top-0 bottom-0 bg-red-600 rounded-full"
-              style={{ width: `${Math.min(100, Math.max(0, progressPercent))}%` }}
-            />
-
-            {/* Red Scrubber Handle */}
-            <div
-              className="absolute top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-red-600 shadow-md group-hover/track:scale-125 transition-transform"
-              style={{ left: `calc(${Math.min(100, Math.max(0, progressPercent))}% - 6px)` }}
-            />
-
-            {/* Hover Timestamp Preview Tooltip */}
-            {hoverTime !== null && (
-              <div
-                className="absolute -top-8 -translate-x-1/2 px-2 py-1 rounded bg-black/90 text-white text-[10px] font-mono font-bold shadow-md pointer-events-none"
-                style={{ left: `${hoverPositionX}px` }}
+            <div className="flex items-center gap-2">
+              {/* OMS Contextual Handoff Trigger */}
+              <button
+                onClick={handleOMSHandoff}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black text-xs font-black tracking-wide shadow-lg shadow-amber-500/20 hover:scale-105 transition-all cursor-pointer font-cinematic"
+                title="Transition active viewing context to CineMorph Virtual Theater"
               >
-                {formatTime(hoverTime)}
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>OMS Handoff</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Center Play/Pause Surface */}
+          <div
+            onClick={togglePlay}
+            className="flex-1 w-full flex items-center justify-center cursor-pointer pointer-events-auto"
+          >
+            {!isPlaying && (
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-red-600/90 text-white flex items-center justify-center shadow-2xl hover:scale-110 transition-transform">
+                <Play className="w-8 h-8 sm:w-10 sm:h-10 fill-white translate-x-0.5" />
               </div>
             )}
           </div>
 
-          {/* ── Controls Row (Left: Playback & Volume, Right: Settings & Modes) ── */}
-          <div className="flex items-center justify-between text-white text-xs pt-1">
-            {/* Left Controls */}
-            <div className="flex items-center gap-2 sm:gap-3">
-              {/* Play / Pause */}
-              <button
-                onClick={togglePlay}
-                className="p-1.5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
-                title={isPlaying ? 'Pause (k / space)' : 'Play (k / space)'}
-              >
-                {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 fill-white" />}
-              </button>
+          {/* Bottom Controls Deck */}
+          <div className="w-full space-y-2 pointer-events-auto bg-gradient-to-t from-black/90 via-black/50 to-transparent p-2 sm:p-3 rounded-2xl">
+            {/* Progress Track */}
+            <div
+              ref={progressTrackRef}
+              onClick={handleProgressBarClick}
+              onMouseMove={handleProgressBarMouseMove}
+              onMouseLeave={() => setHoverTime(null)}
+              className="relative w-full h-1.5 hover:h-2.5 bg-white/25 rounded-full cursor-pointer transition-all flex items-center group/track"
+            >
+              {/* Buffered Progress */}
+              <div
+                className="absolute left-0 top-0 bottom-0 bg-white/40 rounded-full transition-all duration-200"
+                style={{ width: `${bufferedPercent}%` }}
+              />
 
-              {/* Rewind 10s */}
-              <button
-                onClick={() => seekRelative(-10)}
-                className="p-1.5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
-                title="Rewind 10 seconds (j)"
-              >
-                <RotateCcw className="w-4 h-4" />
-              </button>
+              {/* Current Played Progress */}
+              <div
+                className="absolute left-0 top-0 bottom-0 bg-red-600 rounded-full"
+                style={{ width: `${Math.min(100, Math.max(0, progressPercent))}%` }}
+              />
 
-              {/* Forward 10s */}
-              <button
-                onClick={() => seekRelative(10)}
-                className="p-1.5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
-                title="Forward 10 seconds (l)"
-              >
-                <RotateCw className="w-4 h-4" />
-              </button>
+              {/* Scrubber Handle */}
+              <div
+                className="absolute top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-red-600 shadow-md group-hover/track:scale-125 transition-transform"
+                style={{ left: `calc(${Math.min(100, Math.max(0, progressPercent))}% - 6px)` }}
+              />
 
-              {/* Volume & Expanding Slider */}
-              <div className="flex items-center gap-1.5 group/vol">
-                <button
-                  onClick={toggleMute}
-                  className="p-1.5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
-                  title={isMuted ? 'Unmute (m)' : 'Mute (m)'}
+              {/* Hover Preview Tooltip */}
+              {hoverTime !== null && (
+                <div
+                  className="absolute -top-8 -translate-x-1/2 px-2 py-1 rounded bg-black/90 text-white text-[10px] font-mono font-bold shadow-md pointer-events-none"
+                  style={{ left: `${hoverPositionX}px` }}
                 >
-                  {isMuted || volume === 0 ? (
-                    <VolumeX className="w-5 h-5 text-red-400" />
-                  ) : volume < 0.5 ? (
-                    <Volume1 className="w-5 h-5" />
-                  ) : (
-                    <Volume2 className="w-5 h-5" />
-                  )}
-                </button>
-
-                <input
-                  type="range"
-                  min={0}
-                  max={1}
-                  step={0.01}
-                  value={isMuted ? 0 : volume}
-                  onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
-                  className="w-0 group-hover/vol:w-16 sm:group-hover/vol:w-20 transition-all duration-200 h-1 appearance-none bg-white/40 rounded-full cursor-pointer accent-red-600"
-                  aria-label="Volume Slider"
-                />
-              </div>
-
-              {/* Time Display */}
-              <div className="text-[11px] font-mono text-gray-300 ml-1">
-                <span>{formatTime(currentTime)}</span>
-                <span className="mx-1 text-gray-500">/</span>
-                <span>{formatTime(duration)}</span>
-              </div>
+                  {formatTime(hoverTime)}
+                </div>
+              )}
             </div>
 
-            {/* Right Controls */}
-            <div className="flex items-center gap-1.5 sm:gap-2 relative">
-              {/* Autoplay Switch */}
-              <button
-                onClick={() => {
-                  const next = !autoPlayOn;
-                  setAutoPlayOn(next);
-                  showToast(next ? '▶ Autoplay: On' : '⏸ Autoplay: Off');
-                }}
-                className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-                  autoPlayOn ? 'text-red-400' : 'text-gray-400 hover:text-white'
-                }`}
-                title="Autoplay next video"
-              >
-                <div
-                  className={`w-7 h-4 rounded-full p-0.5 transition-colors ${
-                    autoPlayOn ? 'bg-red-600' : 'bg-white/30'
-                  }`}
+            {/* Controls Row */}
+            <div className="flex items-center justify-between text-white text-xs pt-1">
+              {/* Left: Playback & Volume */}
+              <div className="flex items-center gap-2 sm:gap-3">
+                <button
+                  onClick={togglePlay}
+                  className="p-1.5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
+                  title={isPlaying ? 'Pause (k / space)' : 'Play (k / space)'}
                 >
-                  <div
-                    className={`w-3 h-3 rounded-full bg-white transition-transform ${
-                      autoPlayOn ? 'translate-x-3' : 'translate-x-0'
-                    }`}
+                  {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 fill-white" />}
+                </button>
+
+                <button
+                  onClick={() => seekRelative(-10)}
+                  className="p-1.5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
+                  title="Rewind 10 seconds (j)"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                </button>
+
+                <button
+                  onClick={() => seekRelative(10)}
+                  className="p-1.5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
+                  title="Fast forward 10 seconds (l)"
+                >
+                  <RotateCw className="w-4 h-4" />
+                </button>
+
+                {/* Volume Slider */}
+                <div className="flex items-center gap-1.5 group/vol">
+                  <button
+                    onClick={toggleMute}
+                    className="p-1.5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
+                    title={isMuted ? 'Unmute (m)' : 'Mute (m)'}
+                  >
+                    {isMuted || volume === 0 ? (
+                      <VolumeX className="w-4 h-4 text-red-400" />
+                    ) : volume < 0.5 ? (
+                      <Volume1 className="w-4 h-4" />
+                    ) : (
+                      <Volume2 className="w-4 h-4" />
+                    )}
+                  </button>
+
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.05"
+                    value={isMuted ? 0 : volume}
+                    onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
+                    className="w-14 sm:w-20 h-1 bg-white/30 accent-red-600 rounded-lg cursor-pointer transition-all"
                   />
                 </div>
-              </button>
 
-              {/* Subtitles / CC Toggle */}
-              <button
-                onClick={toggleSubtitles}
-                className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-                  subtitlesOn ? 'text-red-400 bg-white/10' : 'text-gray-300 hover:text-white'
-                }`}
-                title="Subtitles / Closed Captions (c)"
-              >
-                <Captions className="w-4 h-4" />
-              </button>
-
-              {/* Settings Menu Trigger */}
-              <div className="relative">
-                <button
-                  onClick={() => {
-                    setShowSettingsMenu((s) => !s);
-                    setSettingsSubmenu('main');
-                  }}
-                  className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-                    showSettingsMenu ? 'text-red-400 bg-white/10' : 'text-gray-300 hover:text-white'
-                  }`}
-                  title="Playback Settings"
-                >
-                  <Settings className="w-4 h-4" />
-                </button>
-
-                {/* Settings Popover Menu */}
-                {showSettingsMenu && (
-                  <div
-                    className="absolute right-0 bottom-8 w-56 bg-[#181818]/95 backdrop-blur-xl border border-white/10 rounded-xl p-2 shadow-2xl text-xs space-y-1 z-50 text-gray-200 animate-in fade-in zoom-in-95 duration-150"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    {settingsSubmenu === 'main' ? (
-                      <>
-                        <button
-                          onClick={() => setSettingsSubmenu('speed')}
-                          className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-white/10 text-left transition-colors cursor-pointer"
-                        >
-                          <span className="flex items-center gap-2">
-                            <Sliders className="w-3.5 h-3.5 text-gray-400" />
-                            <span>Playback Speed</span>
-                          </span>
-                          <span className="text-gray-400 flex items-center gap-1 font-mono">
-                            {playbackSpeed}x <ChevronRight className="w-3 h-3" />
-                          </span>
-                        </button>
-
-                        <button
-                          onClick={() => setSettingsSubmenu('quality')}
-                          className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-white/10 text-left transition-colors cursor-pointer"
-                        >
-                          <span className="flex items-center gap-2">
-                            <Tv className="w-3.5 h-3.5 text-gray-400" />
-                            <span>Quality</span>
-                          </span>
-                          <span className="text-gray-400 flex items-center gap-1 font-mono">
-                            {selectedQuality} <ChevronRight className="w-3 h-3" />
-                          </span>
-                        </button>
-                      </>
-                    ) : settingsSubmenu === 'speed' ? (
-                      <div className="space-y-1">
-                        <div className="text-[10px] font-bold text-gray-400 uppercase px-2 py-1 border-b border-white/10 flex items-center justify-between">
-                          <span>Playback Speed</span>
-                          <button
-                            onClick={() => setSettingsSubmenu('main')}
-                            className="text-red-400 hover:underline"
-                          >
-                            Back
-                          </button>
-                        </div>
-                        {[0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0].map((s) => (
-                          <button
-                            key={s}
-                            onClick={() => handleSetSpeed(s)}
-                            className={`w-full flex items-center justify-between p-1.5 rounded-lg text-left transition-colors cursor-pointer ${
-                              playbackSpeed === s ? 'bg-red-600/20 text-red-400 font-bold' : 'hover:bg-white/10'
-                            }`}
-                          >
-                            <span>{s === 1.0 ? 'Normal (1.0x)' : `${s}x`}</span>
-                            {playbackSpeed === s && <Check className="w-3.5 h-3.5 text-red-400" />}
-                          </button>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="space-y-1">
-                        <div className="text-[10px] font-bold text-gray-400 uppercase px-2 py-1 border-b border-white/10 flex items-center justify-between">
-                          <span>Stream Quality</span>
-                          <button
-                            onClick={() => setSettingsSubmenu('main')}
-                            className="text-red-400 hover:underline"
-                          >
-                            Back
-                          </button>
-                        </div>
-                        {['Auto (1080p)', '1080p HD', '720p HD', '480p', '360p'].map((q) => (
-                          <button
-                            key={q}
-                            onClick={() => {
-                              setSelectedQuality(q);
-                              setShowSettingsMenu(false);
-                              showToast(`📺 Quality: ${q}`);
-                            }}
-                            className={`w-full flex items-center justify-between p-1.5 rounded-lg text-left transition-colors cursor-pointer ${
-                              selectedQuality === q ? 'bg-red-600/20 text-red-400 font-bold' : 'hover:bg-white/10'
-                            }`}
-                          >
-                            <span>{q}</span>
-                            {selectedQuality === q && <Check className="w-3.5 h-3.5 text-red-400" />}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
+                {/* Timestamp */}
+                <div className="text-[11px] text-gray-300 font-mono tracking-tight ml-1">
+                  <span>{formatTime(currentTime)}</span>
+                  <span className="text-gray-500 mx-1">/</span>
+                  <span>{formatTime(duration)}</span>
+                </div>
               </div>
 
-              {/* Theater Mode Layout Toggle */}
-              {onToggleTheaterMode && (
+              {/* Right: Settings, Theater Toggle, Fullscreen */}
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                {/* Subtitles */}
                 <button
-                  onClick={onToggleTheaterMode}
+                  onClick={toggleSubtitles}
                   className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-                    theaterMode ? 'text-red-400 bg-white/10' : 'text-gray-300 hover:text-white'
+                    subtitlesOn ? 'text-red-400 bg-white/10 font-bold' : 'text-gray-300 hover:text-white'
                   }`}
-                  title="Theater layout mode (t)"
+                  title="Subtitles / Closed Captions (c)"
                 >
-                  <Tv className="w-4 h-4" />
+                  <Captions className="w-4 h-4" />
                 </button>
-              )}
 
-              {/* Fullscreen Toggle */}
-              <button
-                onClick={toggleFullscreen}
-                className="p-1.5 rounded-lg text-gray-300 hover:text-white transition-colors cursor-pointer"
-                title="Fullscreen (f)"
-              >
-                {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
-              </button>
+                {/* Settings Menu */}
+                <div className="relative">
+                  <button
+                    onClick={() => {
+                      setShowSettingsMenu((s) => !s);
+                      setSettingsSubmenu('main');
+                    }}
+                    className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                      showSettingsMenu ? 'text-red-400 bg-white/10' : 'text-gray-300 hover:text-white'
+                    }`}
+                    title="Playback Settings"
+                  >
+                    <Settings className="w-4 h-4" />
+                  </button>
+
+                  {showSettingsMenu && (
+                    <div
+                      className="absolute right-0 bottom-8 w-56 bg-[#181818]/95 backdrop-blur-xl border border-white/10 rounded-xl p-2 shadow-2xl text-xs space-y-1 z-50 text-gray-200 animate-in fade-in zoom-in-95 duration-150"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {settingsSubmenu === 'main' ? (
+                        <>
+                          <button
+                            onClick={() => setSettingsSubmenu('speed')}
+                            className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-white/10 text-left transition-colors cursor-pointer"
+                          >
+                            <span className="flex items-center gap-2">
+                              <Sliders className="w-3.5 h-3.5 text-gray-400" />
+                              <span>Playback Speed</span>
+                            </span>
+                            <span className="text-gray-400 flex items-center gap-1 font-mono">
+                              {playbackSpeed}x <ChevronRight className="w-3 h-3" />
+                            </span>
+                          </button>
+
+                          <button
+                            onClick={() => setSettingsSubmenu('quality')}
+                            className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-white/10 text-left transition-colors cursor-pointer"
+                          >
+                            <span className="flex items-center gap-2">
+                              <Tv className="w-3.5 h-3.5 text-gray-400" />
+                              <span>Quality</span>
+                            </span>
+                            <span className="text-gray-400 flex items-center gap-1 font-mono">
+                              {selectedQuality} <ChevronRight className="w-3 h-3" />
+                            </span>
+                          </button>
+                        </>
+                      ) : settingsSubmenu === 'speed' ? (
+                        <div className="space-y-1">
+                          <div className="text-[10px] font-bold text-gray-400 uppercase px-2 py-1 border-b border-white/10 flex items-center justify-between">
+                            <span>Playback Speed</span>
+                            <button
+                              onClick={() => setSettingsSubmenu('main')}
+                              className="text-red-400 hover:underline"
+                            >
+                              Back
+                            </button>
+                          </div>
+                          {[0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0].map((s) => (
+                            <button
+                              key={s}
+                              onClick={() => handleSetSpeed(s)}
+                              className={`w-full flex items-center justify-between p-1.5 rounded-lg text-left transition-colors cursor-pointer ${
+                                playbackSpeed === s ? 'bg-red-600/20 text-red-400 font-bold' : 'hover:bg-white/10'
+                              }`}
+                            >
+                              <span>{s === 1.0 ? 'Normal (1.0x)' : `${s}x`}</span>
+                              {playbackSpeed === s && <Check className="w-3.5 h-3.5 text-red-400" />}
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="space-y-1">
+                          <div className="text-[10px] font-bold text-gray-400 uppercase px-2 py-1 border-b border-white/10 flex items-center justify-between">
+                            <span>Stream Quality</span>
+                            <button
+                              onClick={() => setSettingsSubmenu('main')}
+                              className="text-red-400 hover:underline"
+                            >
+                              Back
+                            </button>
+                          </div>
+                          {['Auto (1080p)', '1080p HD', '720p HD', '480p', '360p'].map((q) => (
+                            <button
+                              key={q}
+                              onClick={() => {
+                                setSelectedQuality(q);
+                                setShowSettingsMenu(false);
+                                showToast(`📺 Quality: ${q}`);
+                              }}
+                              className={`w-full flex items-center justify-between p-1.5 rounded-lg text-left transition-colors cursor-pointer ${
+                                selectedQuality === q ? 'bg-red-600/20 text-red-400 font-bold' : 'hover:bg-white/10'
+                              }`}
+                            >
+                              <span>{q}</span>
+                              {selectedQuality === q && <Check className="w-3.5 h-3.5 text-red-400" />}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Theater Mode Toggle */}
+                {onToggleTheaterMode && (
+                  <button
+                    onClick={onToggleTheaterMode}
+                    className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                      theaterMode ? 'text-sky-400 bg-sky-500/20' : 'text-gray-300 hover:text-white'
+                    }`}
+                    title="U-Tube Theater layout mode (t)"
+                  >
+                    <Tv className="w-4 h-4" />
+                  </button>
+                )}
+
+                {/* Fullscreen Toggle */}
+                <button
+                  onClick={toggleFullscreen}
+                  className="p-1.5 rounded-lg text-gray-300 hover:text-white transition-colors cursor-pointer"
+                  title="Fullscreen (f)"
+                >
+                  {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* ── Theater A: Modern Blue Seating Rows (Lightweight Scalable SVG) ── */}
+      {theaterMode && (
+        <div className="relative w-full max-w-4xl mx-auto pt-6 pb-2 pointer-events-none select-none">
+          {/* Back Row (Smaller, deeper blue) */}
+          <div className="flex justify-center gap-2 sm:gap-3 opacity-40 mb-1.5">
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((s) => (
+              <div key={s} className="w-7 sm:w-10 h-4 sm:h-5 rounded-t-md bg-gradient-to-b from-[#1e3a8a] to-[#0f172a] border-t border-sky-400/30 shadow-sm" />
+            ))}
+          </div>
+
+          {/* Front Row (Larger, prominent blue identity) */}
+          <div className="flex justify-center gap-2.5 sm:gap-4 opacity-75">
+            {[1, 2, 3, 4, 5, 6, 7, 8].map((s) => (
+              <div
+                key={s}
+                className="w-9 sm:w-12 h-6 sm:h-8 rounded-t-lg bg-gradient-to-b from-[#2563eb] via-[#1d4ed8] to-[#0f172a] border-t-2 border-sky-300/50 shadow-[0_4px_12px_rgba(2,132,199,0.3)]"
+              />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

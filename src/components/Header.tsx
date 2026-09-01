@@ -1,4 +1,4 @@
-import { Search, Menu, Clock, X, Mic, Layers, Settings2, Film } from 'lucide-react';
+import { Search, Menu, Clock, X, Mic, Layers, Settings2 } from 'lucide-react';
 import { useState, useEffect, type FormEvent } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { fetchSearchSuggestions } from '../lib/youtube';
@@ -280,24 +280,14 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
 
       {/* Right: Cross-engine navigation + profile */}
       <div className="flex items-center gap-2">
-        {/* OmniStream home — permitted cross-product escape #1 */}
+        {/* OmniStream gateway escape */}
         <Link
           to="/"
-          title="Return to OmniStream gateway"
-          className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-utube-surface hover:bg-utube-border/50 text-utube-text-secondary hover:text-utube-text border border-utube-border text-xs font-semibold transition-all"
+          title="Return to OmniStream spatial gateway"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-utube-surface hover:bg-utube-border/50 text-utube-text-secondary hover:text-utube-text border border-utube-border text-xs font-semibold transition-all"
         >
           <Layers className="w-3.5 h-3.5 text-utube-text-muted" />
           <span>OmniStream</span>
-        </Link>
-
-        {/* CineMorph — permitted cross-product escape #2 */}
-        <Link
-          to="/cinemorph"
-          title="Launch CineMorph Virtual Theater"
-          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/30 text-xs font-bold transition-all shadow-sm group"
-        >
-          <Film className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400 group-hover:scale-110 transition-transform" />
-          <span className="font-cinematic">CineMorph</span>
         </Link>
 
         {/* User/settings avatar */}

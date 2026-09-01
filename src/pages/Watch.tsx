@@ -11,13 +11,14 @@ import {
   Bookmark,
   Bell,
   BellOff,
+  Sparkles,
 } from 'lucide-react';
 import { getVideosByIds, getChannelDetails, getRelatedVideos } from '../lib/youtube';
 import { Video, Channel } from '../types';
 import { useAppStore } from '../store';
-import { useTicketStore } from '../state/useTicketStore';
 import { formatViews, formatTimeAgo } from '../lib/utils';
 import { UTubePlayer } from '../components/player/UTubePlayer';
+import { omsTransitionService } from '../services/omsTransitionService';
 
 export function Watch() {
   const { id } = useParams<{ id: string }>();
@@ -48,6 +49,8 @@ export function Watch() {
   const [descExpanded, setDescExpanded] = useState(false);
   const [copied, setCopied] = useState(false);
   const [theaterLayout, setTheaterLayout] = useState(false);
+  const [livePlayerTime, setLivePlayerTime] = useState<number>(0);
+  const [liveDuration, setLiveDuration] = useState<number>(0);
 
   // Initial playback time transferred from CineMorph or history
   const initialStartTime = (location.state as any)?.startTime || 0;
@@ -135,18 +138,16 @@ export function Watch() {
     }
   };
 
-  const handleOpenInCineMorph = () => {
+  const handleOMSTransition = async () => {
     if (!video) return;
-    useTicketStore.getState().saveTicketProgress({
-      movieTitle: video.title,
-      sourceUrl: video.id,
-      isLocal: false,
-      timestampSeconds: 0,
-      durationSeconds: 600,
-      aspectRatio: '1.90:1',
-      framingRule: 'auto',
-    });
-    navigate(`/theater/${video.id}`);
+    await omsTransitionService.executeUTubeToCineMorphHandoff(
+      {
+        video,
+        currentTime: livePlayerTime,
+        duration: liveDuration,
+      },
+      navigate
+    );
   };
 
   if (!video) {
@@ -164,12 +165,16 @@ export function Watch() {
         {/* ── Main: Player + Metadata ── */}
         <div className={`${theaterLayout ? 'w-full max-w-6xl mx-auto' : 'lg:col-span-2'} space-y-4`}>
 
-          {/* U-Tube Dedicated Player */}
+          {/* U-Tube Dedicated Player (with Theater A & OMS Handoff) */}
           <UTubePlayer
             video={video}
             initialTime={initialStartTime}
             theaterMode={theaterLayout}
-            onToggleTheaterMode={() => setTheaterLayout(t => !t)}
+            onToggleTheaterMode={() => setTheaterLayout((t) => !t)}
+            onTimeUpdate={(t, d) => {
+              setLivePlayerTime(t);
+              if (d > 0) setLiveDuration(d);
+            }}
             onNext={() => related.length > 0 && navigate(`/watch/${related[0].id}`)}
           />
 
@@ -317,13 +322,14 @@ export function Watch() {
                 )}
               </div>
 
-              {/* Open in CineMorph */}
+              {/* OMS Experience Handoff */}
               <button
-                onClick={handleOpenInCineMorph}
+                onClick={handleOMSTransition}
                 className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black text-xs font-black tracking-wide shadow-sm transition-all hover:scale-105 cursor-pointer font-cinematic"
+                title="Transition active viewing context into CineMorph Virtual Theater"
               >
-                <Film className="w-3.5 h-3.5" />
-                <span>Open in CineMorph</span>
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>OMS Handoff</span>
               </button>
             </div>
           </div>

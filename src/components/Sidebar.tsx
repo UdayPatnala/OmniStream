@@ -8,18 +8,14 @@ import { useAppStore } from '../store';
 
 // ── Navigation taxonomy ────────────────────────────────────────────────────────
 //
-// CROSS-PRODUCT (only 2 allowed inside U-Tube):
-//   1. OmniStream → back to the gateway landing page (/)
-//   2. CineMorph  → cross-engine transition to CineMorph engine (/cinemorph)
+// CROSS-PRODUCT ESCAPE:
+//   OmniStream → back to the main spatial threshold gateway (/)
 //
 // U-TUBE-ONLY (everything else):
 //   Feed, Subscriptions, History, Collections, Explore categories, U-Tube preferences
 
-// The two permitted cross-engine escapes
-const crossEngineItems = [
-  { to: '/',          icon: Layers,     label: 'OmniStream', title: 'Return to OmniStream gateway' },
-  { to: '/cinemorph', icon: Film,       label: 'CineMorph',  title: 'Open CineMorph Theater Engine' },
-];
+// The single permitted cross-product escape from U-Tube
+const gatewayEscape = { to: '/', icon: Layers, label: 'OmniStream', title: 'Return to OmniStream Gateway' };
 
 // U-Tube primary navigation
 const mainNavItems = [
@@ -48,24 +44,21 @@ export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
   if (collapsed) {
     return (
       <aside className="w-18 h-full bg-utube-card hidden md:flex flex-col items-center py-3 gap-4 border-r border-utube-border select-none">
-        {/* Cross-engine escapes — top of rail, visually separated */}
-        {crossEngineItems.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            end={item.to === '/'}
-            title={item.title}
-            className={({ isActive }) => cn(
-              "flex flex-col items-center gap-1 p-2 rounded-xl text-[10px] w-16 transition-colors",
-              isActive
-                ? "bg-utube-surface text-utube-primary font-bold"
-                : "text-utube-text-secondary hover:bg-utube-surface hover:text-utube-text"
-            )}
-          >
-            <item.icon className="w-5 h-5" />
-            <span className="truncate max-w-full font-medium">{item.label}</span>
-          </NavLink>
-        ))}
+        {/* Cross-engine escape — OmniStream spatial gateway */}
+        <NavLink
+          to={gatewayEscape.to}
+          end
+          title={gatewayEscape.title}
+          className={({ isActive }) => cn(
+            "flex flex-col items-center gap-1 p-2 rounded-xl text-[10px] w-16 transition-colors",
+            isActive
+              ? "bg-utube-surface text-utube-primary font-bold"
+              : "text-utube-text-secondary hover:bg-utube-surface hover:text-utube-text"
+          )}
+        >
+          <gatewayEscape.icon className="w-5 h-5" />
+          <span className="truncate max-w-full font-medium">{gatewayEscape.label}</span>
+        </NavLink>
 
         <div className="w-8 border-t border-utube-border my-1" />
 
@@ -110,37 +103,29 @@ export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
   return (
     <aside className="w-60 h-full bg-utube-card border-r border-utube-border hidden md:flex flex-col p-3 overflow-y-auto select-none">
 
-      {/* ── Cross-engine section: OmniStream + CineMorph ── */}
+      {/* ── Cross-engine gateway escape ── */}
       <div className="space-y-0.5 mb-1">
         <h4 className="px-3 text-[10px] font-bold text-utube-text-muted uppercase tracking-wider mb-1.5">
-          Navigate
+          Ecosystem
         </h4>
-        {crossEngineItems.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            end={item.to === '/'}
-            title={item.title}
-            className={({ isActive }) => cn(
-              "flex items-center gap-5 px-3 py-2.5 rounded-xl text-sm transition-colors",
-              isActive
-                ? "bg-utube-surface text-utube-primary font-bold"
-                : item.label === 'CineMorph'
-                ? "text-utube-text-secondary hover:bg-amber-500/10 hover:text-amber-700"
-                : "text-utube-text-secondary hover:bg-utube-surface hover:text-utube-text"
-            )}
-          >
-            {({ isActive }) => (
-              <>
-                <item.icon className={cn("w-5 h-5 shrink-0 transition-colors",
-                  isActive ? 'text-utube-primary' :
-                  item.label === 'CineMorph' ? 'text-amber-600' : 'text-utube-text-secondary'
-                )} />
-                <span className="truncate">{item.label}</span>
-              </>
-            )}
-          </NavLink>
-        ))}
+        <NavLink
+          to={gatewayEscape.to}
+          end
+          title={gatewayEscape.title}
+          className={({ isActive }) => cn(
+            "flex items-center gap-5 px-3 py-2.5 rounded-xl text-sm transition-colors",
+            isActive
+              ? "bg-utube-surface text-utube-primary font-bold"
+              : "text-utube-text-secondary hover:bg-utube-surface hover:text-utube-text"
+          )}
+        >
+          {({ isActive }) => (
+            <>
+              <gatewayEscape.icon className={cn("w-5 h-5 shrink-0 transition-colors", isActive ? 'text-utube-primary' : 'text-utube-text-secondary')} />
+              <span className="truncate">{gatewayEscape.label}</span>
+            </>
+          )}
+        </NavLink>
       </div>
 
       <div className="my-3 border-t border-utube-border" />

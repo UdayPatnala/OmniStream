@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
-import { ChevronRight, Film, Sparkles, Check, Clapperboard } from 'lucide-react';
+import { ChevronRight, Film, Sparkles, Check, Clapperboard, Layers } from 'lucide-react';
 import { useTicketStore } from '../../state/useTicketStore';
 import { useCineMorphStore, AspectRatioMode } from '../../state/useCineMorphStore';
 
@@ -12,11 +12,11 @@ interface TicketPrinterAnimationProps {
 type PrintStage = 
   | 'idle'           // Stage 1: Printer idle, slot closed, light dim
   | 'starting'       // Stage 2: LED turns green, paper starts feeding
-  | 'printing'       // Stage 3: Ticket comes out, title & runtime appear
-  | 'almost_done'    // Stage 4: Seat number & details appear
-  | 'ticket_out'     // Stage 5: Full ticket printed, pause
+  | 'printing'       // Stage 3: Ticket comes out, title & poster preview emerge
+  | 'almost_done'    // Stage 4: Seat assignment & aperture details appear
+  | 'ticket_out'     // Stage 5: Micro brand marks & barcode complete
   | 'bounce_settle'  // Stage 6: Small physical bounce overshoot
-  | 'ready';         // Stage 7: Ready to take ticket
+  | 'ready';         // Stage 7: Ready to take ticket and enter
 
 export const TicketPrinterAnimation: React.FC<TicketPrinterAnimationProps> = ({
   onComplete,
@@ -25,17 +25,17 @@ export const TicketPrinterAnimation: React.FC<TicketPrinterAnimationProps> = ({
 }) => {
   const {
     isPrintingAnimationActive,
-    animationCountdownSeconds,
     activeTicket,
     cancelPrintAnimation,
   } = useTicketStore();
 
-  const { aspectRatio, isOffline } = useCineMorphStore();
+  const { aspectRatio } = useCineMorphStore();
 
   // Animation Stage State (1 to 7)
   const [stage, setStage] = useState<PrintStage>('idle');
   const [printProgress, setPrintProgress] = useState<number>(0); // 0% to 100%
   const [isVibrating, setIsVibrating] = useState<boolean>(false);
+  const [imageLoaded, setImageLoaded] = useState<boolean>(false);
   const audioCtxRef = useRef<AudioContext | null>(null);
 
   // Generate randomized seat assignment beforehand so it stays consistent
@@ -85,6 +85,27 @@ export const TicketPrinterAnimation: React.FC<TicketPrinterAnimationProps> = ({
     return '2h 49m';
   }, [activeTicket?.durationSeconds]);
 
+  // Thumbnail / Poster Preview Source
+  const posterSource = useMemo(() => {
+    if (activeTicket?.thumbnailDataUrl) return activeTicket.thumbnailDataUrl;
+    if (activeTicket?.sourceUrl && !activeTicket.isLocal) {
+      return `https://i.ytimg.com/vi/${activeTicket.sourceUrl}/hqdefault.jpg`;
+    }
+    return null;
+  }, [activeTicket?.thumbnailDataUrl, activeTicket?.sourceUrl, activeTicket?.isLocal]);
+
+  // Pre-load poster image to prevent pop-in during printing
+  useEffect(() => {
+    if (posterSource) {
+      const img = new Image();
+      img.src = posterSource;
+      img.onload = () => setImageLoaded(true);
+      img.onerror = () => setImageLoaded(false);
+    } else {
+      setImageLoaded(false);
+    }
+  }, [posterSource]);
+
   // Aperture Label
   const getApertureLabel = (ratio: AspectRatioMode) => {
     switch (ratio) {
@@ -110,7 +131,6 @@ export const TicketPrinterAnimation: React.FC<TicketPrinterAnimationProps> = ({
         ctx.resume().catch(() => {});
       }
 
-      // Fast stepper motor burst click
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = 'sawtooth';
@@ -127,7 +147,7 @@ export const TicketPrinterAnimation: React.FC<TicketPrinterAnimationProps> = ({
     } catch (e) {}
   };
 
-  // Main 7-Stage Animation Controller
+  // Main 7-Stage Progressive Animation Sequence (~3.4s total)
   useEffect(() => {
     if (!isPrintingAnimationActive) {
       setStage('idle');
@@ -152,49 +172,58 @@ export const TicketPrinterAnimation: React.FC<TicketPrinterAnimationProps> = ({
 
     const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-    // Tactile 5-Stage Physical Thermal Printing Timeline (~2.8s total)
     const runAnimationSequence = async () => {
-      // Stage 1: Thermal Head Calibration & Stepper Warmup (350ms)
+      // Stage 1: Stepper Calibration & Heatup (400ms)
       setStage('starting');
-      setPrintProgress(10);
+      setPrintProgress(12);
       setIsVibrating(true);
       playPrinterClick(680);
-      await wait(350);
+      await wait(400);
       if (isCancelled) return;
 
-      // Stage 2: Top Header & Movie Title Inking (650ms)
+      // Stage 2: Top Header & Movie Title Emergence (600ms)
       setStage('printing');
-      setPrintProgress(35);
+      setPrintProgress(32);
       playPrinterClick(820);
       await wait(300);
       if (isCancelled) return;
-      playPrinterClick(860);
-      setPrintProgress(60);
-      await wait(350);
-      if (isCancelled) return;
-
-      // Stage 3: Seat Assignment & Timecode Stamp (650ms)
-      setStage('almost_done');
-      setPrintProgress(82);
-      playPrinterClick(920);
+      playPrinterClick(850);
+      setPrintProgress(52);
       await wait(300);
       if (isCancelled) return;
-      playPrinterClick(980);
-      setPrintProgress(95);
+
+      // Stage 3: Poster Thumbnail Artwork Reveal (650ms)
+      playPrinterClick(880);
+      setPrintProgress(70);
       await wait(350);
       if (isCancelled) return;
+      playPrinterClick(920);
+      setPrintProgress(82);
+      await wait(300);
+      if (isCancelled) return;
 
-      // Stage 4: Barcode & Perforation Cut (450ms)
+      // Stage 4: Seat Assignment & Screen Aperture Stamp (550ms)
+      setStage('almost_done');
+      setPrintProgress(92);
+      playPrinterClick(960);
+      await wait(300);
+      if (isCancelled) return;
+      playPrinterClick(1050);
+      setPrintProgress(98);
+      await wait(250);
+      if (isCancelled) return;
+
+      // Stage 5: Micro-Marks, Barcode & Perforation Cut (450ms)
       setStage('ticket_out');
       setPrintProgress(100);
       setIsVibrating(false);
-      playPrinterClick(1150);
+      playPrinterClick(1180);
       await wait(450);
       if (isCancelled) return;
 
-      // Stage 5: Ticket Settles & Ready for Pickup
+      // Stage 6: Physical Bounce Settle & Admission Ready
       setStage('bounce_settle');
-      await wait(250);
+      await wait(300);
       if (isCancelled) return;
       setStage('ready');
     };
@@ -217,9 +246,6 @@ export const TicketPrinterAnimation: React.FC<TicketPrinterAnimationProps> = ({
     onComplete?.();
   };
 
-  // Calculate paper translation based on progress
-  // printProgress 0% -> translateY(-100%) [hidden inside slot]
-  // printProgress 100% -> translateY(0%) [fully outside slot]
   const paperTranslateY = `${-100 + printProgress}%`;
 
   // Keyboard Escape shortcut to skip intro instantly
@@ -238,19 +264,19 @@ export const TicketPrinterAnimation: React.FC<TicketPrinterAnimationProps> = ({
     <div
       data-testid="ticket-intro-overlay"
       data-aperture={aspectRatio}
-      className={`fixed inset-0 z-50 bg-[#060403]/96 backdrop-blur-3xl flex flex-col items-center justify-center p-4 select-none ${className}`}
+      className={`fixed inset-0 z-50 bg-[#060403]/96 backdrop-blur-3xl flex flex-col items-center justify-between p-4 sm:p-8 select-none ${className}`}
     >
       {/* Dark Ambient Warm Cinema Glow */}
       <div className="absolute inset-0 bg-radial-gradient from-amber-600/10 via-amber-950/20 to-transparent blur-3xl pointer-events-none" />
 
       {/* Top Header Navigation Bar */}
-      <div className="absolute top-6 inset-x-0 flex items-center justify-between px-6 sm:px-12 z-20 max-w-5xl mx-auto">
+      <div className="w-full flex items-center justify-between px-2 sm:px-8 z-20 max-w-5xl">
         <div className="flex items-center gap-3">
           <div className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping" />
           <span className="text-xs font-mono font-bold tracking-widest text-amber-300 uppercase">
             CineMorph Ticket Dispenser
           </span>
-          <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/30">
+          <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/30 hidden sm:inline">
             {getApertureLabel(aspectRatio)}
           </span>
         </div>
@@ -298,9 +324,8 @@ export const TicketPrinterAnimation: React.FC<TicketPrinterAnimationProps> = ({
             </div>
           </div>
 
-          {/* Paper Slot Mouth (Slit where the paper physically emerges) */}
+          {/* Paper Slot Mouth */}
           <div className="relative w-full h-3 bg-black rounded-md border-b border-white/10 shadow-[inset_0_3px_6px_rgba(0,0,0,1)] flex items-center justify-center overflow-hidden">
-            {/* Slot Shadow Depth */}
             <div className="absolute inset-x-0 top-0 h-1 bg-black/80" />
           </div>
         </div>
@@ -322,58 +347,93 @@ export const TicketPrinterAnimation: React.FC<TicketPrinterAnimationProps> = ({
               transform: `translateY(${paperTranslateY})`,
             }}
           >
-            {/* Paper Texture Overlay & Side Scallop Notches */}
+            {/* Paper Texture Overlay */}
             <div className="absolute inset-0 bg-gradient-to-b from-[#f8f3e6] via-[#fdfbf7] to-[#f4ecd8] opacity-90 pointer-events-none rounded-b-xl" />
             
-            {/* Left and Right Classic Ticket Perforated Notches */}
+            {/* Classic Ticket Perforation Notches */}
             <div className="absolute top-[48%] -left-3.5 w-7 h-7 rounded-full bg-[#060403] border border-[#d8cfb9] z-20 shadow-inner" />
             <div className="absolute top-[48%] -right-3.5 w-7 h-7 rounded-full bg-[#060403] border border-[#d8cfb9] z-20 shadow-inner" />
 
             {/* Ticket Header */}
-            <div className="relative z-10 pt-5 pb-3 px-4 text-center border-b border-dashed border-zinc-300">
-              <div className="flex justify-center items-center gap-1.5 mb-1 text-zinc-800">
-                <Clapperboard className="w-5 h-5 text-amber-800" />
+            <div className="relative z-10 pt-4 pb-2 px-4 text-center border-b border-dashed border-zinc-300">
+              <div className="flex justify-center items-center gap-1.5 mb-0.5 text-zinc-800">
+                <Clapperboard className="w-4 h-4 text-amber-800" />
               </div>
-              <div className="text-[11px] font-black tracking-[0.25em] text-zinc-800 uppercase font-sans">
-                ★ MOVIE TICKET ★
+              <div className="text-[10px] font-black tracking-[0.25em] text-zinc-800 uppercase font-sans">
+                ★ CINEMORPH ADMISSION PASS ★
+              </div>
+            </div>
+
+            {/* Content Poster / Thumbnail Preview Section */}
+            <div className="relative z-10 pt-2.5 pb-1 px-4 flex flex-col items-center">
+              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-xl bg-zinc-200 border-2 border-[#ded4bd] overflow-hidden shadow-inner flex items-center justify-center relative">
+                {posterSource && imageLoaded ? (
+                  <img
+                    src={posterSource}
+                    alt={activeTicket?.movieTitle || 'Movie poster'}
+                    className="w-full h-full object-cover grayscale contrast-110 opacity-90"
+                  />
+                ) : (
+                  <div className="flex flex-col items-center justify-center p-2 text-zinc-400 gap-1">
+                    <Film className="w-6 h-6 text-zinc-500" />
+                    <span className="text-[8px] font-bold uppercase tracking-wider text-center">35mm Feature</span>
+                  </div>
+                )}
+                {/* Vintage Sepia Thermal Tone Scrim */}
+                <div className="absolute inset-0 bg-amber-900/10 mix-blend-multiply pointer-events-none" />
               </div>
             </div>
 
             {/* Movie Title & Runtime Section */}
-            <div className="relative z-10 py-3 px-5 text-center space-y-1">
-              <h2 className="text-base sm:text-lg font-black text-black tracking-tight uppercase leading-tight line-clamp-2 font-sans">
-                {activeTicket?.movieTitle || 'INTERSTELLAR'}
+            <div className="relative z-10 py-2 px-4 text-center space-y-0.5">
+              <h2 className="text-sm sm:text-base font-black text-black tracking-tight uppercase leading-tight line-clamp-2 font-sans">
+                {activeTicket?.movieTitle || 'CINEMORPH FEATURE'}
               </h2>
-              <div className="text-[11px] font-semibold text-zinc-600">
+              <div className="text-[10px] font-semibold text-zinc-600">
                 Runtime: <span className="text-black font-bold">{movieRuntime}</span>
               </div>
             </div>
 
-            {/* Seat Number Section (Large & Highlighted) */}
-            <div className="relative z-10 py-2.5 px-4 my-1 mx-4 bg-[#f3ecda] rounded-lg border border-[#e2d7be] text-center">
-              <div className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">
-                Seat No.
+            {/* Seat Number Section */}
+            <div className="relative z-10 py-2 px-3 my-0.5 mx-4 bg-[#f3ecda] rounded-lg border border-[#e2d7be] text-center">
+              <div className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest">
+                Assigned Seat
               </div>
-              <div className="text-2xl sm:text-3xl font-black text-black tracking-wider my-0.5">
+              <div className="text-xl sm:text-2xl font-black text-black tracking-wider my-0.5">
                 {randomSeat}
               </div>
             </div>
 
-            {/* Additional Date / Time / Screen Details */}
-            <div className="relative z-10 pt-2 pb-3 px-5 text-[10px] text-zinc-600 space-y-1">
+            {/* Screen Aperture & Time Details */}
+            <div className="relative z-10 pt-1 pb-2 px-4 text-[9px] text-zinc-600 space-y-0.5">
               <div className="flex items-center justify-between">
                 <span>Date: <strong className="text-black">{ticketDate}</strong></span>
                 <span>Time: <strong className="text-black">{ticketTime}</strong></span>
               </div>
               <div className="text-center font-bold text-zinc-800 pt-0.5">
-                Screen: Screen 3 ({getApertureLabel(aspectRatio)})
+                Aperture: {getApertureLabel(aspectRatio)}
               </div>
             </div>
 
-            {/* Barcode & Ticket ID Footer */}
-            <div className="relative z-10 pt-2 pb-4 px-4 bg-[#f5efe0] border-t border-dashed border-zinc-300 rounded-b-xl flex flex-col items-center">
-              {/* Simulated Thermal Barcode */}
-              <div className="flex items-end gap-[1.5px] h-6 mb-1.5 opacity-90">
+            {/* ── Micro Brand Signatures (Bottom-Right) & Barcode Footer ── */}
+            <div className="relative z-10 pt-2 pb-3 px-4 bg-[#f5efe0] border-t border-dashed border-zinc-300 rounded-b-xl flex flex-col items-center">
+              
+              {/* Studio Micro-Marks Container */}
+              <div className="w-full flex items-center justify-between text-[8px] font-mono text-zinc-500 pb-1.5 border-b border-zinc-200/80 mb-1.5 uppercase tracking-wider">
+                <span className="font-bold text-zinc-600">ADMISSION TICKET</span>
+                
+                {/* Bottom-Right Micro Brand Marks: CineMorph • OMS • AROH */}
+                <div className="flex items-center gap-1.5 text-zinc-700 font-bold tracking-tight text-[7.5px]">
+                  <span>CINEMORPH</span>
+                  <span className="text-zinc-400">•</span>
+                  <span>OMS</span>
+                  <span className="text-zinc-400">•</span>
+                  <span className="text-amber-900 font-black">AROH</span>
+                </div>
+              </div>
+
+              {/* Thermal Barcode */}
+              <div className="flex items-end gap-[1.5px] h-5 mb-1 opacity-90">
                 {[3, 1, 2, 4, 1, 2, 3, 1, 4, 2, 1, 3, 2, 4, 1, 3, 2, 1, 4, 2, 3, 1, 2, 4, 1, 3, 2, 1].map((w, i) => (
                   <div 
                     key={i} 
@@ -382,7 +442,8 @@ export const TicketPrinterAnimation: React.FC<TicketPrinterAnimationProps> = ({
                   />
                 ))}
               </div>
-              <div className="text-[9px] font-mono font-bold tracking-widest text-zinc-700">
+              
+              <div className="text-[8px] font-mono font-bold tracking-widest text-zinc-700">
                 {ticketIdFormatted}
               </div>
             </div>
@@ -390,7 +451,7 @@ export const TicketPrinterAnimation: React.FC<TicketPrinterAnimationProps> = ({
         </div>
 
         {/* ── 4. Action CTA beneath printer ── */}
-        <div className="mt-8 flex flex-col items-center gap-3 text-center z-20">
+        <div className="mt-6 flex flex-col items-center gap-3 text-center z-20">
           {stage === 'ready' ? (
             <button
               onClick={handleSkipOrTakeTicket}
@@ -406,9 +467,9 @@ export const TicketPrinterAnimation: React.FC<TicketPrinterAnimationProps> = ({
                 <span>
                   {stage === 'idle' && 'Initializing Thermal Printer...'}
                   {stage === 'starting' && 'Feeding Ticket Paper...'}
-                  {stage === 'printing' && 'Printing Title & Runtime...'}
-                  {stage === 'almost_done' && 'Assigning Seat & Generating Barcode...'}
-                  {stage === 'ticket_out' && 'Finalizing Admission Pass...'}
+                  {stage === 'printing' && 'Inking Poster & Feature Title...'}
+                  {stage === 'almost_done' && 'Stamping Seat Assignment & Aperture...'}
+                  {stage === 'ticket_out' && 'Affixing Studio Signatures & Barcode...'}
                   {stage === 'bounce_settle' && 'Ticket Ready...'}
                 </span>
               </div>
@@ -422,7 +483,13 @@ export const TicketPrinterAnimation: React.FC<TicketPrinterAnimationProps> = ({
           )}
         </div>
       </div>
+
+      {/* Footer System Label */}
+      <div className="w-full flex justify-center z-20">
+        <span className="text-[9px] font-mono text-zinc-600 tracking-widest uppercase">
+          CineMorph Physical Printing Engine • AROH Core
+        </span>
+      </div>
     </div>
   );
 };
-
