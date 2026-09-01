@@ -221,6 +221,11 @@ export function CineMorphTheater() {
   const screenContainerRef = useRef<HTMLDivElement>(null);
   const [spaceBelowScreen, setSpaceBelowScreen] = useState<number>(128);
 
+  // ── Derived mode flags — MUST be declared before any hook that references them ──────
+  // These only depend on store/state values that are already initialized above.
+  const isOriginalMode = frameAspectRatio === 'original' || presentationMode === 'original';
+  const isIMAXMode = (frameAspectRatio === '1.90:1' || frameAspectRatio === '1.43:1') && presentationMode !== 'original';
+
   useEffect(() => {
     if (!screenContainerRef.current || !containerRef.current) return;
     const observer = new ResizeObserver(() => {
@@ -788,10 +793,6 @@ export function CineMorphTheater() {
       setIsFullscreen(true);
     }
   };
-
-  // Derived mode flags (computed from state, not hooks)
-  const isOriginalMode = frameAspectRatio === 'original' || presentationMode === 'original';
-  const isIMAXMode = (frameAspectRatio === '1.90:1' || frameAspectRatio === '1.43:1') && presentationMode !== 'original';
 
   return (
     <div
