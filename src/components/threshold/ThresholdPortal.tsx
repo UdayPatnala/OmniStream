@@ -1,13 +1,12 @@
 /**
- * ThresholdPortal.tsx — OmniStream Monolithic Spatial Entrance (180° Overhaul)
+ * ThresholdPortal.tsx — OmniStream Cosmic Dual-Portal Gateway
  *
- * ARCHITECTURAL CONSTITUTION:
- *   - Clean, high-craft spatial threshold with dual architectural portals.
- *   - Zero fake marketing cards, zero generic thumbnail posters.
- *   - Pure, tactile, monolithic typography and atmospheric illumination.
- *   - Left: U-TUBE (Discovery Flow • Kinetic • Vermilion Accent #C7494F)
- *   - Right: CINEMORPH (Theater Aperture • Volumetric Velvet • Slate Accent #526C9E)
- *   - Center: OMNISTREAM equilibrium axis with RAF cursor-driven refraction.
+ * Visual reference implementation:
+ *   - Upper Center: Concentric OmniStream cosmic ring + cinematic OMNISTREAM typography
+ *   - Left Wing: Crimson U-Tube orb portal with custom 3D red "U" artwork
+ *   - Right Wing: Electric blue CineMorph orb portal with illuminated curved-screen artwork
+ *   - Lower Center: Reflective spatial floor with "CHOOSE YOUR STREAM" choice indicator
+ *   - Zero marketing jargon, pure spatial immersion and intentional destination choice
  */
 
 import React, {
@@ -29,9 +28,7 @@ import {
   X,
   Tv,
   Film,
-  ArrowUpRight,
-  Compass,
-  Disc,
+  ChevronDown,
 } from 'lucide-react';
 import { GlobalSettingsDrawer } from '../settings/GlobalSettingsDrawer';
 import { useAppStore } from '../../store';
@@ -73,17 +70,17 @@ export const ThresholdPortal: React.FC = () => {
       typeof window !== 'undefined' &&
       window.matchMedia('(prefers-color-scheme: dark)').matches);
 
-  // ─── Intro ─────────────────────────────────────────────────────────────────
+  // ─── Intro Animation ───────────────────────────────────────────────────────
   useEffect(() => {
     if (introComplete) return;
     const t = setTimeout(() => {
       setIntroComplete(true);
       sessionStorage.setItem(SESSION_KEY, 'true');
-    }, 800);
+    }, 700);
     return () => clearTimeout(t);
   }, [introComplete]);
 
-  // ─── Live light field via RAF (zero React state overhead) ─────────────────
+  // ─── Live Cursor Ambient Light Field (RAF — zero React state overhead) ────
   useEffect(() => {
     if (prefersReduced) return;
 
@@ -114,7 +111,7 @@ export const ThresholdPortal: React.FC = () => {
     };
   }, [prefersReduced]);
 
-  // ─── Navigation ────────────────────────────────────────────────────────────
+  // ─── Navigation Execution ──────────────────────────────────────────────────
   const enter = useCallback(
     (zone: Zone) => {
       if (entering) return;
@@ -125,7 +122,7 @@ export const ThresholdPortal: React.FC = () => {
     [entering, navigate, setVersionMode]
   );
 
-  // ─── Keyboard Navigation ───────────────────────────────────────────────────
+  // ─── Keyboard Shortcuts ────────────────────────────────────────────────────
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
       if (settingsOpen || entering) return;
@@ -150,10 +147,14 @@ export const ThresholdPortal: React.FC = () => {
         return;
       }
       if (e.key === 's' || e.key === 'S') setSettingsOpen((p) => !p);
+      if (e.key === 't' || e.key === 'T') {
+        const next = { light: 'dark', dark: 'system', system: 'light' } as const;
+        setTheme(next[theme] ?? 'light');
+      }
     };
     window.addEventListener('keydown', h);
     return () => window.removeEventListener('keydown', h);
-  }, [focus, settingsOpen, entering, enter]);
+  }, [focus, settingsOpen, entering, enter, theme, setTheme]);
 
   const cycleTheme = useCallback(() => {
     const next = { light: 'dark', dark: 'system', system: 'light' } as const;
@@ -171,7 +172,6 @@ export const ThresholdPortal: React.FC = () => {
 
   const uActive = focus === 'utube';
   const cmActive = focus === 'cinemorph';
-  const neutral = focus === null;
 
   return (
     <div
@@ -182,19 +182,19 @@ export const ThresholdPortal: React.FC = () => {
       style={{
         background: isDark
           ? cmActive
-            ? '#050608'
+            ? '#03050a'
             : uActive
-            ? '#090809'
-            : '#08090C'
+            ? '#080304'
+            : '#05060a'
           : uActive
-          ? '#F6F3EE'
+          ? '#FAF6F4'
           : cmActive
-          ? '#0D0E12'
+          ? '#F4F7FA'
           : '#F7F5F0',
         transition: 'background 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
       }}
     >
-      {/* ── Architectural Ambient Glow Field (RAF-controlled) ── */}
+      {/* ── Volumetric Nebula Particle & Glow Fields (RAF-Controlled) ── */}
       <div
         ref={lightRef}
         aria-hidden
@@ -202,120 +202,79 @@ export const ThresholdPortal: React.FC = () => {
         style={{
           background: isDark
             ? uActive
-              ? 'radial-gradient(circle 800px at var(--cx, 25%) var(--cy, 50%), rgba(199,73,79,0.18) 0%, transparent 70%)'
+              ? 'radial-gradient(ellipse 900px 700px at 28% 50%, rgba(229,9,20,0.22) 0%, transparent 70%)'
               : cmActive
-              ? 'radial-gradient(circle 800px at var(--cx, 75%) var(--cy, 50%), rgba(82,108,158,0.22) 0%, transparent 70%)'
-              : 'radial-gradient(circle 600px at 50% 50%, rgba(255,255,255,0.03) 0%, transparent 70%)'
+              ? 'radial-gradient(ellipse 900px 700px at 72% 50%, rgba(0,168,255,0.24) 0%, transparent 70%)'
+              : 'radial-gradient(ellipse 700px 500px at 25% 50%, rgba(229,9,20,0.12) 0%, transparent 65%), radial-gradient(ellipse 700px 500px at 75% 50%, rgba(0,168,255,0.14) 0%, transparent 65%)'
             : uActive
-            ? 'radial-gradient(circle 800px at var(--cx, 25%) var(--cy, 50%), rgba(199,73,79,0.12) 0%, transparent 70%)'
+            ? 'radial-gradient(ellipse 900px 700px at 28% 50%, rgba(229,9,20,0.14) 0%, transparent 70%)'
             : cmActive
-            ? 'none'
-            : 'radial-gradient(circle 700px at 50% 50%, rgba(255,255,255,0.85) 0%, transparent 70%)',
+            ? 'radial-gradient(ellipse 900px 700px at 72% 50%, rgba(0,168,255,0.16) 0%, transparent 70%)'
+            : 'radial-gradient(ellipse 700px 500px at 25% 50%, rgba(229,9,20,0.08) 0%, transparent 65%), radial-gradient(ellipse 700px 500px at 75% 50%, rgba(0,168,255,0.08) 0%, transparent 65%)',
         }}
       />
 
-      {/* ── Top Header Navigation Bar ── */}
-      <header className="relative z-30 w-full px-6 sm:px-12 py-6 flex items-center justify-between pointer-events-auto">
+      {/* ── Deep Space Particle Shimmer (Dark Mode) ── */}
+      {isDark && (
+        <div className="absolute inset-0 pointer-events-none z-0 opacity-40">
+          <div className="absolute top-[20%] left-[15%] w-1 h-1 bg-red-400 rounded-full blur-[1px] animate-pulse" />
+          <div className="absolute top-[35%] left-[8%] w-1.5 h-1.5 bg-rose-500 rounded-full blur-[1px]" />
+          <div className="absolute top-[65%] left-[22%] w-1 h-1 bg-red-300 rounded-full" />
+          <div className="absolute top-[18%] right-[16%] w-1.5 h-1.5 bg-cyan-300 rounded-full blur-[1px] animate-pulse" />
+          <div className="absolute top-[40%] right-[10%] w-1 h-1 bg-blue-400 rounded-full" />
+          <div className="absolute top-[70%] right-[20%] w-1 h-1 bg-sky-300 rounded-full blur-[0.5px]" />
+        </div>
+      )}
+
+      {/* ── Top Header Controls (Settings, Theme, Offline) ── */}
+      <header className="relative z-30 w-full px-6 sm:px-12 py-5 flex items-center justify-between pointer-events-auto">
         {/* Left Status Mark */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <div
             className={`w-2 h-2 rounded-full transition-colors duration-500 ${
               uActive
-                ? 'bg-[#C7494F] shadow-[0_0_10px_#C7494F]'
+                ? 'bg-[#E50914] shadow-[0_0_12px_#E50914]'
                 : cmActive
-                ? 'bg-[#526C9E] shadow-[0_0_10px_#526C9E]'
+                ? 'bg-[#00A8FF] shadow-[0_0_12px_#00A8FF]'
                 : isDark
                 ? 'bg-neutral-500'
                 : 'bg-neutral-400'
             }`}
           />
           <span
-            className="text-[10px] font-mono uppercase tracking-[0.28em] font-semibold transition-colors duration-500"
+            className="text-[10px] font-mono uppercase tracking-[0.3em] font-semibold transition-colors duration-500"
             style={{
-              color: isDark
-                ? cmActive
-                  ? 'rgba(236,238,242,0.45)'
-                  : 'rgba(236,238,242,0.6)'
-                : cmActive
-                ? 'rgba(240,238,232,0.5)'
-                : 'rgba(26,26,24,0.6)',
+              color: isDark ? 'rgba(236,238,242,0.5)' : 'rgba(26,26,24,0.5)',
             }}
           >
             Spatial Dual-Engine Gateway
           </span>
         </div>
 
-        {/* Center OMNISTREAM Wordmark */}
-        <div className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center pointer-events-none">
-          <motion.h1
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="font-cinematic-title font-black uppercase text-center tracking-[0.6em]"
-            style={{
-              fontSize: 'clamp(10px, 1.1vw, 15px)',
-              letterSpacing: '0.6em',
-              color: isDark
-                ? cmActive
-                  ? 'rgba(236,238,242,0.35)'
-                  : 'rgba(236,238,242,0.85)'
-                : uActive
-                ? 'rgba(26,26,24,0.85)'
-                : cmActive
-                ? 'rgba(240,238,232,0.7)'
-                : 'rgba(26,26,24,0.85)',
-            }}
-          >
-            OMNISTREAM
-          </motion.h1>
-          <div
-            className="mt-1 h-[0.5px] w-6 transition-all duration-500"
-            style={{
-              background: isDark
-                ? cmActive
-                  ? 'rgba(236,238,242,0.2)'
-                  : 'rgba(236,238,242,0.4)'
-                : cmActive
-                ? 'rgba(240,238,232,0.3)'
-                : 'rgba(26,26,24,0.4)',
-            }}
-          />
-        </div>
-
-        {/* Right Header Controls */}
+        {/* Right Header Buttons */}
         <div className="flex items-center gap-2">
           {isOffline && (
             <div
               className="flex items-center gap-1.5 px-3 py-1 rounded-full font-mono text-[9px] tracking-wider uppercase"
               style={{
-                background: 'rgba(180,122,44,0.12)',
-                border: '0.5px solid rgba(180,122,44,0.3)',
+                background: 'rgba(180,122,44,0.15)',
+                border: '0.5px solid rgba(180,122,44,0.35)',
                 color: isDark ? '#E5AD47' : '#8A5A14',
               }}
             >
               <WifiOff className="w-3 h-3" />
-              <span>Offline Ready</span>
+              <span>Offline</span>
             </div>
           )}
 
           <button
             onClick={cycleTheme}
             aria-label={`Theme: ${theme}`}
-            title={`Current theme: ${theme} (click to switch)`}
+            title={`Current theme: ${theme} (press T to switch)`}
             className="p-2 rounded-xl transition-all cursor-pointer hover:scale-105 active:scale-95"
             style={{
-              color: isDark
-                ? cmActive
-                  ? 'rgba(240,238,232,0.6)'
-                  : 'rgba(236,238,242,0.6)'
-                : cmActive
-                ? 'rgba(240,238,232,0.6)'
-                : 'rgba(26,26,24,0.6)',
-              background: isDark
-                ? 'rgba(255,255,255,0.06)'
-                : cmActive
-                ? 'rgba(255,255,255,0.08)'
-                : 'rgba(0,0,0,0.04)',
+              color: isDark ? 'rgba(236,238,242,0.65)' : 'rgba(26,26,24,0.65)',
+              background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
             }}
           >
             {theme === 'light' ? (
@@ -333,18 +292,8 @@ export const ThresholdPortal: React.FC = () => {
             title="System Preferences (S)"
             className="p-2 rounded-xl transition-all cursor-pointer hover:scale-105 active:scale-95 group"
             style={{
-              color: isDark
-                ? cmActive
-                  ? 'rgba(240,238,232,0.6)'
-                  : 'rgba(236,238,242,0.6)'
-                : cmActive
-                ? 'rgba(240,238,232,0.6)'
-                : 'rgba(26,26,24,0.6)',
-              background: isDark
-                ? 'rgba(255,255,255,0.06)'
-                : cmActive
-                ? 'rgba(255,255,255,0.08)'
-                : 'rgba(0,0,0,0.04)',
+              color: isDark ? 'rgba(236,238,242,0.65)' : 'rgba(26,26,24,0.65)',
+              background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
             }}
           >
             <Sliders className="w-4 h-4 transition-transform duration-500 group-hover:rotate-90" />
@@ -352,274 +301,320 @@ export const ThresholdPortal: React.FC = () => {
         </div>
       </header>
 
-      {/* ── Main Dual-Engine Monolithic Spatial Threshold ── */}
-      <main className="relative z-20 w-full flex-1 flex flex-col md:flex-row items-stretch px-6 sm:px-12 py-4 max-w-7xl mx-auto">
-        {/* ── Left World: U-TUBE Portal ── */}
-        <div
-          role="button"
-          tabIndex={0}
-          aria-label="Enter U-TUBE discovery engine"
-          onClick={() => enter('utube')}
-          onMouseEnter={() => onEnterZone('utube')}
-          onMouseLeave={onLeaveZone}
-          onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && enter('utube')}
-          className={`relative flex-1 rounded-3xl p-8 sm:p-12 flex flex-col justify-between transition-all duration-700 cursor-pointer overflow-hidden group outline-none ${
-            uActive
-              ? isDark
-                ? 'bg-[#151213]/90 shadow-[0_20px_80px_rgba(199,73,79,0.18)] scale-[1.01]'
-                : 'bg-white/95 shadow-[0_20px_80px_rgba(199,73,79,0.14)] scale-[1.01]'
-              : isDark
-              ? 'bg-[#111215]/50 hover:bg-[#151213]/70'
-              : cmActive
-              ? 'bg-[#13141a]/40'
-              : 'bg-white/40 hover:bg-white/70'
-          }`}
-          style={{
-            border: uActive
-              ? '1px solid rgba(199,73,79,0.45)'
-              : isDark
-              ? '1px solid rgba(255,255,255,0.06)'
-              : cmActive
-              ? '1px solid rgba(255,255,255,0.04)'
-              : '1px solid rgba(0,0,0,0.06)',
-          }}
-        >
-          {/* Top Label & Mode Indicator */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <Compass
-                className={`w-4 h-4 transition-colors duration-500 ${
-                  uActive ? 'text-[#C7494F]' : 'text-neutral-400'
-                }`}
+      {/* ── Main Spatial Arena: OmniStream Core + Two Portals ── */}
+      <main className="relative z-20 w-full flex-1 flex flex-col items-center justify-center px-4 sm:px-8 max-w-7xl mx-auto my-auto">
+        
+        {/* ── 1. OmniStream Upper Cosmic Identity ── */}
+        <div className="flex flex-col items-center text-center mb-6 sm:mb-10 pointer-events-none">
+          
+          {/* Concentric Cosmic Ring Symbol */}
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+            className="relative w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center mb-3"
+          >
+            {/* Outer Halo */}
+            <div
+              className="absolute inset-0 rounded-full blur-md opacity-80"
+              style={{
+                background: 'radial-gradient(circle, rgba(0,168,255,0.8) 0%, rgba(229,9,20,0.6) 50%, transparent 80%)',
+              }}
+            />
+            {/* Concentric Ring 1 */}
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 30, repeat: Infinity, ease: 'linear' }}
+              className="absolute inset-0 rounded-full border border-cyan-400/40 border-dashed"
+            />
+            {/* Concentric Ring 2 */}
+            <div
+              className="w-10 h-10 sm:w-11 sm:h-11 rounded-full p-[2px] shadow-[0_0_20px_rgba(0,168,255,0.6)]"
+              style={{
+                background: 'linear-gradient(135deg, #00A8FF 0%, #E50914 100%)',
+              }}
+            >
+              <div
+                className="w-full h-full rounded-full"
+                style={{
+                  background: isDark ? '#05060A' : '#F7F5F0',
+                }}
               />
+            </div>
+          </motion.div>
+
+          {/* OMNISTREAM Wordmark */}
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="relative"
+          >
+            <h1
+              className="font-cinematic-title font-black uppercase text-center tracking-[0.55em] sm:tracking-[0.7em] text-xl sm:text-3xl md:text-4xl"
+              style={{
+                color: isDark ? '#EDEFF5' : '#1A1A18',
+                textShadow: isDark
+                  ? '0 0 35px rgba(255,255,255,0.25)'
+                  : '0 2px 10px rgba(0,0,0,0.05)',
+              }}
+            >
+              OMNISTREAM
+            </h1>
+
+            {/* Horizontal Refraction Laser Line */}
+            <div
+              className="mt-3 w-64 sm:w-96 h-[1px] mx-auto opacity-70"
+              style={{
+                background:
+                  'linear-gradient(90deg, transparent 0%, rgba(229,9,20,0.6) 30%, rgba(0,168,255,0.8) 70%, transparent 100%)',
+              }}
+            />
+          </motion.div>
+        </div>
+
+        {/* ── 2. The Two Dimensional Experience Portals ── */}
+        <div className="w-full flex flex-col md:flex-row items-center justify-center gap-8 sm:gap-14 md:gap-20 max-w-5xl">
+          
+          {/* ── LEFT PORTAL: U-TUBE ── */}
+          <div className="flex flex-col items-center group">
+            <button
+              type="button"
+              role="button"
+              aria-label="Enter U-TUBE discovery engine"
+              onClick={() => enter('utube')}
+              onMouseEnter={() => onEnterZone('utube')}
+              onMouseLeave={onLeaveZone}
+              onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && enter('utube')}
+              className={`relative w-56 h-56 sm:w-64 sm:h-64 md:w-72 md:h-72 rounded-full transition-all duration-700 cursor-pointer flex items-center justify-center outline-none focus-visible:ring-4 focus-visible:ring-red-500/50 ${
+                uActive
+                  ? 'scale-105 shadow-[0_0_80px_rgba(229,9,20,0.5)]'
+                  : 'hover:scale-[1.03] active:scale-[0.98]'
+              }`}
+            >
+              {/* Outer Radiant Crimson Ring */}
+              <div
+                className={`absolute inset-0 rounded-full p-[2px] transition-all duration-500 ${
+                  uActive
+                    ? 'shadow-[0_0_40px_rgba(229,9,20,0.8)]'
+                    : 'opacity-80 group-hover:opacity-100'
+                }`}
+                style={{
+                  background:
+                    'conic-gradient(from 180deg at 50% 50%, #E50914 0deg, rgba(229,9,20,0.3) 120deg, #FF334B 240deg, #E50914 360deg)',
+                }}
+              >
+                {/* Inner Portal Spherical Body */}
+                <div
+                  className="w-full h-full rounded-full flex items-center justify-center p-6 relative overflow-hidden"
+                  style={{
+                    background: isDark
+                      ? 'radial-gradient(circle at 50% 40%, #1c0607 0%, #0c0203 70%, #000000 100%)'
+                      : 'radial-gradient(circle at 50% 40%, #ffffff 0%, #f7eaeb 70%, #edd8d9 100%)',
+                    boxShadow: isDark
+                      ? 'inset 0 0 40px rgba(229,9,20,0.4), inset 0 0 15px rgba(0,0,0,0.8)'
+                      : 'inset 0 0 30px rgba(229,9,20,0.15)',
+                  }}
+                >
+                  {/* Concentric Glass Ring Overlay */}
+                  <div className="absolute inset-3 rounded-full border border-red-500/20 pointer-events-none" />
+
+                  {/* The Custom U-Tube Artwork Image */}
+                  <img
+                    src="/utube_artwork.png"
+                    alt="U-TUBE"
+                    draggable={false}
+                    className={`w-4/5 h-4/5 object-contain filter transition-all duration-500 drop-shadow-[0_10px_25px_rgba(229,9,20,0.35)] ${
+                      uActive
+                        ? 'scale-110 drop-shadow-[0_0_35px_rgba(229,9,20,0.8)]'
+                        : 'group-hover:scale-105'
+                    }`}
+                  />
+                </div>
+              </div>
+
+              {/* Rotating Kinetic Energy Particles */}
+              {!prefersReduced && (
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+                  className="absolute -inset-2 rounded-full border border-red-500/20 border-dashed pointer-events-none"
+                />
+              )}
+            </button>
+
+            {/* Label & Indicator */}
+            <div className="mt-4 flex flex-col items-center gap-1">
               <span
-                className={`text-[10px] font-mono uppercase tracking-[0.32em] font-bold transition-colors duration-500 ${
-                  uActive ? 'text-[#C7494F]' : 'text-neutral-400'
+                className={`text-[10px] font-mono uppercase tracking-[0.3em] font-bold transition-colors duration-500 ${
+                  uActive ? 'text-[#E50914]' : 'text-neutral-400'
                 }`}
               >
                 DISCOVERY FLOW
               </span>
-            </div>
 
+              <h2
+                className="font-cinematic-title font-black uppercase text-xl tracking-wider transition-colors duration-500"
+                style={{
+                  color: uActive
+                    ? '#E50914'
+                    : isDark
+                    ? '#EDEFF5'
+                    : '#1A1A18',
+                }}
+              >
+                U-TUBE
+              </h2>
+
+              {/* Floating Circular Down-Chevron Beacon */}
+              <div
+                className={`mt-1.5 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 ${
+                  uActive
+                    ? 'bg-[#E50914] text-white shadow-[0_0_15px_#E50914] scale-110'
+                    : 'bg-red-500/10 text-red-500 border border-red-500/20'
+                }`}
+              >
+                <ChevronDown className="w-3.5 h-3.5" />
+              </div>
+            </div>
+          </div>
+
+          {/* ── Center Divider Beam (Desktop) ── */}
+          <div className="hidden md:flex flex-col items-center justify-center">
             <div
-              className={`p-2 rounded-full transition-all duration-300 ${
-                uActive
-                  ? 'bg-[#C7494F] text-white rotate-45 scale-110 shadow-lg'
-                  : 'bg-black/5 dark:bg-white/5 text-neutral-400 group-hover:text-neutral-600 dark:group-hover:text-neutral-200'
-              }`}
-            >
-              <ArrowUpRight className="w-4 h-4" />
-            </div>
-          </div>
-
-          {/* Center Monolith Title & Dynamic Energy Line */}
-          <div className="my-auto py-8">
-            <h2
-              className="font-cinematic-title font-black uppercase leading-none tracking-tight transition-all duration-500"
-              style={{
-                fontSize: 'clamp(44px, 6.5vw, 92px)',
-                color: uActive
-                  ? '#C7494F'
-                  : isDark
-                  ? 'rgba(236,238,242,0.92)'
-                  : cmActive
-                  ? 'rgba(240,238,232,0.4)'
-                  : 'rgba(26,26,24,0.92)',
-              }}
-            >
-              U-TUBE
-            </h2>
-
-            {/* Kinetic Discovery Wave */}
-            <div className="mt-6 flex items-center gap-2 overflow-hidden">
-              {[40, 70, 25, 90, 50, 110, 35, 65, 80, 45].map((w, i) => (
-                <motion.div
-                  key={i}
-                  animate={{
-                    height: uActive ? [3, 14, 3] : [3, 6, 3],
-                    opacity: uActive ? [0.6, 1, 0.6] : [0.2, 0.4, 0.2],
-                  }}
-                  transition={{
-                    duration: 1.6,
-                    repeat: Infinity,
-                    delay: i * 0.12,
-                    ease: 'easeInOut',
-                  }}
-                  style={{
-                    width: w * 0.45,
-                    borderRadius: 2,
-                    backgroundColor: uActive ? '#C7494F' : isDark ? '#52545A' : '#A3A3A3',
-                  }}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Bottom Pillar Specs */}
-          <div className="flex items-center justify-between text-xs pt-6 border-t border-black/5 dark:border-white/5">
-            <span
-              className={`font-mono text-[11px] transition-colors duration-500 ${
-                uActive
-                  ? 'text-[#C7494F] font-bold'
-                  : isDark
-                  ? 'text-neutral-400'
-                  : cmActive
-                  ? 'text-neutral-500'
-                  : 'text-neutral-500'
-              }`}
-            >
-              Lightweight Video Discovery & Watch
-            </span>
-            <span
-              className="text-[10px] font-mono uppercase tracking-widest px-2.5 py-1 rounded-lg"
+              className="w-[1px] h-48 transition-all duration-700"
               style={{
                 background: uActive
-                  ? 'rgba(199,73,79,0.12)'
+                  ? 'linear-gradient(to bottom, transparent, #E50914, transparent)'
+                  : cmActive
+                  ? 'linear-gradient(to bottom, transparent, #00A8FF, transparent)'
                   : isDark
-                  ? 'rgba(255,255,255,0.04)'
-                  : 'rgba(0,0,0,0.04)',
-                color: uActive ? '#C7494F' : 'inherit',
+                  ? 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.15), transparent)'
+                  : 'linear-gradient(to bottom, transparent, rgba(0,0,0,0.15), transparent)',
               }}
-            >
-              Press (U)
-            </span>
+            />
           </div>
-        </div>
 
-        {/* ── Center Equilibrium Axis (Divider) ── */}
-        <div className="hidden md:flex items-center justify-center px-4 relative z-10">
-          <div
-            className="w-[1px] h-36 transition-all duration-700"
-            style={{
-              background: uActive
-                ? 'linear-gradient(to bottom, transparent, #C7494F, transparent)'
-                : cmActive
-                ? 'linear-gradient(to bottom, transparent, #526C9E, transparent)'
-                : isDark
-                ? 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.15), transparent)'
-                : 'linear-gradient(to bottom, transparent, rgba(0,0,0,0.15), transparent)',
-            }}
-          />
-        </div>
-
-        {/* ── Right World: CINEMORPH Portal ── */}
-        <div
-          role="button"
-          tabIndex={0}
-          aria-label="Enter CineMorph theater engine"
-          onClick={() => enter('cinemorph')}
-          onMouseEnter={() => onEnterZone('cinemorph')}
-          onMouseLeave={onLeaveZone}
-          onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && enter('cinemorph')}
-          className={`relative flex-1 rounded-3xl p-8 sm:p-12 flex flex-col justify-between transition-all duration-700 cursor-pointer overflow-hidden group outline-none mt-4 md:mt-0 ${
-            cmActive
-              ? 'bg-[#10121a]/95 shadow-[0_20px_80px_rgba(82,108,158,0.25)] scale-[1.01]'
-              : isDark
-              ? 'bg-[#111215]/50 hover:bg-[#10121a]/70'
-              : 'bg-[#111317]/90 hover:bg-[#10121a]/95 text-white'
-          }`}
-          style={{
-            border: cmActive
-              ? '1px solid rgba(82,108,158,0.55)'
-              : isDark
-              ? '1px solid rgba(255,255,255,0.06)'
-              : '1px solid rgba(255,255,255,0.08)',
-          }}
-        >
-          {/* Top Label & Mode Indicator */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <Disc
-                className={`w-4 h-4 transition-colors duration-500 ${
-                  cmActive ? 'text-[#7E9ECC]' : 'text-neutral-400'
+          {/* ── RIGHT PORTAL: CINEMORPH ── */}
+          <div className="flex flex-col items-center group">
+            <button
+              type="button"
+              role="button"
+              aria-label="Enter CineMorph theater engine"
+              onClick={() => enter('cinemorph')}
+              onMouseEnter={() => onEnterZone('cinemorph')}
+              onMouseLeave={onLeaveZone}
+              onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && enter('cinemorph')}
+              className={`relative w-56 h-56 sm:w-64 sm:h-64 md:w-72 md:h-72 rounded-full transition-all duration-700 cursor-pointer flex items-center justify-center outline-none focus-visible:ring-4 focus-visible:ring-blue-500/50 ${
+                cmActive
+                  ? 'scale-105 shadow-[0_0_80px_rgba(0,168,255,0.5)]'
+                  : 'hover:scale-[1.03] active:scale-[0.98]'
+              }`}
+            >
+              {/* Outer Radiant Electric-Blue Ring */}
+              <div
+                className={`absolute inset-0 rounded-full p-[2px] transition-all duration-500 ${
+                  cmActive
+                    ? 'shadow-[0_0_40px_rgba(0,168,255,0.8)]'
+                    : 'opacity-80 group-hover:opacity-100'
                 }`}
-              />
+                style={{
+                  background:
+                    'conic-gradient(from 0deg at 50% 50%, #00A8FF 0deg, rgba(0,168,255,0.3) 120deg, #5CE1E6 240deg, #00A8FF 360deg)',
+                }}
+              >
+                {/* Inner Portal Spherical Body */}
+                <div
+                  className="w-full h-full rounded-full flex items-center justify-center p-6 relative overflow-hidden"
+                  style={{
+                    background: isDark
+                      ? 'radial-gradient(circle at 50% 40%, #051424 0%, #020912 70%, #000000 100%)'
+                      : 'radial-gradient(circle at 50% 40%, #ffffff 0%, #e6f3fa 70%, #d4eaf5 100%)',
+                    boxShadow: isDark
+                      ? 'inset 0 0 40px rgba(0,168,255,0.4), inset 0 0 15px rgba(0,0,0,0.8)'
+                      : 'inset 0 0 30px rgba(0,168,255,0.15)',
+                  }}
+                >
+                  {/* Concentric Glass Ring Overlay */}
+                  <div className="absolute inset-3 rounded-full border border-cyan-400/20 pointer-events-none" />
+
+                  {/* The Custom CineMorph Artwork Image */}
+                  <img
+                    src="/cinemorph_artwork.png"
+                    alt="CINEMORPH"
+                    draggable={false}
+                    className={`w-4/5 h-4/5 object-contain filter transition-all duration-500 drop-shadow-[0_10px_25px_rgba(0,168,255,0.35)] ${
+                      cmActive
+                        ? 'scale-110 drop-shadow-[0_0_35px_rgba(0,168,255,0.8)]'
+                        : 'group-hover:scale-105'
+                    }`}
+                  />
+                </div>
+              </div>
+
+              {/* Rotating Kinetic Energy Aperture */}
+              {!prefersReduced && (
+                <motion.div
+                  animate={{ rotate: -360 }}
+                  transition={{ duration: 25, repeat: Infinity, ease: 'linear' }}
+                  className="absolute -inset-2 rounded-full border border-cyan-400/20 border-dashed pointer-events-none"
+                />
+              )}
+            </button>
+
+            {/* Label & Indicator */}
+            <div className="mt-4 flex flex-col items-center gap-1">
               <span
-                className={`text-[10px] font-mono uppercase tracking-[0.32em] font-bold transition-colors duration-500 ${
-                  cmActive ? 'text-[#7E9ECC]' : 'text-neutral-400'
+                className={`text-[10px] font-mono uppercase tracking-[0.3em] font-bold transition-colors duration-500 ${
+                  cmActive ? 'text-[#00A8FF]' : 'text-neutral-400'
                 }`}
               >
                 THEATER APERTURE
               </span>
-            </div>
 
-            <div
-              className={`p-2 rounded-full transition-all duration-300 ${
-                cmActive
-                  ? 'bg-[#526C9E] text-white rotate-45 scale-110 shadow-lg'
-                  : 'bg-white/10 text-neutral-300 group-hover:text-white'
-              }`}
-            >
-              <ArrowUpRight className="w-4 h-4" />
-            </div>
-          </div>
-
-          {/* Center Monolith Title & Concentric Optic Ring */}
-          <div className="my-auto py-8 flex items-center justify-between gap-4">
-            <div>
               <h2
-                className="font-cinematic-title font-black uppercase leading-none tracking-tight transition-all duration-500"
+                className="font-cinematic-title font-black uppercase text-xl tracking-wider transition-colors duration-500"
                 style={{
-                  fontSize: 'clamp(36px, 5.5vw, 80px)',
-                  color: cmActive ? '#8EAEDD' : '#F0EEE8',
+                  color: cmActive
+                    ? '#00A8FF'
+                    : isDark
+                    ? '#EDEFF5'
+                    : '#1A1A18',
                 }}
               >
                 CINEMORPH
               </h2>
-              <p className="mt-2 text-xs font-mono text-neutral-400">
-                1.43:1 • 1.90:1 • 70mm Virtual Auditorium
-              </p>
-            </div>
 
-            {/* Concentric Aperture Device */}
-            <div className="relative w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center shrink-0">
-              <motion.div
-                animate={{ rotate: cmActive ? 360 : 0 }}
-                transition={{ duration: 24, repeat: Infinity, ease: 'linear' }}
-                className="absolute inset-0 rounded-full border border-dashed"
-                style={{
-                  borderColor: cmActive ? 'rgba(126,158,204,0.5)' : 'rgba(255,255,255,0.15)',
-                }}
-              />
-              <motion.div
-                animate={{ scale: cmActive ? [1, 1.15, 1] : [0.95, 1.02, 0.95] }}
-                transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
-                className="w-10 h-10 rounded-full border flex items-center justify-center"
-                style={{
-                  borderColor: cmActive ? 'rgba(126,158,204,0.8)' : 'rgba(255,255,255,0.3)',
-                  background: cmActive
-                    ? 'radial-gradient(circle, rgba(82,108,158,0.4) 0%, transparent 80%)'
-                    : 'transparent',
-                }}
+              {/* Floating Circular Down-Chevron Beacon */}
+              <div
+                className={`mt-1.5 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 ${
+                  cmActive
+                    ? 'bg-[#00A8FF] text-white shadow-[0_0_15px_#00A8FF] scale-110'
+                    : 'bg-cyan-500/10 text-cyan-500 border border-cyan-500/20'
+                }`}
               >
-                <div
-                  className="w-2 h-2 rounded-full"
-                  style={{
-                    backgroundColor: cmActive ? '#8EAEDD' : 'rgba(255,255,255,0.6)',
-                  }}
-                />
-              </motion.div>
+                <ChevronDown className="w-3.5 h-3.5" />
+              </div>
             </div>
           </div>
+        </div>
 
-          {/* Bottom Pillar Specs */}
-          <div className="flex items-center justify-between text-xs pt-6 border-t border-white/10">
-            <span
-              className={`font-mono text-[11px] transition-colors duration-500 ${
-                cmActive ? 'text-[#8EAEDD] font-bold' : 'text-neutral-400'
-              }`}
-            >
-              Fixed Aperture & 5-Band Acoustic DSP
-            </span>
-            <span
-              className="text-[10px] font-mono uppercase tracking-widest px-2.5 py-1 rounded-lg bg-white/5 text-neutral-300"
-              style={{
-                color: cmActive ? '#8EAEDD' : 'inherit',
-              }}
-            >
-              Press (C)
-            </span>
-          </div>
+        {/* ── 3. Choice Indicator (Lower Area) ── */}
+        <div className="mt-8 sm:mt-12 flex flex-col items-center text-center pointer-events-none">
+          <span
+            className="text-[11px] sm:text-xs font-mono uppercase tracking-[0.45em] font-bold transition-colors duration-500"
+            style={{
+              color: isDark ? 'rgba(236,238,242,0.45)' : 'rgba(26,26,24,0.45)',
+            }}
+          >
+            CHOOSE YOUR STREAM
+          </span>
+          <div
+            className="mt-2 w-8 h-[1px] mx-auto opacity-50"
+            style={{
+              background: isDark ? '#FFFFFF' : '#000000',
+            }}
+          />
         </div>
       </main>
 
@@ -644,7 +639,7 @@ export const ThresholdPortal: React.FC = () => {
         </div>
 
         <div className="text-[10px] font-mono uppercase tracking-widest text-neutral-500 hidden sm:block">
-          Press (S) for Settings
+          Press (U) / (C) to Choose • (S) for Settings
         </div>
       </footer>
 
@@ -657,7 +652,7 @@ export const ThresholdPortal: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-            style={{ background: isDark ? '#0A080A' : '#F5F2EC' }}
+            style={{ background: isDark ? '#0A0304' : '#FAF6F4' }}
           >
             <motion.div
               initial={{ opacity: 0, scale: 0.92 }}
@@ -665,7 +660,7 @@ export const ThresholdPortal: React.FC = () => {
               transition={{ duration: 0.3 }}
               className="text-center flex flex-col items-center gap-2"
             >
-              <span className="text-[10px] font-mono tracking-[0.35em] uppercase text-[#C7494F] font-bold">
+              <span className="text-[10px] font-mono tracking-[0.35em] uppercase text-[#E50914] font-bold">
                 Entering Discovery
               </span>
               <div className="font-cinematic-title font-black uppercase text-5xl sm:text-7xl text-neutral-900 dark:text-neutral-100">
@@ -682,7 +677,7 @@ export const ThresholdPortal: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-            style={{ background: '#050407' }}
+            style={{ background: '#020912' }}
           >
             <motion.div
               initial={{ opacity: 0, scale: 0.92 }}
@@ -690,7 +685,7 @@ export const ThresholdPortal: React.FC = () => {
               transition={{ duration: 0.3 }}
               className="text-center flex flex-col items-center gap-2"
             >
-              <span className="text-[10px] font-mono tracking-[0.35em] uppercase text-[#7E9ECC] font-bold">
+              <span className="text-[10px] font-mono tracking-[0.35em] uppercase text-[#00A8FF] font-bold">
                 Opening Aperture
               </span>
               <div className="font-cinematic-title font-black uppercase text-5xl sm:text-7xl text-[#F0EEE8]">
@@ -753,7 +748,7 @@ export const ThresholdPortal: React.FC = () => {
                   onClick={() => {
                     omsTransitionService.executeUTubeResume(carriedContext, navigate);
                   }}
-                  className="px-3.5 py-1.5 rounded-xl bg-[#C7494F] hover:opacity-90 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-md cursor-pointer hover:scale-105"
+                  className="px-3.5 py-1.5 rounded-xl bg-[#E50914] hover:opacity-90 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-md cursor-pointer hover:scale-105"
                   title="Resume in U-Tube Standard Player"
                 >
                   <Tv className="w-3.5 h-3.5" />
