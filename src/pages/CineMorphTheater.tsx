@@ -99,12 +99,66 @@ export function CineMorphTheater() {
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Audio/Video track selections (must be here at top with all other hooks — NOT after derived state)
+  // Audio/Video track selections
   const [selectedAudioTrackId, setSelectedAudioTrackId] = useState<string>('audio-main');
   const [selectedVideoTrackId, setSelectedVideoTrackId] = useState<string>('vid-auto');
 
-  // Curved screen activation for original mode (must be with all hooks — NOT after handler functions)
+  // Curved screen activation for original mode
   const [curvedScreenActive, setCurvedScreenActive] = useState(false);
+
+  // Scrubber Hover Tooltip state
+  const [hoverTime, setHoverTime] = useState<number | null>(null);
+  const [hoverPosPercent, setHoverPosPercent] = useState<number | null>(null);
+
+  // Real detected audio and video tracks (No fake tracks)
+  const audioTrackOptions = React.useMemo(() => {
+    if (isLocalMedia && localVideoRef.current && (localVideoRef.current as any).audioTracks?.length > 1) {
+      const trks = (localVideoRef.current as any).audioTracks;
+      return Array.from(trks).map((t: any, i: number) => ({
+        id: `audio-${i}`,
+        label: t.label || `Audio Track ${i + 1}`,
+        language: t.language || 'Native',
+        channels: 'Multi-Channel'
+      }));
+    }
+    return [
+      { id: 'audio-main', label: 'Native Source Audio', language: 'Default / Original', channels: 'Standard' }
+    ];
+  }, [isLocalMedia]);
+
+  const videoTrackOptions = React.useMemo(() => {
+    if (isLocalMedia && localVideoRef.current && (localVideoRef.current as any).videoTracks?.length > 1) {
+      const trks = (localVideoRef.current as any).videoTracks;
+      return Array.from(trks).map((t: any, i: number) => ({
+        id: `vid-${i}`,
+        label: t.label || `Video Stream ${i + 1}`,
+        resolution: 'Native',
+        fps: '',
+        bitrate: 'Lossless'
+      }));
+    }
+    return [
+      { id: 'vid-auto', label: 'Native Video Stream', resolution: 'Original Source', fps: '', bitrate: 'Default' }
+    ];
+  }, [isLocalMedia]);
+
+  const showToast = useCallback((msg: string) => {
+    setHudToast(msg);
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = setTimeout(() => setHudToast(null), 2500);
+  }, []);
+
+  // Send postMessage commands to YouTube IFrame
+  const sendIframeCommand = useCallback((func: string, args: any[] = []) => {
+    try {
+      if (iframeRef.current?.contentWindow) {
+        iframeRef.current.contentWindow.postMessage(
+          JSON.stringify({ event: 'command', func, args }),
+          '*'
+        );
+      }
+    } catch (e) {}
+  }, []);
 
   // Reset player state on video ID change
   useEffect(() => {
@@ -151,28 +205,6 @@ export function CineMorphTheater() {
     setPlaying(true);
     navigate(`/theater/${localId}`);
   };
-
-  // Scrubber Hover Tooltip state
-  const [hoverTime, setHoverTime] = useState<number | null>(null);
-  const [hoverPosPercent, setHoverPosPercent] = useState<number | null>(null);
-
-  const showToast = useCallback((msg: string) => {
-    setHudToast(msg);
-    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
-    toastTimerRef.current = setTimeout(() => setHudToast(null), 2500);
-  }, []);
-
-  // Send postMessage commands to YouTube IFrame
-  const sendIframeCommand = useCallback((func: string, args: any[] = []) => {
-    try {
-      if (iframeRef.current?.contentWindow) {
-        iframeRef.current.contentWindow.postMessage(
-          JSON.stringify({ event: 'command', func, args }),
-          '*'
-        );
-      }
-    } catch (e) {}
-  }, []);
 
   // ── Curtain Sequence ────────────────────────────────────────────────────────
   useEffect(() => {
@@ -681,39 +713,6 @@ export function CineMorphTheater() {
   // Intelligence metadata
   const aiSummary = video ? generateAISummary(video) : null;
   const scriptChunks = video ? extractVideoScript(video) : [];
-
-  // Real detected audio and video tracks (No fake tracks)
-  // useMemo is safe here — not a useState (order-sensitive hook)
-  const audioTrackOptions = React.useMemo(() => {
-    if (isLocalMedia && localVideoRef.current && (localVideoRef.current as any).audioTracks?.length > 1) {
-      const trks = (localVideoRef.current as any).audioTracks;
-      return Array.from(trks).map((t: any, i: number) => ({
-        id: `audio-${i}`,
-        label: t.label || `Audio Track ${i + 1}`,
-        language: t.language || 'Native',
-        channels: 'Multi-Channel'
-      }));
-    }
-    return [
-      { id: 'audio-main', label: 'Native Source Audio', language: 'Default / Original', channels: 'Standard' }
-    ];
-  }, [isLocalMedia]);
-
-  const videoTrackOptions = React.useMemo(() => {
-    if (isLocalMedia && localVideoRef.current && (localVideoRef.current as any).videoTracks?.length > 1) {
-      const trks = (localVideoRef.current as any).videoTracks;
-      return Array.from(trks).map((t: any, i: number) => ({
-        id: `vid-${i}`,
-        label: t.label || `Video Stream ${i + 1}`,
-        resolution: 'Native',
-        fps: '',
-        bitrate: 'Lossless'
-      }));
-    }
-    return [
-      { id: 'vid-auto', label: 'Native Video Stream', resolution: 'Original Source', fps: '', bitrate: 'Default' }
-    ];
-  }, [isLocalMedia]);
 
   // Screen click handler: hide controls/drawers if open; enter fullscreen if closed
   const handleScreenClick = (e: React.MouseEvent) => {

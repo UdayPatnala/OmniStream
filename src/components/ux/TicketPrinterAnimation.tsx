@@ -240,18 +240,15 @@ export const TicketPrinterAnimation: React.FC<TicketPrinterAnimationProps> = ({
     };
   }, [isPrintingAnimationActive, activeTicket?.ticketId]);
 
-  if (!isPrintingAnimationActive) return null;
-
   const handleSkipOrTakeTicket = () => {
     cancelPrintAnimation();
     onSkip?.();
     onComplete?.();
   };
 
-  const paperTranslateY = `${-100 + printProgress}%`;
-
   // Keyboard Escape shortcut to skip intro instantly
   useEffect(() => {
+    if (!isPrintingAnimationActive) return;
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.preventDefault();
@@ -260,7 +257,11 @@ export const TicketPrinterAnimation: React.FC<TicketPrinterAnimationProps> = ({
     };
     window.addEventListener('keydown', handleEsc);
     return () => window.removeEventListener('keydown', handleEsc);
-  }, []);
+  }, [isPrintingAnimationActive, onSkip, onComplete, cancelPrintAnimation]);
+
+  if (!isPrintingAnimationActive) return null;
+
+  const paperTranslateY = `${-100 + printProgress}%`;
 
   return (
     <div
