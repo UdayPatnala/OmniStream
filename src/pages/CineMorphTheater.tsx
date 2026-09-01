@@ -219,7 +219,7 @@ export function CineMorphTheater() {
   }, []);
 
   const screenContainerRef = useRef<HTMLDivElement>(null);
-  const [spaceBelowScreen, setSpaceBelowScreen] = useState<number>(128);
+  const [spaceBelowScreen, setSpaceBelowScreen] = useState<number>(48);
 
   // ── Derived mode flags — MUST be declared before any hook that references them ──────
   // These only depend on store/state values that are already initialized above.
@@ -1124,100 +1124,26 @@ export function CineMorphTheater() {
         </div>
       </div>
 
-      {/* ── 3-Tier Natural Cinema Auditorium Seating with Realistic Theater Perspective ── */}
+      {/* ── Natural Cinema Auditorium Foreground Seating ── */}
       {theaterSeatingEnabled && (
         <div 
-          className={`absolute bottom-0 inset-x-0 pointer-events-none z-10 flex flex-col justify-end items-center px-4 sm:px-12 select-none transition-all duration-500 pb-2 sm:pb-3 ${
+          className={`absolute bottom-0 inset-x-0 pointer-events-none z-10 flex flex-col justify-end items-center px-4 sm:px-12 select-none transition-all duration-500 pb-1 sm:pb-2 ${
             isOriginalMode
               ? ''
               : frameAspectRatio === '1.43:1' 
-              ? 'h-16 sm:h-20' 
-              : 'h-24 sm:h-32'
+              ? 'h-8 sm:h-10' 
+              : 'h-10 sm:h-12'
           }`}
           style={isOriginalMode ? {
-            height: '128px',
-            transform: `scale(${Math.min(1, Math.max(0, spaceBelowScreen / 128))})`,
+            height: '48px',
+            transform: `scale(${Math.min(1, Math.max(0, spaceBelowScreen / 48))})`,
             transformOrigin: 'bottom center'
           } : undefined}
         >
           {/* Subtle Carpeted Center Aisle Runway Glow */}
-          <div className="w-10 sm:w-20 h-1 bg-gradient-to-r from-transparent via-amber-600/20 to-transparent mb-1.5 rounded-full pointer-events-none" />
+          <div className="w-10 sm:w-20 h-1 bg-gradient-to-r from-transparent via-amber-600/20 to-transparent mb-1 rounded-full pointer-events-none" />
 
-          {/* Row C (Back Tier - Upper Riser) */}
-          <div 
-            className={`w-full max-w-3xl flex justify-between items-end gap-2 sm:gap-4 transition-all duration-500 mb-1 sm:mb-1.5 ${
-              frameAspectRatio === '1.43:1' ? 'opacity-25 scale-85' : 'opacity-40 scale-90 sm:scale-95'
-            }`}
-          >
-            {/* Left Bank Row C */}
-            <div className="flex-1 flex gap-1 sm:gap-2 justify-end">
-              {[1, 2, 3, 4, 5, 6].map((s) => (
-                <div
-                  key={`seat-c-l-${s}`}
-                  className={`flex-1 max-w-[42px] rounded-t-md bg-gradient-to-b from-[#1c0409] via-[#0d0103] to-[#020001] border-t border-rose-950/20 relative flex flex-col items-center justify-start pt-0.5 shadow-md ${
-                    frameAspectRatio === '1.43:1' ? 'h-2.5 sm:h-3.5' : 'h-3.5 sm:h-4.5'
-                  }`}
-                >
-                  <div className="w-[70%] h-1.5 rounded-t bg-gradient-to-b from-[#28060d] to-[#120205] border-t border-rose-900/15" />
-                </div>
-              ))}
-            </div>
-            {/* Center Aisle */}
-            <div className={`w-6 sm:w-10 ${frameAspectRatio === '1.43:1' ? 'h-0.5' : 'h-1'}`} />
-            {/* Right Bank Row C */}
-            <div className="flex-1 flex gap-1 sm:gap-2 justify-start">
-              {[1, 2, 3, 4, 5, 6].map((s) => (
-                <div
-                  key={`seat-c-r-${s}`}
-                  className={`flex-1 max-w-[42px] rounded-t-md bg-gradient-to-b from-[#1c0409] via-[#0d0103] to-[#020001] border-t border-rose-950/20 relative flex flex-col items-center justify-start pt-0.5 shadow-md ${
-                    frameAspectRatio === '1.43:1' ? 'h-2.5 sm:h-3.5' : 'h-3.5 sm:h-4.5'
-                  }`}
-                >
-                  <div className="w-[70%] h-1.5 rounded-t bg-gradient-to-b from-[#28060d] to-[#120205] border-t border-rose-900/15" />
-                </div>
-              ))}
-            </div>
-          </div>
 
-          {/* Row B (Mid-ground Tier) */}
-          <div 
-            className={`w-full max-w-5xl flex justify-between items-end gap-2.5 sm:gap-5 transition-all duration-500 mb-1 sm:mb-2 ${
-              frameAspectRatio === '1.43:1' ? 'opacity-35 scale-95' : 'opacity-65 scale-95 sm:scale-100'
-            }`}
-          >
-            {/* Left Bank Row B */}
-            <div className="flex-1 flex gap-1.5 sm:gap-2 justify-end">
-              {[1, 2, 3, 4, 5, 6, 7].map((s) => (
-                <div
-                  key={`seat-b-l-${s}`}
-                  className={`flex-1 max-w-[52px] rounded-t-md bg-gradient-to-b from-[#25050c] via-[#120205] to-[#030001] border-t border-rose-900/30 relative flex flex-col items-center justify-start pt-0.5 shadow-lg ${
-                    frameAspectRatio === '1.43:1' ? 'h-3.5 sm:h-5' : 'h-5.5 sm:h-7'
-                  }`}
-                >
-                  <div className="w-[75%] h-2 rounded-t bg-gradient-to-b from-[#350811] to-[#160307] border-t border-rose-800/20" />
-                  <div className="absolute -left-0.5 bottom-0 w-0.5 h-2.5 sm:h-3 bg-[#080102]" />
-                  <div className="absolute -right-0.5 bottom-0 w-0.5 h-2.5 sm:h-3 bg-[#080102]" />
-                </div>
-              ))}
-            </div>
-            {/* Center Aisle */}
-            <div className={`w-7 sm:w-12 ${frameAspectRatio === '1.43:1' ? 'h-0.5' : 'h-1'}`} />
-            {/* Right Bank Row B */}
-            <div className="flex-1 flex gap-1.5 sm:gap-2 justify-start">
-              {[1, 2, 3, 4, 5, 6, 7].map((s) => (
-                <div
-                  key={`seat-b-r-${s}`}
-                  className={`flex-1 max-w-[52px] rounded-t-md bg-gradient-to-b from-[#25050c] via-[#120205] to-[#030001] border-t border-rose-900/30 relative flex flex-col items-center justify-start pt-0.5 shadow-lg ${
-                    frameAspectRatio === '1.43:1' ? 'h-3.5 sm:h-5' : 'h-5.5 sm:h-7'
-                  }`}
-                >
-                  <div className="w-[75%] h-2 rounded-t bg-gradient-to-b from-[#350811] to-[#160307] border-t border-rose-800/20" />
-                  <div className="absolute -left-0.5 bottom-0 w-0.5 h-2.5 sm:h-3 bg-[#080102]" />
-                  <div className="absolute -right-0.5 bottom-0 w-0.5 h-2.5 sm:h-3 bg-[#080102]" />
-                </div>
-              ))}
-            </div>
-          </div>
 
           {/* Row A (Foreground VIP Recliner Tier) */}
           <div 
