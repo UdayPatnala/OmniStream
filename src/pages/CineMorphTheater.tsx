@@ -12,7 +12,7 @@ import { useAppStore } from '../store';
 import { useTicketStore } from '../state/useTicketStore';
 import { AspectRatioMode } from '../state/useCineMorphStore';
 import { omsTransitionService } from '../services/omsTransitionService';
-import { getVideosByIds, getRelatedVideos } from '../lib/youtube';
+import { getVideosByIds } from '../lib/youtube';
 import { Video, AudioPreset, FrameAspectRatio, CineMorphTheme, GlowIntensity, LocalMediaItem } from '../types';
 import { OMSLogo } from '../components/common/OMSLogo';
 import {
@@ -98,8 +98,6 @@ export function CineMorphTheater() {
   const bloomRef = useRef<HTMLDivElement>(null);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [recommendations, setRecommendations] = useState<Video[]>([]);
-  const [nextUpCountdown, setNextUpCountdown] = useState<number | null>(null);
 
   // Audio/Video track selections (must be here at top with all other hooks — NOT after derived state)
   const [selectedAudioTrackId, setSelectedAudioTrackId] = useState<string>('audio-main');
@@ -108,16 +106,12 @@ export function CineMorphTheater() {
   // Curved screen activation for original mode (must be with all hooks — NOT after handler functions)
   const [curvedScreenActive, setCurvedScreenActive] = useState(false);
 
-  // Fetch recommendations & reset player state on video ID change
+  // Reset player state on video ID change
   useEffect(() => {
     if (!id) return;
     setPlayed(0);
     setTheaterState('playing');
     setPlaying(true);
-    setNextUpCountdown(null);
-    getRelatedVideos(id, video?.title || '').then(vids => {
-      setRecommendations(vids.slice(0, 4));
-    }).catch(() => {});
   }, [id]);
 
   // Back Button Trap for Drawers & Modals (YouTube Mobile Web Spec Technique 7.1)
@@ -134,36 +128,6 @@ export function CineMorphTheater() {
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, [showTracksDrawer, showStudioDrawer, showShortcuts]);
-
-  // End-Screen Auto-Play countdown timer
-  useEffect(() => {
-    if (theaterState !== 'ended') {
-      setNextUpCountdown(null);
-      return;
-    }
-
-    setNextUpCountdown(10);
-    const interval = setInterval(() => {
-      setNextUpCountdown((count) => {
-        if (count === null) return null;
-        if (count <= 1) {
-          clearInterval(interval);
-          if (recommendations.length > 0) {
-            const nextVid = recommendations[0];
-            setActiveVideo(nextVid);
-            setShowIntroBumper(false);
-            setTheaterState('playing');
-            setPlaying(true);
-            navigate(`/theater/${nextVid.id}`);
-          }
-          return null;
-        }
-        return count - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [theaterState, recommendations, navigate, setActiveVideo]);
 
   const handleDirectLocalUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -1042,63 +1006,27 @@ export function CineMorphTheater() {
                 className="hidden"
               />
 
-              {/* End Screen Header */}
-              <div className="text-center space-y-1.5 mt-2">
-                <div className="flex items-center justify-center gap-2 text-amber-700 text-xs font-bold uppercase tracking-widest">
-                  <Sparkles className="w-4 h-4 text-amber-700" />
-                  <span>Cinema Session Completed</span>
+              {/* End Screen Theatrical Curtain Call */}
+              <div className="text-center space-y-3 mt-4 max-w-lg">
+                <div className="flex items-center justify-center gap-2 text-amber-500 text-xs font-bold uppercase tracking-[0.2em]">
+                  <Sparkles className="w-4 h-4 text-amber-500" />
+                  <span>Feature Presentation Complete</span>
                 </div>
-                <h3 className="text-xl sm:text-2xl font-black text-[#3d332a] tracking-tight">
-                  What would you like to watch next?
+                <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight line-clamp-2">
+                  {video?.title || localItem?.name || 'Feature Presentation'}
                 </h3>
-                {nextUpCountdown !== null && (
-                  <p className="text-xs text-amber-800 font-mono">
-                    Auto-playing next recommended stream in <span className="font-bold text-amber-800 text-sm">{nextUpCountdown}s</span>
-                  </p>
-                )}
-              </div>
-
-              {/* Recommended Stream Cards */}
-              <div className="w-full max-w-4xl grid grid-cols-2 sm:grid-cols-4 gap-3 my-4">
-                {recommendations.slice(0, 4).map((rec) => (
-                  <div
-                    key={rec.id}
-                    onClick={() => {
-                      setNextUpCountdown(null);
-                      useAppStore.getState().setActiveVideo(rec);
-                      setShowIntroBumper(false);
-                      setTheaterState('playing');
-                      setPlaying(true);
-                      navigate(`/theater/${rec.id}`);
-                    }}
-                    className="group relative bg-white rounded-xl border border-amber-900/10 overflow-hidden cursor-pointer hover:border-cyan-500/50 transition-all hover:scale-105 shadow-lg"
-                  >
-                    <div className="aspect-video w-full relative overflow-hidden bg-amber-900/5">
-                      <img
-                        src={rec.thumbnails.medium || rec.thumbnails.high}
-                        alt={rec.title}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                      />
-                      <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-                        <Play className="w-6 h-6 text-[#3d332a] drop-shadow-lg group-hover:scale-125 transition-transform" />
-                      </div>
-                    </div>
-                    <div className="p-2.5 space-y-1">
-                      <h4 className="text-xs font-bold text-[#3d332a] line-clamp-1 group-hover:text-amber-800 transition-colors">
-                        {rec.title}
-                      </h4>
-                      <p className="text-[10px] text-amber-900/60 line-clamp-1">{rec.channelTitle}</p>
-                    </div>
-                  </div>
-                ))}
+                <div className="flex items-center justify-center gap-3 text-xs text-white/50 font-mono">
+                  <span>Aperture: {aspectRatio}</span>
+                  <span>•</span>
+                  <span>Audio: {audioPreset.toUpperCase()}</span>
+                </div>
               </div>
 
               {/* Action Buttons Bar */}
-              <div className="flex flex-wrap items-center justify-center gap-3 mb-2">
+              <div className="flex flex-wrap items-center justify-center gap-3.5 my-8">
                 {/* Replay Movie */}
                 <button
                   onClick={() => {
-                    setNextUpCountdown(null);
                     setPlayed(0);
                     if (id) {
                       useAppStore.getState().saveWatchPosition(id, 0, duration);
@@ -1123,31 +1051,32 @@ export function CineMorphTheater() {
                     setTheaterState('playing');
                     setPlaying(true);
                   }}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-amber-700 hover:bg-amber-600 text-[#3d332a] font-bold text-xs shadow-lg shadow-amber-900/20 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                  className="flex items-center gap-2 px-6 py-3 rounded-full bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs shadow-xl shadow-amber-900/30 transition-all hover:scale-105 active:scale-95 cursor-pointer"
                 >
                   <RotateCcw className="w-4 h-4" />
-                  <span>Replay Movie</span>
+                  <span>Replay Feature</span>
                 </button>
 
-                {/* Select Local Video File */}
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-amber-800 hover:bg-purple-500 text-[#3d332a] font-bold text-xs shadow-lg shadow-amber-900/20 transition-all hover:scale-105 active:scale-95 cursor-pointer"
-                >
-                  <HardDrive className="w-4 h-4" />
-                  <span>Play Local Video File</span>
-                </button>
-
-                {/* Pause Auto-Play Countdown */}
-                {nextUpCountdown !== null && (
+                {/* Return to U-Tube Standard Player (Contextual OMS Return) */}
+                {video && !isLocalMedia && (
                   <button
-                    onClick={() => setNextUpCountdown(null)}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-amber-900/10 hover:bg-amber-900/20 text-amber-900/80 hover:text-[#3d332a] font-semibold text-xs transition-all cursor-pointer"
+                    onClick={handoffToUTube}
+                    className="flex items-center gap-2 px-5 py-3 rounded-full bg-white/10 hover:bg-white/20 text-white font-semibold text-xs border border-white/15 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                    title="Return to standard U-Tube player at current timestamp"
                   >
-                    <Pause className="w-3.5 h-3.5" />
-                    <span>Pause Auto-Play</span>
+                    <Tv className="w-4 h-4 text-utube-primary" />
+                    <span>Watch in Standard Player</span>
                   </button>
                 )}
+
+                {/* Return to CineMorph Hall */}
+                <button
+                  onClick={exitTheater}
+                  className="flex items-center gap-2 px-5 py-3 rounded-full bg-white/5 hover:bg-white/10 text-white/70 hover:text-white font-medium text-xs border border-white/10 transition-all cursor-pointer"
+                >
+                  <Film className="w-4 h-4" />
+                  <span>CineMorph Ingest Hall</span>
+                </button>
               </div>
             </div>
           )}
