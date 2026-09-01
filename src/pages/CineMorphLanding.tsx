@@ -1,13 +1,12 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { 
-  Sparkles, HardDrive, UploadCloud, RefreshCw, X, Ticket, 
+  Sparkles, RefreshCw, X, Ticket, 
   Disc, Clapperboard, Layers, Play, Clock, ArrowRight
 } from 'lucide-react';
 import { useAppStore } from '../store';
 import { LocalMediaItem } from '../types';
 import { useTicketStore } from '../state/useTicketStore';
-import { OMSLogo } from '../components/common/OMSLogo';
 
 export function CineMorphLanding() {
   const [loading, setLoading] = useState(false);
@@ -81,10 +80,6 @@ export function CineMorphLanding() {
     }
   };
 
-  const recentLocalList = Object.values(localMediaHistory)
-    .sort((a, b) => b.lastWatchedAt - a.lastWatchedAt)
-    .slice(0, 4);
-
   return (
     <div className="min-h-screen w-full bg-cinemorph-bg text-cinemorph-text flex flex-col items-center justify-between p-4 sm:p-8 relative overflow-hidden select-none font-cinematic">
       {/* Top Bar: Ecosystem Escape */}
@@ -126,75 +121,88 @@ export function CineMorphLanding() {
       </div>
 
       {/* Main Ingestion & Admission Gateway Panel */}
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-center w-full max-w-4xl my-8">
-        <div className="mb-4">
-          <OMSLogo variant="light" size="xl" animated={true} />
-        </div>
-
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cinemorph-primary/15 text-cinemorph-primary text-[10px] font-bold tracking-[0.2em] uppercase border border-cinemorph-primary/30 shadow-sm mb-4">
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-center w-full max-w-2xl my-8">
+        
+        {/* Subtle Mode Badge */}
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cinemorph-primary/15 text-cinemorph-primary text-[10px] font-bold tracking-[0.2em] uppercase border border-cinemorph-primary/30 shadow-sm mb-6">
           <Sparkles className="w-3.5 h-3.5" />
           <span>Virtual Theater Ingestion Hall</span>
         </div>
 
-        <h1 className="text-4xl sm:text-6xl font-black tracking-widest text-cinemorph-text text-center mb-4 drop-shadow-sm font-cinematic-title uppercase">
-          Cine<span className="text-cinemorph-primary">Morph</span>
-        </h1>
-        
-        <p className="text-center text-cinemorph-text-secondary max-w-lg text-sm sm:text-base mb-8 font-medium tracking-wide leading-relaxed">
-          Step into a grand theatrical auditorium with velvet curtains, fixed IMAX apertures, and client-side smart framing.
-        </p>
-
-        {/* Primary Media Ingest Card */}
-        <div className="w-full max-w-xl bg-cinemorph-card border border-cinemorph-border rounded-3xl p-6 sm:p-8 shadow-2xl shadow-cinemorph-primary/5 flex flex-col items-center text-center backdrop-blur-xl">
-          
-          <div 
-            className={`w-full py-10 px-6 rounded-2xl border-2 border-dashed transition-all cursor-pointer flex flex-col items-center justify-center gap-4 ${
-              dragOver 
-                ? 'border-cinemorph-primary bg-cinemorph-primary/10 scale-[1.02]' 
-                : 'border-cinemorph-border bg-cinemorph-surface/50 hover:border-cinemorph-primary/60 hover:bg-cinemorph-surface'
-            }`}
+        {/* ── The CineMorph Artwork Portal (Interactive Image Button) ── */}
+        <div className="w-full flex flex-col items-center text-center">
+          <button
+            type="button"
+            disabled={loading}
+            aria-label="Import local video or audio file into CineMorph theater"
+            onClick={() => fileInputRef.current?.click()}
             onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
             onDragLeave={() => setDragOver(false)}
             onDrop={handleDrop}
-            onClick={() => fileInputRef.current?.click()}
+            className={`group relative w-full max-w-[360px] sm:max-w-[440px] p-2 sm:p-4 rounded-3xl transition-all duration-500 cursor-pointer flex flex-col items-center justify-center outline-none focus-visible:ring-2 focus-visible:ring-cinemorph-primary focus-visible:ring-offset-4 focus-visible:ring-offset-cinemorph-bg ${
+              dragOver
+                ? 'scale-105 shadow-[0_0_60px_rgba(82,108,158,0.45)]'
+                : 'hover:scale-[1.03] active:scale-[0.98]'
+            }`}
           >
+            {/* Real Accessible File Input (Visually Hidden) */}
             <input
               ref={fileInputRef}
               type="file"
-              className="hidden"
-              accept="video/*,audio/*,.mkv,.ts,.m3u8,.avi,.mp4"
+              tabIndex={-1}
+              className="sr-only"
+              aria-hidden="true"
+              accept="video/*,audio/*,.mkv,.ts,.m3u8,.avi,.mp4,.mov,.webm,.flv"
               onChange={(e) => {
                 if (e.target.files && e.target.files.length > 0) {
                   handleLocalFileSelect(e.target.files[0]);
                 }
               }}
             />
-            
-            <div className="w-16 h-16 rounded-full bg-cinemorph-primary/10 border border-cinemorph-primary/20 flex items-center justify-center shadow-inner">
-              <UploadCloud className={`w-8 h-8 text-cinemorph-primary transition-transform ${dragOver ? 'scale-110 animate-bounce' : ''}`} />
+
+            {/* Ambient Volumetric Backlight Behind Artwork */}
+            <div 
+              className={`absolute inset-0 rounded-full blur-3xl transition-all duration-700 pointer-events-none ${
+                dragOver
+                  ? 'bg-cinemorph-primary/35 scale-110'
+                  : 'bg-cinemorph-primary/15 group-hover:bg-cinemorph-primary/25 group-hover:scale-105'
+              }`}
+            />
+
+            {/* The CineMorph Artwork Itself (The Interactive Object) */}
+            <div className="relative z-10 w-full aspect-square flex items-center justify-center">
+              <img
+                src="/cinemorph_artwork.png"
+                alt="CineMorph AI — Every Frame. Intelligently Reimagined."
+                draggable={false}
+                className={`w-full h-full object-contain filter transition-all duration-500 drop-shadow-[0_15px_35px_rgba(0,0,0,0.15)] ${
+                  dragOver
+                    ? 'brightness-110 drop-shadow-[0_0_45px_rgba(82,108,158,0.65)]'
+                    : 'group-hover:brightness-105 group-hover:drop-shadow-[0_0_35px_rgba(82,108,158,0.35)]'
+                }`}
+              />
+
+              {/* Ingestion Loading / Processing Overlay */}
+              {loading && (
+                <div className="absolute inset-0 rounded-3xl bg-black/40 backdrop-blur-sm flex flex-col items-center justify-center gap-3 animate-in fade-in duration-200">
+                  <RefreshCw className="w-8 h-8 text-white animate-spin" />
+                  <span className="text-xs font-mono font-bold tracking-widest text-white uppercase bg-black/60 px-4 py-1.5 rounded-full border border-white/20">
+                    Preparing Admission...
+                  </span>
+                </div>
+              )}
             </div>
 
-            <div className="space-y-1">
-              <h3 className="text-base font-bold text-cinemorph-text">
-                {dragOver ? 'Drop file to enter theater' : 'Select or Drop Local Media'}
-              </h3>
-              <p className="text-xs text-cinemorph-text-secondary max-w-xs font-sans">
-                Supports MP4, MKV, WebM, MOV, and high-bitrate audio. 100% private, client-side decoding.
-              </p>
+            {/* Minimal Secondary Supporting Cue */}
+            <div className="relative z-10 mt-1 flex items-center gap-2 text-cinemorph-text-muted group-hover:text-cinemorph-primary transition-colors font-mono text-[11px] uppercase tracking-[0.25em] font-semibold">
+              <Sparkles className="w-3.5 h-3.5 text-cinemorph-primary group-hover:rotate-12 transition-transform duration-300" />
+              <span>{dragOver ? 'Drop Media to Enter' : 'Click or Drop Media to Enter'}</span>
             </div>
+          </button>
 
-            <button
-              type="button"
-              disabled={loading}
-              className="px-6 py-2 rounded-full bg-cinemorph-primary hover:bg-cinemorph-primary/90 text-white text-xs font-bold tracking-wider uppercase transition-all shadow-md active:scale-95 flex items-center gap-2 cursor-pointer mt-2"
-            >
-              {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <HardDrive className="w-4 h-4" />}
-              <span>{loading ? 'Processing Ticket...' : 'Browse Local Media'}</span>
-            </button>
-          </div>
-
+          {/* Graceful Error Feedback */}
           {localFileError && (
-            <div className="mt-4 px-4 py-2 bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-semibold rounded-xl flex items-center gap-2">
+            <div className="mt-4 px-4 py-2 bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-semibold rounded-xl flex items-center gap-2 animate-in fade-in duration-200">
               <X className="w-4 h-4 shrink-0" />
               <span>{localFileError}</span>
             </div>
@@ -202,7 +210,7 @@ export function CineMorphLanding() {
 
           {/* Admission Tickets Shelf for 1-click resumption */}
           {tickets.length > 0 && (
-            <div className="w-full mt-6 pt-6 border-t border-cinemorph-border text-left space-y-3">
+            <div className="w-full max-w-lg mt-8 pt-6 border-t border-cinemorph-border/60 text-left space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-bold text-cinemorph-text-muted uppercase tracking-widest flex items-center gap-1.5 font-mono">
                   <Ticket className="w-3.5 h-3.5 text-cinemorph-primary" />
