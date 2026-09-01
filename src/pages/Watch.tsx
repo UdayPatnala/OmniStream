@@ -140,7 +140,7 @@ export function Watch() {
 
   const handleOMSTransition = async () => {
     if (!video) return;
-    await omsTransitionService.executeUTubeToCineMorphHandoff(
+    omsTransitionService.captureAndHandoffToGateway(
       {
         video,
         currentTime: livePlayerTime,

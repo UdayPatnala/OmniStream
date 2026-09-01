@@ -33,10 +33,11 @@ import React, {
 } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { Sliders, Sun, Moon, Laptop, WifiOff } from 'lucide-react';
+import { Sliders, Sun, Moon, Laptop, WifiOff, Sparkles, X, Tv, Film } from 'lucide-react';
 import { GlobalSettingsDrawer } from '../settings/GlobalSettingsDrawer';
 import { useAppStore } from '../../store';
 import { useCineMorphStore } from '../../state/useCineMorphStore';
+import { omsTransitionService, OMSTransitionContext } from '../../services/omsTransitionService';
 
 // ─── Session ──────────────────────────────────────────────────────────────────
 const SESSION_KEY = 'oms_threshold_v3_seen';
@@ -67,6 +68,9 @@ export const ThresholdPortal: React.FC = () => {
   const [focus,    setFocus]    = useState<Zone | null>(null);
   const [entering, setEntering] = useState<EnterState>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [carriedContext, setCarriedContext] = useState<OMSTransitionContext | null>(() =>
+    omsTransitionService.getActiveContext()
+  );
   const [introComplete, setIntroComplete] = useState<boolean>(() =>
     typeof window !== 'undefined' && sessionStorage.getItem(SESSION_KEY) === 'true'
   );
@@ -883,6 +887,81 @@ export const ThresholdPortal: React.FC = () => {
                 CINEMORPH
               </div>
             </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ─── OMS Carried Viewing Context Bar (Intentional Destination Choice) ─── */}
+      <AnimatePresence>
+        {carriedContext && (
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 24 }}
+            transition={{ duration: 0.25 }}
+            className="fixed bottom-6 inset-x-0 mx-auto w-full max-w-xl px-4 z-40"
+          >
+            <div
+              className={`p-3 rounded-2xl border backdrop-blur-2xl shadow-2xl flex items-center justify-between gap-3 ${
+                isDark
+                  ? 'bg-[#12131a]/95 border-white/15 text-white shadow-black/80'
+                  : 'bg-white/95 border-black/10 text-neutral-900 shadow-neutral-500/20'
+              }`}
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-11 h-11 rounded-xl overflow-hidden bg-black/20 shrink-0 border border-white/10">
+                  <img
+                    src={carriedContext.thumbnailUrl}
+                    alt={carriedContext.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5 text-[10px] uppercase font-bold tracking-wider text-amber-500 font-mono">
+                    <Sparkles className="w-3 h-3" />
+                    <span>Carried Media Context</span>
+                  </div>
+                  <p className="text-xs font-bold truncate max-w-[180px] sm:max-w-[260px]">
+                    {carriedContext.title}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={() => {
+                    omsTransitionService.executeCineMorphEntry(carriedContext, navigate);
+                  }}
+                  className="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-md cursor-pointer border border-slate-600/50 hover:scale-105"
+                  title="Transform into CineMorph Virtual Theater"
+                >
+                  <Film className="w-3.5 h-3.5 text-slate-300" />
+                  <span>CineMorph</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    omsTransitionService.executeUTubeResume(carriedContext, navigate);
+                  }}
+                  className="px-3.5 py-1.5 rounded-xl bg-[#C7494F] hover:opacity-90 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-md cursor-pointer hover:scale-105"
+                  title="Resume in U-Tube Standard Player"
+                >
+                  <Tv className="w-3.5 h-3.5" />
+                  <span>U-Tube</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    omsTransitionService.clearActiveContext();
+                    setCarriedContext(null);
+                  }}
+                  className="p-1.5 rounded-lg hover:bg-black/10 dark:hover:bg-white/10 text-neutral-400 hover:text-neutral-200 transition-colors cursor-pointer"
+                  title="Dismiss Context"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

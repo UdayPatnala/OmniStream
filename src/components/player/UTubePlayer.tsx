@@ -337,9 +337,9 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
   ]);
 
   // OMS Contextual Experience Handoff
-  const handleOMSHandoff = async () => {
-    showToast('✨ Initiating OMS Experience Handoff...');
-    await omsTransitionService.executeUTubeToCineMorphHandoff(
+  const handleOMSHandoff = () => {
+    showToast('✨ Preserving context & opening OmniStream...');
+    omsTransitionService.captureAndHandoffToGateway(
       {
         video,
         currentTime,
@@ -494,11 +494,11 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
               {/* OMS Contextual Handoff Trigger */}
               <button
                 onClick={handleOMSHandoff}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black text-xs font-black tracking-wide shadow-lg shadow-amber-500/20 hover:scale-105 transition-all cursor-pointer font-cinematic"
-                title="Transition active viewing context to CineMorph Virtual Theater"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/20 text-xs font-semibold backdrop-blur-md transition-all hover:scale-105 cursor-pointer shadow-md"
+                title="Preserve active viewing context and open OmniStream transition hub"
               >
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>OMS Handoff</span>
+                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                <span>OMS</span>
               </button>
             </div>
           </div>
