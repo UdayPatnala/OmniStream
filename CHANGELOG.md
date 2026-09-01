@@ -1,4 +1,4 @@
-﻿# Changelog
+# Changelog
 
 All notable changes to the **OmniStream** personal media platform will be documented in this file.
 
@@ -6,6 +6,16 @@ The project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html
 - **MAJOR (`Y.0.0`)**: Substantial architectural evolutions, next-generation platform overhauls, or breaking interface changes.
 - **MINOR (`x.Y.0`)**: Meaningful new product features, theater capabilities, analysis pipelines, or non-breaking functional upgrades.
 - **PATCH (`x.x.Y`)**: Bug fixes, performance optimizations, minor UI refinements, and internal refactors.
+
+---
+
+## [1.5.1] - 2026-09-01
+
+### Fixed & Calibrated
+- **CineMorph Seating Integrity**: Restored auditorium VIP recliner seating across all modes (Original Flat, IMAX 1.90:1, and True IMAX 1.43:1). Calibrated True IMAX mode to render seats with a proportionally lower/shorter profile (`h-4 sm:h-5`, seat height `h-3.5 sm:h-4.5`, opacity `0.35`) to ensure the massive vertical screen remains dominant without any obstruction.
+- **CineMorph Screen Curvature Strictness**: Enforced strict flat presentation for Directorial Original Mode (`transform: none`, 0 curve), subtle horizontal curve for IMAX 1.90:1 (`perspective(1600px)`), and calibrated large-format curve for True IMAX 1.43:1 (`perspective(1400px)`).
+- **U-Tube Theater Curvature & Seating**: Calibrated U-Tube Theater mode to feature a noticeably stronger default cinema curve (`perspective(1000px) rotateX(0.70deg)`) while preserving 100% video clarity, and integrated the distinct U-Tube Modern Digital Cinema Blue Seating row at the bottom foreground.
+- **Video Fidelity Guarantee**: Verified that all curved screen transforms apply strictly at the outer proscenium frame level, keeping the inner `<iframe>` and `<video>` streams 100% native 2D, sharp, unwarped, and uncompressed.
 
 ---
 

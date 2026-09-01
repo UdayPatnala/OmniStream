@@ -447,15 +447,15 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
         onMouseLeave={() => isPlaying && setControlsVisible(false)}
         className={`relative w-full bg-black overflow-hidden select-none group font-sans transition-all duration-500 ${
           theaterMode
-            ? 'flex-1 aspect-video w-full border border-sky-800/40 shadow-[0_25px_80px_rgba(0,0,0,0.98),-18px_0_36px_-8px_rgba(2,132,199,0.3),18px_0_36px_-8px_rgba(2,132,199,0.3)]'
+            ? 'flex-1 aspect-video w-full border border-sky-800/40 shadow-[0_25px_80px_rgba(0,0,0,0.98),-20px_0_40px_-8px_rgba(2,132,199,0.35),20px_0_40px_-8px_rgba(2,132,199,0.35)]'
             : `aspect-video rounded-2xl shadow-2xl ${className}`
         }`}
         style={
           theaterMode
             ? {
-                perspective: '1200px',
-                transform: 'perspective(1200px) rotateX(0.55deg)',
-                borderRadius: '14px 14px 32px 32px / 8px 8px 18px 18px',
+                perspective: '1000px',
+                transform: 'perspective(1000px) rotateX(0.70deg)',
+                borderRadius: '16px 16px 36px 36px / 10px 10px 22px 22px',
               }
             : undefined
         }
@@ -771,6 +771,49 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
           </div>
         </div>
       </div>
+
+      {/* ── Theater A: Modern Digital Cinema Blue Seating Row (Distinct U-Tube Identity) ── */}
+      {theaterMode && (
+        <div className="w-full h-7 sm:h-9 pointer-events-none z-10 flex flex-col justify-end items-center px-4 sm:px-12 select-none pt-1">
+          {/* Natural Modern Auditorium Blue Seating Row with Clear Sightlines */}
+          <div className="w-full max-w-4xl flex justify-between items-end gap-3 sm:gap-6 opacity-55">
+            {/* Left Seat Bank */}
+            <div className="flex-1 flex gap-1 sm:gap-2 justify-end">
+              {[1, 2, 3, 4, 5].map((s) => (
+                <div
+                  key={`utube-seat-l-${s}`}
+                  className="flex-1 max-w-[44px] h-4.5 sm:h-6 rounded-t-lg bg-gradient-to-b from-[#0c2444] via-[#061224] to-[#02060e] border-t border-sky-500/30 relative flex flex-col items-center justify-start pt-0.5 shadow-2xl"
+                >
+                  {/* Subtle Blue Plush Headrest */}
+                  <div className="w-[75%] h-1.5 sm:h-2 rounded-t bg-gradient-to-b from-[#163b6d] to-[#0a1b33] border-t border-sky-400/30 shadow-inner" />
+                  {/* Blue Armrests */}
+                  <div className="absolute -left-0.5 bottom-0 w-1 h-2 sm:h-3 bg-[#030914] rounded-t-sm border-t border-sky-500/20" />
+                  <div className="absolute -right-0.5 bottom-0 w-1 h-2 sm:h-3 bg-[#030914] rounded-t-sm border-t border-sky-500/20" />
+                </div>
+              ))}
+            </div>
+
+            {/* Natural Dark Center Aisle Gap */}
+            <div className="w-6 sm:w-12 h-1" />
+
+            {/* Right Seat Bank */}
+            <div className="flex-1 flex gap-1 sm:gap-2 justify-start">
+              {[1, 2, 3, 4, 5].map((s) => (
+                <div
+                  key={`utube-seat-r-${s}`}
+                  className="flex-1 max-w-[44px] h-4.5 sm:h-6 rounded-t-lg bg-gradient-to-b from-[#0c2444] via-[#061224] to-[#02060e] border-t border-sky-500/30 relative flex flex-col items-center justify-start pt-0.5 shadow-2xl"
+                >
+                  {/* Subtle Blue Plush Headrest */}
+                  <div className="w-[75%] h-1.5 sm:h-2 rounded-t bg-gradient-to-b from-[#163b6d] to-[#0a1b33] border-t border-sky-400/30 shadow-inner" />
+                  {/* Blue Armrests */}
+                  <div className="absolute -left-0.5 bottom-0 w-1 h-2 sm:h-3 bg-[#030914] rounded-t-sm border-t border-sky-500/20" />
+                  <div className="absolute -right-0.5 bottom-0 w-1 h-2 sm:h-3 bg-[#030914] rounded-t-sm border-t border-sky-500/20" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

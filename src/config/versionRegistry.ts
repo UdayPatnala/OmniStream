@@ -1,4 +1,4 @@
-﻿/**
+/**
  * OmniStream Hierarchical Version Registry
  * Authoritative Single Source of Truth for Release and Subsystem Version Metadata
  *
@@ -36,8 +36,8 @@ export interface OmniStreamVersionRegistry {
 }
 
 export const VERSION_REGISTRY: OmniStreamVersionRegistry = {
-  version: '1.5.0',
-  codename: 'Threshold Baseline',
+  version: '1.5.1',
+  codename: 'Threshold Baseline (Theater Hardened)',
   releaseDate: '2026-09-01',
   status: 'STABLE_BASELINE',
   products: {
@@ -45,13 +45,13 @@ export const VERSION_REGISTRY: OmniStreamVersionRegistry = {
       id: 'cinemorph',
       code: 'CM',
       name: 'CineMorph Theater & Private Ingest',
-      version: '1.5.0',
+      version: '1.5.1',
       subsystems: [
         {
           id: 'smart-framing',
           code: 'CM-SF',
           name: 'Adaptive Smart Framing Engine',
-          version: '1.0.0',
+          version: '1.0.1',
           description: 'Aspect-ratio proscenium aperture geometry, deadband hysteresis, and temporal smoothing',
         },
         {
@@ -74,7 +74,7 @@ export const VERSION_REGISTRY: OmniStreamVersionRegistry = {
       id: 'utube',
       code: 'UT',
       name: 'U-Tube Video Discovery & Watch Engine',
-      version: '1.5.0',
+      version: '1.5.1',
       subsystems: [], // U-Tube operates as a single unified product module
     },
   },

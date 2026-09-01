@@ -1,4 +1,4 @@
-﻿# OmniStream Version History
+# OmniStream Version History
 
 This document serves as the authoritative, permanent version timeline and Git recovery index for **OmniStream**.
 
@@ -8,12 +8,45 @@ This document serves as the authoritative, permanent version timeline and Git re
 
 | Version | Date | Type | Quick Summary | Git Tag | Commit |
 |---|---|:---:|---|:---:|:---:|
+| **v1.5.1** | 2026-09-01 | `PATCH` | Restored exact theater screen curvature hierarchy and retained proportional seating across all modes. | `v1.5.1` | Pending Release |
 | **v1.5.0** | 2026-09-01 | `MINOR` | Stable baseline checkpoint uniting U-Tube and CineMorph under central gateway. | `v1.5.0` | [`1431a08`](https://github.com/UdayPatnala/OmniStream/commit/1431a08) |
 | **v1.0.0** | 2026-08-30 | `MAJOR` | Initial OmniStream unified dual-engine architecture release. | `v1.0.0` | [`initial`](https://github.com/UdayPatnala/OmniStream/commit/initial) |
 
 ---
 
 ## Version Entries
+
+### v1.5.1
+
+- **Date**: 2026-09-01
+- **Type**: `PATCH` (Theater Geometry & Seating Calibration)
+- **Previous Version**: `v1.5.0`
+
+#### Quick
+Restored exact theater screen curvature hierarchy (Original flat, IMAX/True IMAX curved, U-Tube noticeably curved) and retained proportional seating in all modes.
+
+#### Detailed
+Enforced strict mode boundaries for cinema screen curvature: CineMorph Original Mode preserves an undistorted flat cinema screen (`transform: none`, 0 curvature), while IMAX 1.90:1 and True IMAX 1.43:1 apply calibrated large-format horizontal concave curvature. Ensured VIP auditorium recliner seating remains visibly present across all modes (Original, IMAX, and True IMAX), with True IMAX seating scaled to a proportionally lower/shorter profile (`h-4 sm:h-5`, opacity 35%) so the massive vertical screen remains dominant without any obstruction. Calibrated U-Tube Theater mode to feature a noticeably stronger default horizontal curve (`perspective(1000px) rotateX(0.70deg)`) and integrated its distinct Modern Digital Cinema Blue Seating row at the bottom foreground.
+
+#### Module Version Hierarchy
+- **OmniStream Core (`OS`)**: `v1.5.1`
+- **CineMorph Product (`CM`)**: `v1.5.1`
+  - *Smart Framing Engine (`CM-SF`)*: `v1.0.1`
+  - *Video Quality Intelligence (`CM-VQ`)*: `v1.0.0`
+  - *Parametric Audio DSP (`CM-DSP`)*: `v1.0.0`
+- **U-Tube Product (`UT`)**: `v1.5.1`
+
+#### Affected Systems
+- CineMorph Theater B (`/theater/:id`)
+- U-Tube Theater A (`/watch/:id`)
+- Screen Proscenium Geometry & Horizon Calibration
+- Auditorium Seating Visual Hierarchy & Depth Layer
+
+#### Git Metadata
+- **Git Release Tag**: `v1.5.1`
+- **Recovery Command**: `git checkout v1.5.1`
+
+---
 
 ### v1.5.0
 

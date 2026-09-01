@@ -1072,42 +1072,78 @@ export function CineMorphTheater() {
         </div>
       </div>
 
-      {/* ── Natural Cinema Auditorium Seating (Rendered ONLY in IMAX / True IMAX • Zero Screen Obstruction) ── */}
-      {theaterSeatingEnabled && isIMAXMode && (
-        <div className="absolute bottom-0 inset-x-0 h-6 sm:h-7 pointer-events-none z-10 flex flex-col justify-end items-center px-4 sm:px-12 select-none">
-          {/* Natural Auditorium VIP Recliner Row with Lower Profile for Clear Sightlines */}
-          <div className="w-full max-w-4xl flex justify-between items-end gap-3 sm:gap-6 opacity-45">
+      {/* ── Natural Cinema Auditorium Seating (Rendered in all modes: Original, IMAX, and True IMAX) ── */}
+      {theaterSeatingEnabled && (
+        <div 
+          className={`absolute bottom-0 inset-x-0 pointer-events-none z-10 flex flex-col justify-end items-center px-4 sm:px-12 select-none transition-all duration-500 ${
+            frameAspectRatio === '1.43:1' ? 'h-4 sm:h-5' : 'h-6 sm:h-7'
+          }`}
+        >
+          {/* Natural Auditorium VIP Recliner Row with Proportionate Profile for Clear Sightlines */}
+          <div 
+            className={`w-full max-w-4xl flex justify-between items-end gap-3 sm:gap-6 transition-opacity duration-500 ${
+              frameAspectRatio === '1.43:1' ? 'opacity-35' : 'opacity-45'
+            }`}
+          >
             {/* Left Seat Bank */}
             <div className="flex-1 flex gap-1 sm:gap-2 justify-end">
               {[1, 2, 3, 4, 5].map((s) => (
                 <div
                   key={`seat-l-${s}`}
-                  className="flex-1 max-w-[44px] h-5 sm:h-6 rounded-t-lg bg-gradient-to-b from-[#24060c] via-[#120205] to-[#040001] border-t border-rose-950/30 relative flex flex-col items-center justify-start pt-0.5 shadow-2xl"
+                  className={`flex-1 max-w-[44px] rounded-t-lg bg-gradient-to-b from-[#24060c] via-[#120205] to-[#040001] border-t border-rose-950/30 relative flex flex-col items-center justify-start pt-0.5 shadow-2xl transition-all duration-500 ${
+                    frameAspectRatio === '1.43:1' ? 'h-3.5 sm:h-4.5' : 'h-5 sm:h-6'
+                  }`}
                 >
                   {/* Subtle Plush Headrest */}
-                  <div className="w-[75%] h-1.5 sm:h-2 rounded-t bg-gradient-to-b from-[#330911] to-[#180407] border-t border-rose-900/20 shadow-inner" />
+                  <div 
+                    className={`w-[75%] rounded-t bg-gradient-to-b from-[#330911] to-[#180407] border-t border-rose-900/20 shadow-inner ${
+                      frameAspectRatio === '1.43:1' ? 'h-1 sm:h-1.5' : 'h-1.5 sm:h-2'
+                    }`} 
+                  />
                   {/* Armrests */}
-                  <div className="absolute -left-0.5 bottom-0 w-1 h-2.5 sm:h-3.5 bg-[#0a0102] rounded-t-sm border-t border-white/5" />
-                  <div className="absolute -right-0.5 bottom-0 w-1 h-2.5 sm:h-3.5 bg-[#0a0102] rounded-t-sm border-t border-white/5" />
+                  <div 
+                    className={`absolute -left-0.5 bottom-0 w-1 bg-[#0a0102] rounded-t-sm border-t border-white/5 ${
+                      frameAspectRatio === '1.43:1' ? 'h-2 sm:h-2.5' : 'h-2.5 sm:h-3.5'
+                    }`} 
+                  />
+                  <div 
+                    className={`absolute -right-0.5 bottom-0 w-1 bg-[#0a0102] rounded-t-sm border-t border-white/5 ${
+                      frameAspectRatio === '1.43:1' ? 'h-2 sm:h-2.5' : 'h-2.5 sm:h-3.5'
+                    }`} 
+                  />
                 </div>
               ))}
             </div>
 
             {/* Natural Dark Center Aisle Gap */}
-            <div className="w-6 sm:w-12 h-1.5" />
+            <div className={`w-6 sm:w-12 ${frameAspectRatio === '1.43:1' ? 'h-1' : 'h-1.5'}`} />
 
             {/* Right Seat Bank */}
             <div className="flex-1 flex gap-1 sm:gap-2 justify-start">
               {[1, 2, 3, 4, 5].map((s) => (
                 <div
                   key={`seat-r-${s}`}
-                  className="flex-1 max-w-[44px] h-5 sm:h-6 rounded-t-lg bg-gradient-to-b from-[#24060c] via-[#120205] to-[#040001] border-t border-rose-950/30 relative flex flex-col items-center justify-start pt-0.5 shadow-2xl"
+                  className={`flex-1 max-w-[44px] rounded-t-lg bg-gradient-to-b from-[#24060c] via-[#120205] to-[#040001] border-t border-rose-950/30 relative flex flex-col items-center justify-start pt-0.5 shadow-2xl transition-all duration-500 ${
+                    frameAspectRatio === '1.43:1' ? 'h-3.5 sm:h-4.5' : 'h-5 sm:h-6'
+                  }`}
                 >
                   {/* Subtle Plush Headrest */}
-                  <div className="w-[75%] h-1.5 sm:h-2 rounded-t bg-gradient-to-b from-[#330911] to-[#180407] border-t border-rose-900/20 shadow-inner" />
+                  <div 
+                    className={`w-[75%] rounded-t bg-gradient-to-b from-[#330911] to-[#180407] border-t border-rose-900/20 shadow-inner ${
+                      frameAspectRatio === '1.43:1' ? 'h-1 sm:h-1.5' : 'h-1.5 sm:h-2'
+                    }`} 
+                  />
                   {/* Armrests */}
-                  <div className="absolute -left-0.5 bottom-0 w-1 h-2.5 sm:h-3.5 bg-[#0a0102] rounded-t-sm border-t border-white/5" />
-                  <div className="absolute -right-0.5 bottom-0 w-1 h-2.5 sm:h-3.5 bg-[#0a0102] rounded-t-sm border-t border-white/5" />
+                  <div 
+                    className={`absolute -left-0.5 bottom-0 w-1 bg-[#0a0102] rounded-t-sm border-t border-white/5 ${
+                      frameAspectRatio === '1.43:1' ? 'h-2 sm:h-2.5' : 'h-2.5 sm:h-3.5'
+                    }`} 
+                  />
+                  <div 
+                    className={`absolute -right-0.5 bottom-0 w-1 bg-[#0a0102] rounded-t-sm border-t border-white/5 ${
+                      frameAspectRatio === '1.43:1' ? 'h-2 sm:h-2.5' : 'h-2.5 sm:h-3.5'
+                    }`} 
+                  />
                 </div>
               ))}
             </div>
