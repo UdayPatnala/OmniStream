@@ -218,6 +218,22 @@ export function CineMorphTheater() {
     } catch (e) {}
   }, []);
 
+  const screenContainerRef = useRef<HTMLDivElement>(null);
+  const [spaceBelowScreen, setSpaceBelowScreen] = useState<number>(128);
+
+  useEffect(() => {
+    if (!screenContainerRef.current || !containerRef.current) return;
+    const observer = new ResizeObserver(() => {
+      if (!screenContainerRef.current || !containerRef.current) return;
+      const screenRect = screenContainerRef.current.getBoundingClientRect();
+      const theaterRect = containerRef.current.getBoundingClientRect();
+      setSpaceBelowScreen(Math.max(0, theaterRect.bottom - screenRect.bottom));
+    });
+    observer.observe(screenContainerRef.current);
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, [isOriginalMode]);
+
   // Reset player state on video ID change
   useEffect(() => {
     if (!id) return;
@@ -831,6 +847,7 @@ export function CineMorphTheater() {
 
       {/* ── The Cinema Screen Container ── */}
       <div
+        ref={screenContainerRef}
         onClick={handleScreenClick}
         className={`relative transition-all duration-500 ease-out flex items-center justify-center z-10 overflow-hidden bg-black cursor-pointer mb-3 sm:mb-5 ${
           isOriginalMode
@@ -1111,8 +1128,17 @@ export function CineMorphTheater() {
       {theaterSeatingEnabled && (
         <div 
           className={`absolute bottom-0 inset-x-0 pointer-events-none z-10 flex flex-col justify-end items-center px-4 sm:px-12 select-none transition-all duration-500 pb-2 sm:pb-3 ${
-            frameAspectRatio === '1.43:1' ? 'h-16 sm:h-20' : 'h-24 sm:h-32'
+            isOriginalMode
+              ? ''
+              : frameAspectRatio === '1.43:1' 
+              ? 'h-16 sm:h-20' 
+              : 'h-24 sm:h-32'
           }`}
+          style={isOriginalMode ? {
+            height: '128px',
+            transform: `scale(${Math.min(1, Math.max(0, spaceBelowScreen / 128))})`,
+            transformOrigin: 'bottom center'
+          } : undefined}
         >
           {/* Subtle Carpeted Center Aisle Runway Glow */}
           <div className="w-10 sm:w-20 h-1 bg-gradient-to-r from-transparent via-amber-600/20 to-transparent mb-1.5 rounded-full pointer-events-none" />
