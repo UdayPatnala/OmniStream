@@ -29,6 +29,37 @@ You MUST use the `view_file` tool to read these files if you do not already have
 - **Color System V2**: Editorial light-first foundation (`#F7F5F0`), muted Vermilion (`#C7494F`) for U-Tube accents, muted Slate Blue (`#526C9E`) for CineMorph accents, Graphite (`#5E6166`) for OMS.
 - **Persistence Integrity**: Tickets are only saved on confirmed theater entry ("Take Ticket & Enter Theater"). Do not store temporary tickets if user navigates back.
 
+## SYS-SYS Master Execution Protocol & Architectural Invariants (L1 Foundation)
+
+### 1. Absolute Rule — Recall Before Action
+Before starting ANY major task, feature, redesign, bug fix, refactor, or architectural change:
+1. Reconstruct project vision, motive, AROH philosophy, accumulated decisions, boundaries, existing implementations, and known bugs.
+2. Determine: *"What are we trying to achieve, why does this exist, and how does it affect the entire OmniStream ecosystem?"*
+3. Operate strictly in this permanent execution hierarchy:
+   $$\text{Vision} \to \text{Architecture} \to \text{Ownership} \to \text{User Flow} \to \text{Interaction} \to \text{Visual} \to \text{Implementation} \to \text{Testing} \to \text{Review}$$
+4. Never reverse this hierarchy or begin with a component/animation and invent a purpose afterward.
+
+### 2. Strict Product Ownership & Domain Boundaries
+- **OmniStream Core**: Gateway (`/`), cross-engine identity, global theme/preferences, routing. Connective layer, not a dumping ground.
+- **U-Tube**: Discovery, search, watch feed, library (History, Subscriptions, Collections), preferences, U-Tube Player, and **Theater A (U-Tube Theater)**.
+- **CineMorph**: Cinematic destination, private local file ingest, 1.43:1 / 1.90:1 / Original apertures, physical ticket ritual, 5-band audio DSP, and **Theater B (CineMorph Theater)**. CineMorph must not contain duplicate URL pasting or web search.
+- **OMS Layer**: Contextual experience handoff from active U-Tube player carrying `{ contentId, sourceUrl, title, thumbnailUrl, duration, currentTimestampSeconds, playbackState }` without re-searching.
+
+### 3. Two-Theater Rule (Absolute Product Separation)
+- **Theater A (U-Tube Theater)**: Casual, modern digital cinema. Blue seating rows, blue architectural side-wall strip lighting, subtle curved viewport, instantaneous entry, zero tickets.
+- **Theater B (CineMorph Theater)**: Deep cinematic immersion. Volumetric amber/velvet ambiance, 10s progressive ticket printing ritual with square poster preview and micro brand marks, 3-tier aspect ratios, 5-band parametric DSP.
+- **Zero Identity Contamination**: Never place CineMorph ticket rituals or IMAX branding into U-Tube theater; never place blue seats or casual styling into CineMorph.
+
+### 4. CineMorph Ticket Physical Artifact Standards
+- Progressive physical emergence (staged revealing/masking, not simple downward translation).
+- Cropped near-square poster/thumbnail preview on upper ticket.
+- Bottom-right subtle micro brand marks: `CineMorph`, `OMS`, `AROH`.
+- Pre-cached artwork to prevent layout shifts; full reduced-motion support.
+
+### 5. AROH Quality & Silence Principle
+- OmniStream is an AROH product. Communicate quality through interaction, architecture, restraint, performance, and motion.
+- Zero self-congratulatory marketing copy, AI buzzwords, or promotional CTAs.
+
 ## Autonomous Engineering Judgment & Decision Authority Protocol
 
 ### 1. Core Operating Principle
