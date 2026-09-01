@@ -11,6 +11,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAppStore } from '../store';
 import { useTicketStore } from '../state/useTicketStore';
 import { AspectRatioMode } from '../state/useCineMorphStore';
+import { omsTransitionService } from '../services/omsTransitionService';
 import { getVideosByIds, getRelatedVideos } from '../lib/youtube';
 import { Video, AudioPreset, FrameAspectRatio, CineMorphTheme, GlowIntensity, LocalMediaItem } from '../types';
 import { OMSLogo } from '../components/common/OMSLogo';
@@ -647,22 +648,17 @@ export function CineMorphTheater() {
 
   const handoffToUTube = () => {
     if (activeVideo) {
-      useTicketStore.getState().saveTicketProgress({
-        movieTitle: activeVideo.title,
-        sourceUrl: activeVideo.id,
-        isLocal: false,
-        durationSeconds: duration,
-        timestampSeconds: played * duration,
-        aspectRatio: '1.90:1',
-        framingRule: 'auto',
-      });
       showToast('📺 Switching to U-Tube Standard Player...');
-      navigate(`/watch/${activeVideo.id}`, {
-        state: {
-          startTime: played * duration,
-          autoPlay: theaterState === 'playing',
+      omsTransitionService.executeCineMorphToUTubeHandoff(
+        {
+          videoId: activeVideo.id,
+          title: activeVideo.title,
+          currentTime: played * duration,
+          duration: duration,
+          isPlaying: theaterState === 'playing',
         },
-      });
+        navigate
+      );
     }
   };
 

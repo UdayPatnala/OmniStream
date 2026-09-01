@@ -82,17 +82,17 @@ export function Home() {
     .slice(0, 5);
 
   return (
-    <div className="space-y-6 max-w-[1800px] mx-auto pb-6">
-      {/* YouTube Category Filter Chips Bar */}
-      <div className="flex items-center gap-2.5 overflow-x-auto hide-scrollbar py-2.5 mb-2 sticky top-0 bg-gray-50 z-30 border-b border-gray-200">
+    <div className="space-y-6 max-w-[1800px] mx-auto pb-6 select-none font-sans text-utube-text">
+      {/* Category Filter Chips Bar */}
+      <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar py-2.5 mb-2 sticky top-0 bg-utube-bg/95 backdrop-blur-md z-30 border-b border-utube-border">
         {CATEGORIES.map(category => (
           <button
             key={category}
             onClick={() => setActiveCategory(category)}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors shrink-0 ${
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all shrink-0 cursor-pointer ${
               activeCategory === category
-                ? 'bg-gray-900 text-white font-bold'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-transparent'
+                ? 'bg-utube-text text-utube-bg font-bold shadow-sm'
+                : 'bg-utube-surface text-utube-text-secondary hover:text-utube-text hover:bg-utube-border/60 border border-utube-border/60'
             }`}
           >
             {category}
@@ -104,8 +104,8 @@ export function Home() {
       {continueWatchingItems.length > 0 && activeCategory === 'All' && (
         <section className="pt-1">
           <div className="flex items-center gap-2 mb-3">
-            <PlayCircle className="w-5 h-5 text-red-600" />
-            <h2 className="text-base font-bold text-gray-900">Continue Watching</h2>
+            <PlayCircle className="w-5 h-5 text-utube-primary" />
+            <h2 className="text-sm font-bold text-utube-text uppercase tracking-wider">Continue Watching</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 gap-y-8">
             {continueWatchingItems.map(item => (
@@ -123,8 +123,8 @@ export function Home() {
       {recommended.length > 0 && activeCategory === 'All' && (
         <section className="pt-1">
           <div className="flex items-center gap-2 mb-3">
-            <Sparkles className="w-5 h-5 text-red-500" />
-            <h2 className="text-base font-bold text-gray-900">Recommended For You</h2>
+            <Sparkles className="w-5 h-5 text-utube-primary" />
+            <h2 className="text-sm font-bold text-utube-text uppercase tracking-wider">Recommended For You</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 gap-y-8">
             {recommended.map(video => (
@@ -138,8 +138,8 @@ export function Home() {
       {mostWatchedItems.length > 0 && activeCategory === 'All' && (
         <section className="pt-1">
           <div className="flex items-center gap-2 mb-3">
-            <HistoryIcon className="w-5 h-5 text-red-400" />
-            <h2 className="text-base font-bold text-gray-900">Most Rewatched</h2>
+            <HistoryIcon className="w-5 h-5 text-utube-primary" />
+            <h2 className="text-sm font-bold text-utube-text uppercase tracking-wider">Most Rewatched</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 gap-y-8">
             {mostWatchedItems.map(item => (
@@ -158,13 +158,13 @@ export function Home() {
         <div className="flex items-center gap-2 mb-3">
           {activeCategory === 'All' ? (
             <>
-              <Flame className="w-5 h-5 text-red-600" />
-              <h2 className="text-base font-bold text-gray-900">Trending Videos</h2>
+              <Flame className="w-5 h-5 text-utube-primary" />
+              <h2 className="text-sm font-bold text-utube-text uppercase tracking-wider">Trending Videos</h2>
             </>
           ) : (
             <>
-              <Layers className="w-5 h-5 text-red-500" />
-              <h2 className="text-base font-bold text-gray-900">{activeCategory} Videos</h2>
+              <Layers className="w-5 h-5 text-utube-primary" />
+              <h2 className="text-sm font-bold text-utube-text uppercase tracking-wider">{activeCategory} Videos</h2>
             </>
           )}
         </div>
@@ -181,7 +181,3 @@ export function Home() {
     </div>
   );
 }
-
-
-
-

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAppStore } from '../store';
 import { useTicketStore } from '../state/useTicketStore';
-import { Info, ShieldCheck, Heart, Sparkles, Sliders } from 'lucide-react';
+import { Info, ShieldCheck, Heart, Sparkles, Sliders, Film } from 'lucide-react';
 import { RankingProfile } from '../types';
 
 export function SettingsPage() {
@@ -133,32 +133,31 @@ export function SettingsPage() {
         </div>
       </div>
 
-      {/* CineMorph AI Engine (v2) Configuration */}
-      <div className="bg-gradient-to-br from-[#1A162B] to-[#141221] p-6 rounded-[32px] border border-purple-500/20 space-y-6 shadow-2xl">
-        <div className="flex items-center justify-between border-b border-purple-500/20 pb-4">
-          <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-purple-300 flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-purple-400" />
-            CineMorph AI Engine (v2) Configuration
+      {/* CineMorph Theater Configuration */}
+      <div className="bg-utube-card p-6 rounded-3xl border border-utube-border space-y-6 shadow-sm">
+        <div className="flex items-center justify-between border-b border-utube-border pb-4">
+          <h2 className="text-xs font-bold uppercase tracking-widest text-utube-text-muted flex items-center gap-2">
+            <Film className="w-4 h-4 text-amber-600" />
+            CineMorph Theater Configuration
           </h2>
-          <span className="px-3 py-1 rounded-full bg-purple-600/30 text-purple-200 border border-purple-500/30 text-xs font-mono font-bold">
-            v2 ACTIVE
+          <span className="px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/30 text-[10px] font-mono font-bold">
+            IMMERSION ENGINE
           </span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-xs">
           <div className="space-y-2">
-            <label className="block font-bold text-utube-text">Default Cinema Theme</label>
+            <label className="block font-bold text-utube-text">Auditorium Ambiance</label>
             <select
               value={cinemorphTheme}
               onChange={(e) => setCinemorphTheme(e.target.value as any)}
-              className="w-full h-12 px-4 rounded-2xl border border-utube-border bg-utube-surface text-utube-text focus:outline-none focus:border-utube-primary cursor-pointer shadow-sm"
+              className="w-full h-12 px-4 rounded-2xl border border-utube-border bg-utube-surface text-utube-text focus:outline-none focus:border-utube-primary cursor-pointer shadow-sm text-sm"
             >
-              <option value="cinematic-dark">Cinematic Dark</option>
-              <option value="cyberpunk-oled">Cyberpunk OLED</option>
-              <option value="glassmorphic-neon">Glassmorphic Neon</option>
-              <option value="ambient-minimal">Ambient Minimalist</option>
-              <option value="imax-ultra">IMAX Ultra</option>
-              <option value="golden-hour">Golden Hour</option>
+              <option value="cinematic-dark">Cinematic Velvet & Amber</option>
+              <option value="cyberpunk-oled">Deep OLED Black</option>
+              <option value="ambient-minimal">Minimalist Slate</option>
+              <option value="imax-ultra">IMAX Auditorium</option>
+              <option value="golden-hour">Warm Tungsten</option>
             </select>
           </div>
 

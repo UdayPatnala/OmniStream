@@ -29,8 +29,7 @@ export function History() {
           <Trash2 className="w-8 h-8 text-utube-text-muted" />
         </div>
         <h2 className="text-xl font-black mb-2 text-utube-text tracking-tight">Keep track of what you watch</h2>
-        <p className="text-utube-text-secondary mb-6 text-sm">Your watch history and viewing statistics will appear here.</p>
-        <Link to="/" className="px-6 py-2.5 bg-utube-primary hover:bg-utube-deep text-white font-bold rounded-full transition-colors text-xs uppercase tracking-wider shadow-sm">
+        <Link to="/home" className="px-6 py-2.5 bg-utube-primary hover:bg-utube-secondary text-white font-bold rounded-full transition-all text-xs uppercase tracking-wider shadow-sm">
           Explore Videos
         </Link>
       </div>

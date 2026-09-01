@@ -4,7 +4,7 @@ import { searchVideos } from '../lib/youtube';
 import { SearchResult, SearchFilterType } from '../types';
 import { VideoCard } from '../components/VideoCard';
 import { VideoCardSkeleton } from '../components/Skeleton';
-import { Search as SearchIcon, Loader2, Zap, Play } from 'lucide-react';
+import { Search as SearchIcon, Loader2, Sparkles, Play } from 'lucide-react';
 import { playbackService } from '../lib/services/playbackService';
 
 const filterTabs: { type: SearchFilterType; label: string }[] = [
@@ -86,7 +86,7 @@ export function Search() {
 
   if (!query) {
     return (
-      <div className="flex flex-col items-center justify-center h-[50vh] text-[#aaaaaa]">
+      <div className="flex flex-col items-center justify-center h-[50vh] text-utube-text-muted select-none">
         <SearchIcon className="w-16 h-16 mb-4 opacity-20" />
         <p className="text-sm font-medium">Search for videos, topics, or creators</p>
       </div>
@@ -96,39 +96,40 @@ export function Search() {
   const topMatch = filteredResults.length > 0 ? filteredResults[0] : null;
 
   return (
-    <div className="space-y-6 py-2 max-w-[1700px] mx-auto">
-      {/* Instant Play Best Match Banner */}
+    <div className="space-y-6 py-2 max-w-[1700px] mx-auto select-none font-sans text-utube-text">
+      {/* Top Relevant Match Banner */}
       {topMatch && !loading && (
-        <div className="bg-gradient-to-r from-purple-900/60 via-indigo-900/60 to-cyan-900/40 border border-purple-500/30 rounded-3xl p-5 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="w-28 aspect-video rounded-xl overflow-hidden bg-black shrink-0 relative border border-white/10 shadow-lg">
+        <div className="bg-utube-card border border-utube-border rounded-3xl p-5 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="w-28 aspect-video rounded-xl overflow-hidden bg-black shrink-0 relative border border-utube-border shadow-md">
               <img src={topMatch.thumbnails.medium} alt={topMatch.title} className="w-full h-full object-cover" />
               <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
                 <Play className="w-6 h-6 text-white fill-current drop-shadow" />
               </div>
             </div>
-            <div>
-              <div className="flex items-center gap-2 text-amber-300 text-xs font-bold uppercase tracking-wider mb-1">
-                <Zap className="w-4 h-4 text-amber-400" />
-                Top Relevant Match Identified
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 text-utube-primary text-xs font-bold uppercase tracking-wider mb-1">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Top Match</span>
               </div>
-              <h3 className="text-sm md:text-base font-bold text-white leading-snug line-clamp-1">{topMatch.title}</h3>
-              <p className="text-xs text-gray-400">{topMatch.channelTitle}</p>
+              <h3 className="text-sm md:text-base font-bold text-utube-text leading-snug line-clamp-1 truncate">{topMatch.title}</h3>
+              <p className="text-xs text-utube-text-secondary truncate">{topMatch.channelTitle}</p>
             </div>
           </div>
 
           <button
             onClick={handleInstantAutoPlayHero}
-            className="w-full md:w-auto px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-purple-600 hover:from-amber-400 hover:to-purple-500 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-xl shadow-purple-950/50 flex items-center justify-center gap-2 shrink-0 cursor-pointer"
+            className="w-full md:w-auto px-6 py-2.5 rounded-full bg-utube-primary hover:bg-utube-secondary text-white font-bold text-xs uppercase tracking-wider transition-all shadow-md flex items-center justify-center gap-2 shrink-0 cursor-pointer active:scale-95"
           >
-            <Play className="w-4 h-4 fill-current" /> Instant In-App Playback
+            <Play className="w-4 h-4 fill-current" />
+            <span>Play Now</span>
           </button>
         </div>
       )}
 
-      <div className="flex flex-col gap-3 border-b border-[#272727] pb-3">
+      <div className="flex flex-col gap-3 border-b border-utube-border pb-3">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <h1 className="text-lg font-bold text-[#f1f1f1]">Results for "{query}"</h1>
+          <h1 className="text-base sm:text-lg font-bold text-utube-text">Results for &ldquo;{query}&rdquo;</h1>
           
           {/* Main Content Type Filter Chips */}
           <div className="flex flex-wrap gap-2">
@@ -136,10 +137,10 @@ export function Search() {
               <button
                 key={tab.type}
                 onClick={() => setActiveFilter(tab.type)}
-                className={`px-3.5 py-1 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                   activeFilter === tab.type
-                    ? 'bg-white text-black font-bold'
-                    : 'bg-[#272727] text-[#f1f1f1] hover:bg-[#3f3f3f]'
+                    ? 'bg-utube-text text-utube-bg font-bold shadow-sm'
+                    : 'bg-utube-surface text-utube-text-secondary hover:text-utube-text hover:bg-utube-border/60 border border-utube-border/60'
                 }`}
               >
                 {tab.label}
@@ -200,15 +201,13 @@ export function Search() {
           <button
             onClick={loadMore}
             disabled={loadingMore}
-            className="px-6 py-2.5 bg-[#272727] hover:bg-[#3f3f3f] text-white font-semibold text-sm rounded-full transition-colors flex items-center gap-2 cursor-pointer"
+            className="px-6 py-2.5 bg-utube-surface hover:bg-utube-border text-utube-text border border-utube-border font-semibold text-xs rounded-full transition-all shadow-sm flex items-center gap-2 cursor-pointer"
           >
             {loadingMore && <Loader2 className="w-4 h-4 animate-spin" />}
-            {loadingMore ? 'Loading...' : 'Load More Results'}
+            <span>{loadingMore ? 'Loading...' : 'Load More Results'}</span>
           </button>
         </div>
       )}
     </div>
   );
 }
-
-
