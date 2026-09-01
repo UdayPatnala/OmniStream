@@ -23,7 +23,7 @@ OmniStream is a personal media experience platform unifying two distinct viewing
 | **U-Tube Discovery** | `STABLE` | Dynamic search, 4-hour cached subscriptions, token decay |
 | **Capability Resolver** | `STABLE` | Declarative pre-flight checks, failure classifier, watchdog |
 | **WASM BlazeFace** | `CANDIDATE` | Sandboxed for 10s warmup pre-scan only |
-| **Test Matrix** | `VERIFIED` | **47 test files, 218 tests passing (100% pass rate)** |
+| **Test Matrix** | `VERIFIED` | **47 test files, 219 tests passing (100% pass rate)** |
 
 ---
 
@@ -59,7 +59,7 @@ OMNISTREAM PLATFORM
 ## 5. Essential Commands
 
 ```bash
-# Run full 5-tier test suite (47 suites, 218 tests)
+# Run full 5-tier test suite (47 suites, 219 tests)
 npm test
 
 # Run type checking
