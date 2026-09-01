@@ -4,6 +4,7 @@ import { AspectRatioMode, FramingRuleMode, useCineMorphStore } from './useCineMo
 import { storageService, IDB_STORES } from '../services/storageService';
 import { getVideosByIds } from '../lib/youtube';
 import { extractYouTubeId } from '../lib/utils';
+import { posterService } from '../lib/cinemorph/posterService';
 
 export interface MovieTicket {
   ticketId: string;
@@ -32,6 +33,8 @@ export interface TicketStoreState {
     source: string;
     isLocal: boolean;
     file?: File;
+    posterUrl?: string;
+    thumbnailUrl?: string;
   }) => Promise<void>;
   cancelPrintAnimation: () => void;
 }
@@ -147,10 +150,13 @@ export const useTicketStore = create<TicketStoreState>()(
         source: string;
         isLocal: boolean;
         file?: File;
+        posterUrl?: string;
+        thumbnailUrl?: string;
       }) => {
         const cineMorph = useCineMorphStore.getState();
         let title = movie.title;
         let durationSeconds = 0;
+        let resolvedPosterUrl = movie.posterUrl || movie.thumbnailUrl;
 
         // Set initial staging state
         set({
@@ -168,26 +174,14 @@ export const useTicketStore = create<TicketStoreState>()(
                 if (videos[0].duration) {
                   durationSeconds = parseISO8601ToSeconds(videos[0].duration);
                 }
+                if (!resolvedPosterUrl && videos[0].thumbnails) {
+                  resolvedPosterUrl = videos[0].thumbnails.high || videos[0].thumbnails.medium || videos[0].thumbnails.default;
+                }
               }
             }
           } catch (e) {
             console.warn('Failed to pre-fetch video details for ticket:', e);
           }
-        } else if (movie.isLocal && movie.file) {
-          try {
-            durationSeconds = await new Promise<number>((resolve) => {
-              const videoEl = document.createElement('video');
-              videoEl.preload = 'metadata';
-              videoEl.src = URL.createObjectURL(movie.file!);
-              videoEl.onloadedmetadata = () => {
-                resolve(Math.round(videoEl.duration));
-                URL.revokeObjectURL(videoEl.src);
-              };
-              videoEl.onerror = () => {
-                resolve(0);
-              };
-            });
-          } catch (e) {}
         }
 
         // If user cancelled while async resolution was running, do not re-activate
@@ -207,6 +201,7 @@ export const useTicketStore = create<TicketStoreState>()(
           durationSeconds: durationSeconds,
           printedAt: Date.now(),
           seatAssignment: generateSeatAssignment(),
+          thumbnailDataUrl: resolvedPosterUrl,
         };
 
         set({
@@ -221,9 +216,31 @@ export const useTicketStore = create<TicketStoreState>()(
           url: movie.source,
           file: movie.file,
           name: title,
+          thumbnailUrl: resolvedPosterUrl,
           duration: durationSeconds,
         });
         cineMorph.setIsPlaying(true);
+
+        // Resolve and preload high-quality poster artwork in the background
+        posterService.resolvePoster({
+          sourceUrl: movie.source,
+          isLocal: movie.isLocal,
+          file: movie.file,
+          title: title,
+          thumbnailUrl: movie.thumbnailUrl,
+          posterUrl: movie.posterUrl || resolvedPosterUrl,
+          duration: durationSeconds,
+        }).then((res) => {
+          const currentTicket = get().activeTicket;
+          if (currentTicket && currentTicket.ticketId === tempTicket.ticketId) {
+            set({
+              activeTicket: {
+                ...currentTicket,
+                thumbnailDataUrl: res.url,
+              },
+            });
+          }
+        }).catch(() => {});
       },
 
       cancelPrintAnimation: () => {
