@@ -38,6 +38,7 @@ import { GlobalSettingsDrawer } from '../settings/GlobalSettingsDrawer';
 import { useAppStore } from '../../store';
 import { useCineMorphStore } from '../../state/useCineMorphStore';
 import { omsTransitionService, OMSTransitionContext } from '../../services/omsTransitionService';
+import { OMSLogo } from '../common/OMSLogo';
 
 const SESSION_KEY = 'oms_threshold_v3_seen';
 
@@ -378,40 +379,30 @@ export const ThresholdPortal: React.FC = () => {
         {/* ── 1. OmniStream Upper Cosmic Identity ── */}
         <div className="flex flex-col items-center text-center mb-6 sm:mb-10 pointer-events-none">
           
-          {/* Concentric Cosmic Ring Symbol */}
+          {/* Concentric Living OMS Cosmic Symbol */}
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-            className="relative w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center mb-3"
+            className="relative flex items-center justify-center mb-3"
           >
-            {/* Outer Radiant Glow */}
+            {/* Outer Radiant Volumetric Glow Halo */}
             <div
-              className="absolute inset-0 rounded-full blur-md opacity-80"
+              className="absolute -inset-4 rounded-full blur-xl opacity-75 animate-pulse"
               style={{
-                background: 'radial-gradient(circle, rgba(0,168,255,0.8) 0%, rgba(229,9,20,0.6) 50%, transparent 80%)',
+                background: isDark
+                  ? 'radial-gradient(circle, rgba(0,168,255,0.7) 0%, rgba(229,9,20,0.5) 60%, transparent 80%)'
+                  : 'radial-gradient(circle, rgba(0,168,255,0.4) 0%, rgba(255,51,75,0.3) 60%, transparent 80%)',
               }}
             />
-            {/* Rotating Celestial Dashed Ring */}
+            {/* Rotating Celestial Orbital Dashed Ring */}
             <motion.div
               animate={{ rotate: 360 }}
-              transition={{ duration: 30, repeat: Infinity, ease: 'linear' }}
-              className="absolute -inset-1 rounded-full border border-cyan-400/50 border-dashed"
+              transition={{ duration: 25, repeat: Infinity, ease: 'linear' }}
+              className="absolute -inset-3 rounded-full border border-cyan-400/50 border-dashed pointer-events-none"
             />
-            {/* Gradient Cosmic Ring */}
-            <div
-              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full p-[2px] shadow-[0_0_25px_rgba(0,168,255,0.6)]"
-              style={{
-                background: 'linear-gradient(135deg, #00A8FF 0%, #FF334B 50%, #00A8FF 100%)',
-              }}
-            >
-              <div
-                className="w-full h-full rounded-full"
-                style={{
-                  background: isDark ? '#05060A' : '#FFFFFF',
-                }}
-              />
-            </div>
+            {/* The Official OMS Logo with Living Effects */}
+            <OMSLogo variant={isDark ? 'dark' : 'light'} size="lg" animated={true} />
           </motion.div>
 
           {/* OMNISTREAM Wordmark */}

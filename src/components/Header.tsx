@@ -140,13 +140,19 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
           <Menu className="w-5 h-5" />
         </button>
 
-        <Link to="/" className="flex items-center gap-2.5 group">
-          <OMSLogo variant="light" size="sm" animated={true} />
+        <Link to="/home" className="flex items-center gap-2.5 group" title="U-Tube Home">
+          <div className="w-8 h-8 flex items-center justify-center">
+            <img 
+              src="/utube_artwork.png" 
+              alt="U-Tube" 
+              className="w-full h-full object-contain group-hover:scale-110 transition-transform filter drop-shadow-sm" 
+            />
+          </div>
           <div className="flex flex-col">
             <span className="text-lg font-black tracking-tight text-utube-text font-sans flex items-center gap-1 group-hover:text-utube-primary transition-colors">
-              Omni<span className="text-utube-primary">Stream</span>
+              U-<span className="text-utube-primary">Tube</span>
               <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-utube-surface text-utube-primary border border-utube-border tracking-wider hidden sm:block">
-                OMS
+                STREAM
               </span>
             </span>
           </div>
@@ -290,9 +296,17 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
           <span>OmniStream</span>
         </Link>
 
-        {/* User/settings avatar */}
-        <Link to="/settings" title="Preferences" className="w-8 h-8 rounded-full bg-utube-primary hover:bg-utube-secondary text-white flex items-center justify-center font-bold text-xs ml-1 shadow-sm transition-colors">
-          U
+        {/* Official U-Tube Preferences Button */}
+        <Link 
+          to="/settings" 
+          title="U-Tube Preferences" 
+          className="w-8 h-8 rounded-full bg-black/5 dark:bg-white/10 hover:scale-105 transition-all flex items-center justify-center p-1 border border-utube-border ml-1 shadow-sm cursor-pointer"
+        >
+          <img 
+            src="/utube_artwork.png" 
+            alt="U-Tube Preferences" 
+            className="w-full h-full object-contain filter drop-shadow-sm" 
+          />
         </Link>
       </div>
     </header>
