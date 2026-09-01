@@ -8,7 +8,7 @@ This document serves as the authoritative, permanent version timeline and Git re
 
 | Version | Date | Type | Quick Summary | Git Tag | Commit |
 |---|---|:---:|---|:---:|:---:|
-| **v1.5.1** | 2026-09-01 | `PATCH` | Restored exact theater screen curvature hierarchy and retained proportional seating across all modes. | `v1.5.1` | Pending Release |
+| **v1.5.1** | 2026-09-01 | `PATCH` | Restored exact theater screen curvature hierarchy and retained proportional seating across all modes. | `v1.5.1` | [`09864ec`](https://github.com/UdayPatnala/OmniStream/commit/09864ec) |
 | **v1.5.0** | 2026-09-01 | `MINOR` | Stable baseline checkpoint uniting U-Tube and CineMorph under central gateway. | `v1.5.0` | [`1431a08`](https://github.com/UdayPatnala/OmniStream/commit/1431a08) |
 | **v1.0.0** | 2026-08-30 | `MAJOR` | Initial OmniStream unified dual-engine architecture release. | `v1.0.0` | [`initial`](https://github.com/UdayPatnala/OmniStream/commit/initial) |
 
@@ -43,6 +43,8 @@ Enforced strict mode boundaries for cinema screen curvature: CineMorph Original 
 - Auditorium Seating Visual Hierarchy & Depth Layer
 
 #### Git Metadata
+- **Commit Hash**: `09864ec`
+- **Commit Message**: `fix(theater): restore exact screen curvature hierarchy and retain proportional seating across all modes`
 - **Git Release Tag**: `v1.5.1`
 - **Recovery Command**: `git checkout v1.5.1`
 
