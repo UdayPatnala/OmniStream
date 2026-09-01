@@ -389,7 +389,7 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
     <div
       className={
         theaterMode
-          ? 'fixed inset-0 z-50 w-screen h-screen flex flex-col justify-between items-center p-3 sm:p-6 bg-gradient-to-b from-[#040814] via-[#020409] to-[#000103] overflow-hidden select-none font-sans transition-all duration-500'
+          ? 'fixed inset-0 z-50 w-screen h-screen flex flex-col justify-between items-center px-3 sm:px-6 pt-2 sm:pt-3 pb-1 sm:pb-2 bg-gradient-to-b from-[#040814] via-[#020409] to-[#000103] overflow-hidden select-none font-sans transition-all duration-500'
           : 'relative w-full'
       }
     >
@@ -397,7 +397,7 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
       {theaterMode && (
         <>
           {/* Ambient Blue Radial Backlight */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] h-[85%] bg-sky-600/15 rounded-full blur-[160px] pointer-events-none z-0" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[92%] h-[88%] bg-sky-600/15 rounded-full blur-[160px] pointer-events-none z-0" />
 
           {/* Left Wall Strip Light */}
           <div className="absolute left-2 sm:left-6 top-8 bottom-16 w-1 sm:w-1.5 bg-gradient-to-b from-transparent via-sky-400 to-transparent rounded-full shadow-[0_0_20px_rgba(56,189,248,0.9)] opacity-80 pointer-events-none z-10" />
@@ -406,7 +406,7 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
           <div className="absolute right-2 sm:right-6 top-8 bottom-16 w-1 sm:w-1.5 bg-gradient-to-b from-transparent via-sky-400 to-transparent rounded-full shadow-[0_0_20px_rgba(56,189,248,0.9)] opacity-80 pointer-events-none z-10" />
 
           {/* Top Control Bar in U-Tube Theater */}
-          <div className="relative z-30 w-full max-w-7xl flex items-center justify-between px-2 sm:px-4 pb-2">
+          <div className="relative z-30 w-full max-w-[95vw] flex items-center justify-between px-2 sm:px-4 pb-1">
             <div className="flex items-center gap-2.5 text-xs text-sky-300 font-bold uppercase tracking-wider font-sans">
               <span className="w-2.5 h-2.5 rounded-full bg-sky-400 animate-pulse shadow-[0_0_10px_rgba(56,189,248,0.9)]" />
               <span>U-Tube Modern Cinema</span>
@@ -447,7 +447,7 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
         onMouseLeave={() => isPlaying && setControlsVisible(false)}
         className={`relative bg-black overflow-hidden select-none group font-sans transition-all duration-500 z-20 ${
           theaterMode
-            ? 'aspect-video w-full max-w-[min(88vw,calc(58vh*1.778))] max-h-[58vh] mb-10 sm:mb-14 shadow-[0_0_90px_rgba(2,132,199,0.25),0_20px_50px_rgba(0,0,0,0.9)]'
+            ? 'aspect-video w-full max-w-[min(94vw,calc(74vh*1.778))] max-h-[74vh] mb-2 sm:mb-3 shadow-[0_0_100px_rgba(2,132,199,0.30),0_25px_60px_rgba(0,0,0,0.95)]'
             : `w-full aspect-video rounded-2xl shadow-2xl ${className}`
         }`}
         style={
