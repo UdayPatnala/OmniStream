@@ -8,7 +8,7 @@ This document serves as the authoritative, permanent version timeline and Git re
 
 | Version | Date | Type | Quick Summary | Git Tag | Commit |
 |---|---|:---:|---|:---:|:---:|
-| **v1.5.1** | 2026-09-01 | `PATCH` | Restored exact theater screen curvature hierarchy and retained proportional seating across all modes. | `v1.5.1` | [`dba34a5`](https://github.com/UdayPatnala/OmniStream/commit/dba34a5) |
+| **v1.5.1** | 2026-09-01 | `PATCH` | Restored exact theater screen curvature hierarchy and retained proportional seating across all modes. | `v1.5.1` | [`575d4b1`](https://github.com/UdayPatnala/OmniStream/commit/575d4b1) |
 | **v1.5.0** | 2026-09-01 | `MINOR` | Stable baseline checkpoint uniting U-Tube and CineMorph under central gateway. | `v1.5.0` | [`1431a08`](https://github.com/UdayPatnala/OmniStream/commit/1431a08) |
 | **v1.0.0** | 2026-08-30 | `MAJOR` | Initial OmniStream unified dual-engine architecture release. | `v1.0.0` | [`initial`](https://github.com/UdayPatnala/OmniStream/commit/initial) |
 

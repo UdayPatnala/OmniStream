@@ -814,13 +814,13 @@ export function CineMorphTheater() {
           clipPath: isOriginalMode
             ? 'none'
             : frameAspectRatio === '1.43:1'
-            ? 'polygon(0% 0%, 15% 1.0%, 30% 2.6%, 50% 4.0%, 70% 2.6%, 85% 1.0%, 100% 0%, 100% 100%, 85% 99.0%, 70% 97.4%, 50% 96.0%, 30% 97.4%, 15% 99.0%, 0% 100%)'
-            : 'polygon(0% 0%, 15% 0.7%, 30% 1.8%, 50% 2.8%, 70% 1.8%, 85% 0.7%, 100% 0%, 100% 100%, 85% 99.3%, 70% 98.2%, 50% 97.2%, 30% 98.2%, 15% 99.3%, 0% 100%)',
+            ? 'polygon(0% 0%, 10% 0.50%, 25% 1.05%, 50% 1.40%, 75% 1.05%, 90% 0.50%, 100% 0%, 100% 100%, 90% 99.50%, 75% 98.95%, 50% 98.60%, 25% 98.95%, 10% 99.50%, 0% 100%)'
+            : 'polygon(0% 0%, 10% 0.32%, 25% 0.68%, 50% 0.90%, 75% 0.68%, 90% 0.32%, 100% 0%, 100% 100%, 90% 99.68%, 75% 99.32%, 50% 99.10%, 25% 99.32%, 10% 99.68%, 0% 100%)',
           WebkitClipPath: isOriginalMode
             ? 'none'
             : frameAspectRatio === '1.43:1'
-            ? 'polygon(0% 0%, 15% 1.0%, 30% 2.6%, 50% 4.0%, 70% 2.6%, 85% 1.0%, 100% 0%, 100% 100%, 85% 99.0%, 70% 97.4%, 50% 96.0%, 30% 97.4%, 15% 99.0%, 0% 100%)'
-            : 'polygon(0% 0%, 15% 0.7%, 30% 1.8%, 50% 2.8%, 70% 1.8%, 85% 0.7%, 100% 0%, 100% 100%, 85% 99.3%, 70% 98.2%, 50% 97.2%, 30% 98.2%, 15% 99.3%, 0% 100%)',
+            ? 'polygon(0% 0%, 10% 0.50%, 25% 1.05%, 50% 1.40%, 75% 1.05%, 90% 0.50%, 100% 0%, 100% 100%, 90% 99.50%, 75% 98.95%, 50% 98.60%, 25% 98.95%, 10% 99.50%, 0% 100%)'
+            : 'polygon(0% 0%, 10% 0.32%, 25% 0.68%, 50% 0.90%, 75% 0.68%, 90% 0.32%, 100% 0%, 100% 100%, 90% 99.68%, 75% 99.32%, 50% 99.10%, 25% 99.32%, 10% 99.68%, 0% 100%)',
         }}
       >
         {/* Subtitles / CC Visual Text Overlay */}
@@ -1057,26 +1057,29 @@ export function CineMorphTheater() {
         </div>
       </div>
 
-      {/* ── Natural Cinema Auditorium Seating (Rendered in all modes: Original, IMAX, and True IMAX) ── */}
+      {/* ── 3-Tier Natural Cinema Auditorium Seating with Realistic Theater Perspective ── */}
       {theaterSeatingEnabled && (
         <div 
-          className={`absolute bottom-0 inset-x-0 pointer-events-none z-10 flex flex-col justify-end items-center px-4 sm:px-12 select-none transition-all duration-500 pb-0.5 sm:pb-1 ${
-            frameAspectRatio === '1.43:1' ? 'h-8 sm:h-10' : 'h-12 sm:h-14'
+          className={`absolute bottom-0 inset-x-0 pointer-events-none z-10 flex flex-col justify-end items-center px-4 sm:px-12 select-none transition-all duration-500 pb-1 sm:pb-2 ${
+            frameAspectRatio === '1.43:1' ? 'h-10 sm:h-12' : 'h-16 sm:h-20'
           }`}
         >
-          {/* Row B (Mid-ground Tier) */}
+          {/* Subtle Carpeted Center Aisle Runway Glow */}
+          <div className="w-8 sm:w-16 h-1 bg-gradient-to-r from-transparent via-amber-600/20 to-transparent mb-1 rounded-full pointer-events-none" />
+
+          {/* Row C (Back Tier - Upper Riser) */}
           <div 
-            className={`w-full max-w-3xl flex justify-between items-end gap-2 sm:gap-4 transition-all duration-500 mb-0.5 sm:mb-1 ${
-              frameAspectRatio === '1.43:1' ? 'opacity-20 scale-90' : 'opacity-30 scale-95'
+            className={`w-full max-w-2xl flex justify-between items-end gap-2 sm:gap-4 transition-all duration-500 mb-0.5 sm:mb-1 ${
+              frameAspectRatio === '1.43:1' ? 'opacity-20 scale-80' : 'opacity-35 scale-85'
             }`}
           >
-            {/* Left Bank Row B */}
+            {/* Left Bank Row C */}
             <div className="flex-1 flex gap-1 sm:gap-1.5 justify-end">
-              {[1, 2, 3, 4, 5].map((s) => (
+              {[1, 2, 3, 4, 5, 6].map((s) => (
                 <div
-                  key={`seat-b-l-${s}`}
-                  className={`flex-1 max-w-[34px] rounded-t-md bg-gradient-to-b from-[#1c0409] via-[#0d0103] to-[#020001] border-t border-rose-950/20 relative flex flex-col items-center justify-start pt-0.5 shadow-md ${
-                    frameAspectRatio === '1.43:1' ? 'h-2.5 sm:h-3' : 'h-3.5 sm:h-4.5'
+                  key={`seat-c-l-${s}`}
+                  className={`flex-1 max-w-[30px] rounded-t-md bg-gradient-to-b from-[#1c0409] via-[#0d0103] to-[#020001] border-t border-rose-950/20 relative flex flex-col items-center justify-start pt-0.5 shadow-md ${
+                    frameAspectRatio === '1.43:1' ? 'h-2 sm:h-2.5' : 'h-3 sm:h-3.5'
                   }`}
                 >
                   <div className="w-[70%] h-1 rounded-t bg-gradient-to-b from-[#28060d] to-[#120205] border-t border-rose-900/15" />
@@ -1084,14 +1087,14 @@ export function CineMorphTheater() {
               ))}
             </div>
             {/* Center Aisle */}
-            <div className={`w-5 sm:w-10 ${frameAspectRatio === '1.43:1' ? 'h-0.5' : 'h-1'}`} />
-            {/* Right Bank Row B */}
+            <div className={`w-5 sm:w-8 ${frameAspectRatio === '1.43:1' ? 'h-0.5' : 'h-1'}`} />
+            {/* Right Bank Row C */}
             <div className="flex-1 flex gap-1 sm:gap-1.5 justify-start">
-              {[1, 2, 3, 4, 5].map((s) => (
+              {[1, 2, 3, 4, 5, 6].map((s) => (
                 <div
-                  key={`seat-b-r-${s}`}
-                  className={`flex-1 max-w-[34px] rounded-t-md bg-gradient-to-b from-[#1c0409] via-[#0d0103] to-[#020001] border-t border-rose-950/20 relative flex flex-col items-center justify-start pt-0.5 shadow-md ${
-                    frameAspectRatio === '1.43:1' ? 'h-2.5 sm:h-3' : 'h-3.5 sm:h-4.5'
+                  key={`seat-c-r-${s}`}
+                  className={`flex-1 max-w-[30px] rounded-t-md bg-gradient-to-b from-[#1c0409] via-[#0d0103] to-[#020001] border-t border-rose-950/20 relative flex flex-col items-center justify-start pt-0.5 shadow-md ${
+                    frameAspectRatio === '1.43:1' ? 'h-2 sm:h-2.5' : 'h-3 sm:h-3.5'
                   }`}
                 >
                   <div className="w-[70%] h-1 rounded-t bg-gradient-to-b from-[#28060d] to-[#120205] border-t border-rose-900/15" />
@@ -1100,69 +1103,111 @@ export function CineMorphTheater() {
             </div>
           </div>
 
+          {/* Row B (Mid-ground Tier) */}
+          <div 
+            className={`w-full max-w-4xl flex justify-between items-end gap-2 sm:gap-4 transition-all duration-500 mb-0.5 sm:mb-1.5 ${
+              frameAspectRatio === '1.43:1' ? 'opacity-30 scale-90' : 'opacity-60 scale-95'
+            }`}
+          >
+            {/* Left Bank Row B */}
+            <div className="flex-1 flex gap-1 sm:gap-1.5 justify-end">
+              {[1, 2, 3, 4, 5, 6, 7].map((s) => (
+                <div
+                  key={`seat-b-l-${s}`}
+                  className={`flex-1 max-w-[38px] rounded-t-md bg-gradient-to-b from-[#25050c] via-[#120205] to-[#030001] border-t border-rose-900/30 relative flex flex-col items-center justify-start pt-0.5 shadow-lg ${
+                    frameAspectRatio === '1.43:1' ? 'h-2.5 sm:h-3.5' : 'h-4 sm:h-5'
+                  }`}
+                >
+                  <div className="w-[75%] h-1.5 rounded-t bg-gradient-to-b from-[#350811] to-[#160307] border-t border-rose-800/20" />
+                  <div className="absolute -left-0.5 bottom-0 w-0.5 h-2 bg-[#080102]" />
+                  <div className="absolute -right-0.5 bottom-0 w-0.5 h-2 bg-[#080102]" />
+                </div>
+              ))}
+            </div>
+            {/* Center Aisle */}
+            <div className={`w-6 sm:w-10 ${frameAspectRatio === '1.43:1' ? 'h-0.5' : 'h-1'}`} />
+            {/* Right Bank Row B */}
+            <div className="flex-1 flex gap-1 sm:gap-1.5 justify-start">
+              {[1, 2, 3, 4, 5, 6, 7].map((s) => (
+                <div
+                  key={`seat-b-r-${s}`}
+                  className={`flex-1 max-w-[38px] rounded-t-md bg-gradient-to-b from-[#25050c] via-[#120205] to-[#030001] border-t border-rose-900/30 relative flex flex-col items-center justify-start pt-0.5 shadow-lg ${
+                    frameAspectRatio === '1.43:1' ? 'h-2.5 sm:h-3.5' : 'h-4 sm:h-5'
+                  }`}
+                >
+                  <div className="w-[75%] h-1.5 rounded-t bg-gradient-to-b from-[#350811] to-[#160307] border-t border-rose-800/20" />
+                  <div className="absolute -left-0.5 bottom-0 w-0.5 h-2 bg-[#080102]" />
+                  <div className="absolute -right-0.5 bottom-0 w-0.5 h-2 bg-[#080102]" />
+                </div>
+              ))}
+            </div>
+          </div>
+
           {/* Row A (Foreground VIP Recliner Tier) */}
           <div 
-            className={`w-full max-w-4xl flex justify-between items-end gap-3 sm:gap-6 transition-all duration-500 ${
-              frameAspectRatio === '1.43:1' ? 'opacity-35' : 'opacity-55'
+            className={`w-full max-w-5xl flex justify-between items-end gap-3 sm:gap-6 transition-all duration-500 ${
+              frameAspectRatio === '1.43:1' ? 'opacity-40 scale-95' : 'opacity-85 scale-100'
             }`}
           >
             {/* Left Bank Row A */}
-            <div className="flex-1 flex gap-1 sm:gap-2 justify-end">
-              {[1, 2, 3, 4, 5].map((s) => (
+            <div className="flex-1 flex gap-1.5 sm:gap-2.5 justify-end">
+              {[1, 2, 3, 4, 5, 6, 7].map((s) => (
                 <div
                   key={`seat-a-l-${s}`}
-                  className={`flex-1 max-w-[44px] rounded-t-lg bg-gradient-to-b from-[#2a070e] via-[#140206] to-[#040001] border-t border-rose-900/40 relative flex flex-col items-center justify-start pt-0.5 shadow-2xl transition-all duration-500 ${
-                    frameAspectRatio === '1.43:1' ? 'h-3.5 sm:h-4.5' : 'h-5 sm:h-6.5'
+                  className={`flex-1 max-w-[46px] rounded-t-lg bg-gradient-to-b from-[#330710] via-[#180206] to-[#050001] border-t border-rose-800/60 relative flex flex-col items-center justify-start pt-0.5 shadow-2xl transition-all duration-500 ${
+                    frameAspectRatio === '1.43:1' ? 'h-3.5 sm:h-4.5' : 'h-6 sm:h-7.5'
                   }`}
                 >
                   {/* Subtle Plush Velvet Headrest */}
                   <div 
-                    className={`w-[75%] rounded-t bg-gradient-to-b from-[#3d0b15] to-[#1d0509] border-t border-rose-800/30 shadow-inner ${
-                      frameAspectRatio === '1.43:1' ? 'h-1 sm:h-1.5' : 'h-1.5 sm:h-2'
+                    className={`w-[78%] rounded-t bg-gradient-to-b from-[#480c18] to-[#22050b] border-t border-rose-600/40 shadow-inner ${
+                      frameAspectRatio === '1.43:1' ? 'h-1 sm:h-1.5' : 'h-2 sm:h-2.5'
                     }`} 
                   />
                   {/* Armrests */}
                   <div 
-                    className={`absolute -left-0.5 bottom-0 w-1 bg-[#0a0102] rounded-t-sm border-t border-white/10 ${
-                      frameAspectRatio === '1.43:1' ? 'h-2 sm:h-2.5' : 'h-3 sm:h-4'
+                    className={`absolute -left-0.5 bottom-0 w-1 bg-[#0d0102] rounded-t-sm border-t border-white/10 ${
+                      frameAspectRatio === '1.43:1' ? 'h-2 sm:h-2.5' : 'h-3.5 sm:h-4.5'
                     }`} 
                   />
                   <div 
-                    className={`absolute -right-0.5 bottom-0 w-1 bg-[#0a0102] rounded-t-sm border-t border-white/10 ${
-                      frameAspectRatio === '1.43:1' ? 'h-2 sm:h-2.5' : 'h-3 sm:h-4'
+                    className={`absolute -right-0.5 bottom-0 w-1 bg-[#0d0102] rounded-t-sm border-t border-white/10 ${
+                      frameAspectRatio === '1.43:1' ? 'h-2 sm:h-2.5' : 'h-3.5 sm:h-4.5'
                     }`} 
                   />
                 </div>
               ))}
             </div>
 
-            {/* Center Aisle Gap */}
-            <div className={`w-6 sm:w-12 ${frameAspectRatio === '1.43:1' ? 'h-1' : 'h-1.5'}`} />
+            {/* Center Aisle Gap with Floor Guide Glow */}
+            <div className={`w-6 sm:w-14 relative flex items-center justify-center ${frameAspectRatio === '1.43:1' ? 'h-1' : 'h-2'}`}>
+              <div className="w-1.5 h-1.5 rounded-full bg-amber-500/30 blur-[1px]" />
+            </div>
 
             {/* Right Bank Row A */}
-            <div className="flex-1 flex gap-1 sm:gap-2 justify-start">
-              {[1, 2, 3, 4, 5].map((s) => (
+            <div className="flex-1 flex gap-1.5 sm:gap-2.5 justify-start">
+              {[1, 2, 3, 4, 5, 6, 7].map((s) => (
                 <div
                   key={`seat-a-r-${s}`}
-                  className={`flex-1 max-w-[44px] rounded-t-lg bg-gradient-to-b from-[#2a070e] via-[#140206] to-[#040001] border-t border-rose-900/40 relative flex flex-col items-center justify-start pt-0.5 shadow-2xl transition-all duration-500 ${
-                    frameAspectRatio === '1.43:1' ? 'h-3.5 sm:h-4.5' : 'h-5 sm:h-6.5'
+                  className={`flex-1 max-w-[46px] rounded-t-lg bg-gradient-to-b from-[#330710] via-[#180206] to-[#050001] border-t border-rose-800/60 relative flex flex-col items-center justify-start pt-0.5 shadow-2xl transition-all duration-500 ${
+                    frameAspectRatio === '1.43:1' ? 'h-3.5 sm:h-4.5' : 'h-6 sm:h-7.5'
                   }`}
                 >
                   {/* Subtle Plush Velvet Headrest */}
                   <div 
-                    className={`w-[75%] rounded-t bg-gradient-to-b from-[#3d0b15] to-[#1d0509] border-t border-rose-800/30 shadow-inner ${
-                      frameAspectRatio === '1.43:1' ? 'h-1 sm:h-1.5' : 'h-1.5 sm:h-2'
+                    className={`w-[78%] rounded-t bg-gradient-to-b from-[#480c18] to-[#22050b] border-t border-rose-600/40 shadow-inner ${
+                      frameAspectRatio === '1.43:1' ? 'h-1 sm:h-1.5' : 'h-2 sm:h-2.5'
                     }`} 
                   />
                   {/* Armrests */}
                   <div 
-                    className={`absolute -left-0.5 bottom-0 w-1 bg-[#0a0102] rounded-t-sm border-t border-white/10 ${
-                      frameAspectRatio === '1.43:1' ? 'h-2 sm:h-2.5' : 'h-3 sm:h-4'
+                    className={`absolute -left-0.5 bottom-0 w-1 bg-[#0d0102] rounded-t-sm border-t border-white/10 ${
+                      frameAspectRatio === '1.43:1' ? 'h-2 sm:h-2.5' : 'h-3.5 sm:h-4.5'
                     }`} 
                   />
                   <div 
-                    className={`absolute -right-0.5 bottom-0 w-1 bg-[#0a0102] rounded-t-sm border-t border-white/10 ${
-                      frameAspectRatio === '1.43:1' ? 'h-2 sm:h-2.5' : 'h-3 sm:h-4'
+                    className={`absolute -right-0.5 bottom-0 w-1 bg-[#0d0102] rounded-t-sm border-t border-white/10 ${
+                      frameAspectRatio === '1.43:1' ? 'h-2 sm:h-2.5' : 'h-3.5 sm:h-4.5'
                     }`} 
                   />
                 </div>
