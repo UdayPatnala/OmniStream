@@ -802,42 +802,34 @@ export function CineMorphTheater() {
           aspectRatio: frameStyle.aspectRatioStyle,
           width: '100%',
           maxWidth: isFullscreen
-            ? `min(98vw, calc(94vh * (${frameStyle.aspectRatioStyle})))`
+            ? `min(98vw, calc(88vh * (${frameStyle.aspectRatioStyle})))`
             : frameAspectRatio === '1.43:1'
-            ? `min(92vw, calc(72vh * (${frameStyle.aspectRatioStyle})))`
-            : `min(92vw, calc(70vh * (${frameStyle.aspectRatioStyle})))`,
+            ? `min(90vw, calc(68vh * (${frameStyle.aspectRatioStyle})))`
+            : `min(90vw, calc(62vh * (${frameStyle.aspectRatioStyle})))`,
           maxHeight: isFullscreen 
-            ? '95vh' 
+            ? '88vh' 
             : frameAspectRatio === '1.43:1' 
-            ? '72vh' 
-            : '70vh',
+            ? '68vh' 
+            : '62vh',
           filter: 'none',
           borderRadius: isOriginalMode
             ? '8px'
             : frameAspectRatio === '1.43:1'
-            ? '14px 14px 34px 34px / 8px 8px 18px 18px'
+            ? '16px 16px 36px 36px / 8px 8px 18px 18px'
             : frameAspectRatio === '1.90:1'
-            ? '12px 12px 28px 28px / 6px 6px 14px 14px'
+            ? '14px 14px 30px 30px / 6px 6px 14px 14px'
             : '10px',
           transform: isOriginalMode
             ? 'none'
             : presentationMode === 'cinema' 
             ? frameAspectRatio === '1.43:1'
-              ? 'perspective(1400px) rotateX(0.35deg)'
+              ? 'perspective(1000px) rotateX(1.4deg)'
               : frameAspectRatio === '1.90:1'
-              ? 'perspective(1600px) rotateX(0.45deg)'
+              ? 'perspective(1200px) rotateX(1.1deg)'
               : 'none'
             : 'none',
         }}
       >
-        {/* Subtle Horizontal Curved Screen Side Depth Vignettes (IMAX & True IMAX Only) */}
-        {isIMAXMode && (
-          <>
-            <div className="absolute left-0 top-0 bottom-0 w-8 sm:w-16 pointer-events-none z-20 bg-gradient-to-r from-black/50 via-black/15 to-transparent" />
-            <div className="absolute right-0 top-0 bottom-0 w-8 sm:w-16 pointer-events-none z-20 bg-gradient-to-l from-black/50 via-black/15 to-transparent" />
-          </>
-        )}
-
         {/* Subtitles / CC Visual Text Overlay */}
         {subtitlesOn && !showIntroBumper && theaterState !== 'ended' && (
           <div className="absolute bottom-8 inset-x-0 z-30 flex justify-center pointer-events-none px-6 animate-in fade-in duration-200">
@@ -1075,73 +1067,109 @@ export function CineMorphTheater() {
       {/* ── Natural Cinema Auditorium Seating (Rendered in all modes: Original, IMAX, and True IMAX) ── */}
       {theaterSeatingEnabled && (
         <div 
-          className={`absolute bottom-0 inset-x-0 pointer-events-none z-10 flex flex-col justify-end items-center px-4 sm:px-12 select-none transition-all duration-500 ${
-            frameAspectRatio === '1.43:1' ? 'h-4 sm:h-5' : 'h-6 sm:h-7'
+          className={`absolute bottom-0 inset-x-0 pointer-events-none z-10 flex flex-col justify-end items-center px-4 sm:px-12 select-none transition-all duration-500 pb-0.5 sm:pb-1 ${
+            frameAspectRatio === '1.43:1' ? 'h-8 sm:h-10' : 'h-12 sm:h-14'
           }`}
         >
-          {/* Natural Auditorium VIP Recliner Row with Proportionate Profile for Clear Sightlines */}
+          {/* Row B (Mid-ground Tier) */}
           <div 
-            className={`w-full max-w-4xl flex justify-between items-end gap-3 sm:gap-6 transition-opacity duration-500 ${
-              frameAspectRatio === '1.43:1' ? 'opacity-35' : 'opacity-45'
+            className={`w-full max-w-3xl flex justify-between items-end gap-2 sm:gap-4 transition-all duration-500 mb-0.5 sm:mb-1 ${
+              frameAspectRatio === '1.43:1' ? 'opacity-20 scale-90' : 'opacity-30 scale-95'
             }`}
           >
-            {/* Left Seat Bank */}
+            {/* Left Bank Row B */}
+            <div className="flex-1 flex gap-1 sm:gap-1.5 justify-end">
+              {[1, 2, 3, 4, 5].map((s) => (
+                <div
+                  key={`seat-b-l-${s}`}
+                  className={`flex-1 max-w-[34px] rounded-t-md bg-gradient-to-b from-[#1c0409] via-[#0d0103] to-[#020001] border-t border-rose-950/20 relative flex flex-col items-center justify-start pt-0.5 shadow-md ${
+                    frameAspectRatio === '1.43:1' ? 'h-2.5 sm:h-3' : 'h-3.5 sm:h-4.5'
+                  }`}
+                >
+                  <div className="w-[70%] h-1 rounded-t bg-gradient-to-b from-[#28060d] to-[#120205] border-t border-rose-900/15" />
+                </div>
+              ))}
+            </div>
+            {/* Center Aisle */}
+            <div className={`w-5 sm:w-10 ${frameAspectRatio === '1.43:1' ? 'h-0.5' : 'h-1'}`} />
+            {/* Right Bank Row B */}
+            <div className="flex-1 flex gap-1 sm:gap-1.5 justify-start">
+              {[1, 2, 3, 4, 5].map((s) => (
+                <div
+                  key={`seat-b-r-${s}`}
+                  className={`flex-1 max-w-[34px] rounded-t-md bg-gradient-to-b from-[#1c0409] via-[#0d0103] to-[#020001] border-t border-rose-950/20 relative flex flex-col items-center justify-start pt-0.5 shadow-md ${
+                    frameAspectRatio === '1.43:1' ? 'h-2.5 sm:h-3' : 'h-3.5 sm:h-4.5'
+                  }`}
+                >
+                  <div className="w-[70%] h-1 rounded-t bg-gradient-to-b from-[#28060d] to-[#120205] border-t border-rose-900/15" />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Row A (Foreground VIP Recliner Tier) */}
+          <div 
+            className={`w-full max-w-4xl flex justify-between items-end gap-3 sm:gap-6 transition-all duration-500 ${
+              frameAspectRatio === '1.43:1' ? 'opacity-35' : 'opacity-55'
+            }`}
+          >
+            {/* Left Bank Row A */}
             <div className="flex-1 flex gap-1 sm:gap-2 justify-end">
               {[1, 2, 3, 4, 5].map((s) => (
                 <div
-                  key={`seat-l-${s}`}
-                  className={`flex-1 max-w-[44px] rounded-t-lg bg-gradient-to-b from-[#24060c] via-[#120205] to-[#040001] border-t border-rose-950/30 relative flex flex-col items-center justify-start pt-0.5 shadow-2xl transition-all duration-500 ${
-                    frameAspectRatio === '1.43:1' ? 'h-3.5 sm:h-4.5' : 'h-5 sm:h-6'
+                  key={`seat-a-l-${s}`}
+                  className={`flex-1 max-w-[44px] rounded-t-lg bg-gradient-to-b from-[#2a070e] via-[#140206] to-[#040001] border-t border-rose-900/40 relative flex flex-col items-center justify-start pt-0.5 shadow-2xl transition-all duration-500 ${
+                    frameAspectRatio === '1.43:1' ? 'h-3.5 sm:h-4.5' : 'h-5 sm:h-6.5'
                   }`}
                 >
-                  {/* Subtle Plush Headrest */}
+                  {/* Subtle Plush Velvet Headrest */}
                   <div 
-                    className={`w-[75%] rounded-t bg-gradient-to-b from-[#330911] to-[#180407] border-t border-rose-900/20 shadow-inner ${
+                    className={`w-[75%] rounded-t bg-gradient-to-b from-[#3d0b15] to-[#1d0509] border-t border-rose-800/30 shadow-inner ${
                       frameAspectRatio === '1.43:1' ? 'h-1 sm:h-1.5' : 'h-1.5 sm:h-2'
                     }`} 
                   />
                   {/* Armrests */}
                   <div 
-                    className={`absolute -left-0.5 bottom-0 w-1 bg-[#0a0102] rounded-t-sm border-t border-white/5 ${
-                      frameAspectRatio === '1.43:1' ? 'h-2 sm:h-2.5' : 'h-2.5 sm:h-3.5'
+                    className={`absolute -left-0.5 bottom-0 w-1 bg-[#0a0102] rounded-t-sm border-t border-white/10 ${
+                      frameAspectRatio === '1.43:1' ? 'h-2 sm:h-2.5' : 'h-3 sm:h-4'
                     }`} 
                   />
                   <div 
-                    className={`absolute -right-0.5 bottom-0 w-1 bg-[#0a0102] rounded-t-sm border-t border-white/5 ${
-                      frameAspectRatio === '1.43:1' ? 'h-2 sm:h-2.5' : 'h-2.5 sm:h-3.5'
+                    className={`absolute -right-0.5 bottom-0 w-1 bg-[#0a0102] rounded-t-sm border-t border-white/10 ${
+                      frameAspectRatio === '1.43:1' ? 'h-2 sm:h-2.5' : 'h-3 sm:h-4'
                     }`} 
                   />
                 </div>
               ))}
             </div>
 
-            {/* Natural Dark Center Aisle Gap */}
+            {/* Center Aisle Gap */}
             <div className={`w-6 sm:w-12 ${frameAspectRatio === '1.43:1' ? 'h-1' : 'h-1.5'}`} />
 
-            {/* Right Seat Bank */}
+            {/* Right Bank Row A */}
             <div className="flex-1 flex gap-1 sm:gap-2 justify-start">
               {[1, 2, 3, 4, 5].map((s) => (
                 <div
-                  key={`seat-r-${s}`}
-                  className={`flex-1 max-w-[44px] rounded-t-lg bg-gradient-to-b from-[#24060c] via-[#120205] to-[#040001] border-t border-rose-950/30 relative flex flex-col items-center justify-start pt-0.5 shadow-2xl transition-all duration-500 ${
-                    frameAspectRatio === '1.43:1' ? 'h-3.5 sm:h-4.5' : 'h-5 sm:h-6'
+                  key={`seat-a-r-${s}`}
+                  className={`flex-1 max-w-[44px] rounded-t-lg bg-gradient-to-b from-[#2a070e] via-[#140206] to-[#040001] border-t border-rose-900/40 relative flex flex-col items-center justify-start pt-0.5 shadow-2xl transition-all duration-500 ${
+                    frameAspectRatio === '1.43:1' ? 'h-3.5 sm:h-4.5' : 'h-5 sm:h-6.5'
                   }`}
                 >
-                  {/* Subtle Plush Headrest */}
+                  {/* Subtle Plush Velvet Headrest */}
                   <div 
-                    className={`w-[75%] rounded-t bg-gradient-to-b from-[#330911] to-[#180407] border-t border-rose-900/20 shadow-inner ${
+                    className={`w-[75%] rounded-t bg-gradient-to-b from-[#3d0b15] to-[#1d0509] border-t border-rose-800/30 shadow-inner ${
                       frameAspectRatio === '1.43:1' ? 'h-1 sm:h-1.5' : 'h-1.5 sm:h-2'
                     }`} 
                   />
                   {/* Armrests */}
                   <div 
-                    className={`absolute -left-0.5 bottom-0 w-1 bg-[#0a0102] rounded-t-sm border-t border-white/5 ${
-                      frameAspectRatio === '1.43:1' ? 'h-2 sm:h-2.5' : 'h-2.5 sm:h-3.5'
+                    className={`absolute -left-0.5 bottom-0 w-1 bg-[#0a0102] rounded-t-sm border-t border-white/10 ${
+                      frameAspectRatio === '1.43:1' ? 'h-2 sm:h-2.5' : 'h-3 sm:h-4'
                     }`} 
                   />
                   <div 
-                    className={`absolute -right-0.5 bottom-0 w-1 bg-[#0a0102] rounded-t-sm border-t border-white/5 ${
-                      frameAspectRatio === '1.43:1' ? 'h-2 sm:h-2.5' : 'h-2.5 sm:h-3.5'
+                    className={`absolute -right-0.5 bottom-0 w-1 bg-[#0a0102] rounded-t-sm border-t border-white/10 ${
+                      frameAspectRatio === '1.43:1' ? 'h-2 sm:h-2.5' : 'h-3 sm:h-4'
                     }`} 
                   />
                 </div>

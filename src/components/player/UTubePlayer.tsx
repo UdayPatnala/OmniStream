@@ -389,7 +389,7 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
     <div
       className={
         theaterMode
-          ? 'relative w-full min-h-[75vh] sm:min-h-[82vh] md:min-h-[86vh] flex flex-col justify-between p-2 sm:p-4 bg-gradient-to-b from-[#060a14] via-[#03060c] to-[#010204] rounded-3xl border border-sky-950/70 shadow-[0_25px_90px_rgba(2,132,199,0.18)] overflow-hidden transition-all duration-500 my-2'
+          ? 'fixed inset-0 z-50 w-screen h-screen flex flex-col justify-between items-center p-3 sm:p-6 bg-gradient-to-b from-[#040814] via-[#020409] to-[#000103] overflow-hidden select-none font-sans transition-all duration-500'
           : 'relative w-full'
       }
     >
@@ -397,21 +397,21 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
       {theaterMode && (
         <>
           {/* Ambient Blue Radial Backlight */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[95%] h-[90%] bg-sky-600/12 rounded-full blur-[160px] pointer-events-none" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] h-[85%] bg-sky-600/15 rounded-full blur-[160px] pointer-events-none z-0" />
 
           {/* Left Wall Strip Light */}
-          <div className="absolute left-2 sm:left-4 top-10 bottom-16 w-1 sm:w-1.5 bg-gradient-to-b from-transparent via-sky-400 to-transparent rounded-full shadow-[0_0_15px_rgba(56,189,248,0.7)] opacity-70 pointer-events-none" />
+          <div className="absolute left-2 sm:left-6 top-8 bottom-16 w-1 sm:w-1.5 bg-gradient-to-b from-transparent via-sky-400 to-transparent rounded-full shadow-[0_0_20px_rgba(56,189,248,0.9)] opacity-80 pointer-events-none z-10" />
 
           {/* Right Wall Strip Light */}
-          <div className="absolute right-2 sm:right-4 top-10 bottom-16 w-1 sm:w-1.5 bg-gradient-to-b from-transparent via-sky-400 to-transparent rounded-full shadow-[0_0_15px_rgba(56,189,248,0.7)] opacity-70 pointer-events-none" />
+          <div className="absolute right-2 sm:right-6 top-8 bottom-16 w-1 sm:w-1.5 bg-gradient-to-b from-transparent via-sky-400 to-transparent rounded-full shadow-[0_0_20px_rgba(56,189,248,0.9)] opacity-80 pointer-events-none z-10" />
 
           {/* Top Control Bar in U-Tube Theater */}
-          <div className="relative z-30 w-full flex items-center justify-between px-2 sm:px-4 pb-3">
-            <div className="flex items-center gap-2 text-xs text-sky-300 font-bold uppercase tracking-wider font-sans">
-              <span className="w-2 h-2 rounded-full bg-sky-400 animate-pulse shadow-[0_0_8px_rgba(56,189,248,0.9)]" />
+          <div className="relative z-30 w-full max-w-7xl flex items-center justify-between px-2 sm:px-4 pb-2">
+            <div className="flex items-center gap-2.5 text-xs text-sky-300 font-bold uppercase tracking-wider font-sans">
+              <span className="w-2.5 h-2.5 rounded-full bg-sky-400 animate-pulse shadow-[0_0_10px_rgba(56,189,248,0.9)]" />
               <span>U-Tube Modern Cinema</span>
               <span className="text-[10px] font-mono font-medium text-sky-400/60 lowercase hidden sm:inline">
-                (immersive theater layout)
+                (immersive full theater layout)
               </span>
             </div>
 
@@ -419,7 +419,7 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
               {/* OMS Contextual Experience Transition Button */}
               <button
                 onClick={handleOMSHandoff}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-300 text-xs font-bold transition-all shadow-sm cursor-pointer"
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-300 text-xs font-bold transition-all shadow-sm cursor-pointer"
                 title="Transition active viewing context to CineMorph Virtual Theater"
               >
                 <Sparkles className="w-3.5 h-3.5 text-amber-400" />
@@ -430,7 +430,7 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
               <button
                 onClick={onToggleTheaterMode}
                 className="p-1.5 rounded-full bg-sky-950/60 hover:bg-sky-900/60 border border-sky-800/40 text-sky-300 hover:text-white text-xs transition-colors cursor-pointer"
-                title="Exit Theater Mode (t)"
+                title="Exit Theater Mode (Hotkey: t)"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -445,29 +445,21 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
         onMouseMove={resetControlsTimer}
         onMouseEnter={() => setControlsVisible(true)}
         onMouseLeave={() => isPlaying && setControlsVisible(false)}
-        className={`relative w-full bg-black overflow-hidden select-none group font-sans transition-all duration-500 ${
+        className={`relative bg-black overflow-hidden select-none group font-sans transition-all duration-500 z-20 ${
           theaterMode
-            ? 'flex-1 aspect-video w-full border border-sky-800/40 shadow-[0_25px_80px_rgba(0,0,0,0.98),-20px_0_40px_-8px_rgba(2,132,199,0.35),20px_0_40px_-8px_rgba(2,132,199,0.35)]'
-            : `aspect-video rounded-2xl shadow-2xl ${className}`
+            ? 'aspect-video w-full max-w-[min(94vw,calc(70vh*1.778))] max-h-[70vh] my-auto border border-sky-800/40 shadow-[0_0_120px_rgba(2,132,199,0.3),0_20px_60px_rgba(0,0,0,0.95)]'
+            : `w-full aspect-video rounded-2xl shadow-2xl ${className}`
         }`}
         style={
           theaterMode
             ? {
-                perspective: '1000px',
-                transform: 'perspective(1000px) rotateX(0.70deg)',
+                perspective: '800px',
+                transform: 'perspective(800px) rotateX(1.8deg)',
                 borderRadius: '16px 16px 36px 36px / 10px 10px 22px 22px',
               }
             : undefined
         }
       >
-        {/* Subtle Horizontal Curved Screen Side Depth Vignettes (U-Tube Theater Default) */}
-        {theaterMode && (
-          <>
-            <div className="absolute left-0 top-0 bottom-0 w-6 sm:w-14 pointer-events-none z-20 bg-gradient-to-r from-black/55 via-black/15 to-transparent" />
-            <div className="absolute right-0 top-0 bottom-0 w-6 sm:w-14 pointer-events-none z-20 bg-gradient-to-l from-black/55 via-black/15 to-transparent" />
-          </>
-        )}
-
         {/* ── Video Surface (YouTube Embed) ── */}
         <iframe
           ref={iframeRef}
@@ -772,42 +764,70 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
         </div>
       </div>
 
-      {/* ── Theater A: Modern Digital Cinema Blue Seating Row (Distinct U-Tube Identity) ── */}
+      {/* ── Theater A: Modern Digital Cinema Blue Seating (Distinct U-Tube Identity) ── */}
       {theaterMode && (
-        <div className="w-full h-7 sm:h-9 pointer-events-none z-10 flex flex-col justify-end items-center px-4 sm:px-12 select-none pt-1">
-          {/* Natural Modern Auditorium Blue Seating Row with Clear Sightlines */}
-          <div className="w-full max-w-4xl flex justify-between items-end gap-3 sm:gap-6 opacity-55">
-            {/* Left Seat Bank */}
+        <div className="w-full max-w-5xl pointer-events-none z-10 flex flex-col justify-end items-center px-4 sm:px-12 select-none pb-1">
+          {/* Row B (Mid-ground Tier) */}
+          <div className="w-full max-w-3xl flex justify-between items-end gap-2 sm:gap-4 opacity-35 scale-95 mb-0.5 sm:mb-1">
+            {/* Left Bank Row B */}
+            <div className="flex-1 flex gap-1 sm:gap-1.5 justify-end">
+              {[1, 2, 3, 4, 5].map((s) => (
+                <div
+                  key={`utube-seat-b-l-${s}`}
+                  className="flex-1 max-w-[34px] h-3 sm:h-4 rounded-t-md bg-gradient-to-b from-[#08182f] via-[#040c18] to-[#010307] border-t border-sky-500/20 relative flex flex-col items-center justify-start pt-0.5 shadow-md"
+                >
+                  <div className="w-[70%] h-1 rounded-t bg-gradient-to-b from-[#0f284d] to-[#071325] border-t border-sky-400/20" />
+                </div>
+              ))}
+            </div>
+            {/* Center Aisle */}
+            <div className="w-5 sm:w-10 h-1" />
+            {/* Right Bank Row B */}
+            <div className="flex-1 flex gap-1 sm:gap-1.5 justify-start">
+              {[1, 2, 3, 4, 5].map((s) => (
+                <div
+                  key={`utube-seat-b-r-${s}`}
+                  className="flex-1 max-w-[34px] h-3 sm:h-4 rounded-t-md bg-gradient-to-b from-[#08182f] via-[#040c18] to-[#010307] border-t border-sky-500/20 relative flex flex-col items-center justify-start pt-0.5 shadow-md"
+                >
+                  <div className="w-[70%] h-1 rounded-t bg-gradient-to-b from-[#0f284d] to-[#071325] border-t border-sky-400/20" />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Row A (Foreground VIP Recliner Tier) */}
+          <div className="w-full max-w-4xl flex justify-between items-end gap-3 sm:gap-6 opacity-65">
+            {/* Left Bank Row A */}
             <div className="flex-1 flex gap-1 sm:gap-2 justify-end">
               {[1, 2, 3, 4, 5].map((s) => (
                 <div
-                  key={`utube-seat-l-${s}`}
-                  className="flex-1 max-w-[44px] h-4.5 sm:h-6 rounded-t-lg bg-gradient-to-b from-[#0c2444] via-[#061224] to-[#02060e] border-t border-sky-500/30 relative flex flex-col items-center justify-start pt-0.5 shadow-2xl"
+                  key={`utube-seat-a-l-${s}`}
+                  className="flex-1 max-w-[44px] h-4.5 sm:h-6 rounded-t-lg bg-gradient-to-b from-[#0c2444] via-[#061224] to-[#02060e] border-t border-sky-400/40 relative flex flex-col items-center justify-start pt-0.5 shadow-2xl"
                 >
                   {/* Subtle Blue Plush Headrest */}
-                  <div className="w-[75%] h-1.5 sm:h-2 rounded-t bg-gradient-to-b from-[#163b6d] to-[#0a1b33] border-t border-sky-400/30 shadow-inner" />
+                  <div className="w-[75%] h-1.5 sm:h-2 rounded-t bg-gradient-to-b from-[#18427a] to-[#0a1c35] border-t border-sky-300/40 shadow-inner" />
                   {/* Blue Armrests */}
-                  <div className="absolute -left-0.5 bottom-0 w-1 h-2 sm:h-3 bg-[#030914] rounded-t-sm border-t border-sky-500/20" />
-                  <div className="absolute -right-0.5 bottom-0 w-1 h-2 sm:h-3 bg-[#030914] rounded-t-sm border-t border-sky-500/20" />
+                  <div className="absolute -left-0.5 bottom-0 w-1 h-2.5 sm:h-3.5 bg-[#030914] rounded-t-sm border-t border-sky-400/30" />
+                  <div className="absolute -right-0.5 bottom-0 w-1 h-2.5 sm:h-3.5 bg-[#030914] rounded-t-sm border-t border-sky-400/30" />
                 </div>
               ))}
             </div>
 
             {/* Natural Dark Center Aisle Gap */}
-            <div className="w-6 sm:w-12 h-1" />
+            <div className="w-6 sm:w-12 h-1.5" />
 
-            {/* Right Seat Bank */}
+            {/* Right Bank Row A */}
             <div className="flex-1 flex gap-1 sm:gap-2 justify-start">
               {[1, 2, 3, 4, 5].map((s) => (
                 <div
-                  key={`utube-seat-r-${s}`}
-                  className="flex-1 max-w-[44px] h-4.5 sm:h-6 rounded-t-lg bg-gradient-to-b from-[#0c2444] via-[#061224] to-[#02060e] border-t border-sky-500/30 relative flex flex-col items-center justify-start pt-0.5 shadow-2xl"
+                  key={`utube-seat-a-r-${s}`}
+                  className="flex-1 max-w-[44px] h-4.5 sm:h-6 rounded-t-lg bg-gradient-to-b from-[#0c2444] via-[#061224] to-[#02060e] border-t border-sky-400/40 relative flex flex-col items-center justify-start pt-0.5 shadow-2xl"
                 >
                   {/* Subtle Blue Plush Headrest */}
-                  <div className="w-[75%] h-1.5 sm:h-2 rounded-t bg-gradient-to-b from-[#163b6d] to-[#0a1b33] border-t border-sky-400/30 shadow-inner" />
+                  <div className="w-[75%] h-1.5 sm:h-2 rounded-t bg-gradient-to-b from-[#18427a] to-[#0a1c35] border-t border-sky-300/40 shadow-inner" />
                   {/* Blue Armrests */}
-                  <div className="absolute -left-0.5 bottom-0 w-1 h-2 sm:h-3 bg-[#030914] rounded-t-sm border-t border-sky-500/20" />
-                  <div className="absolute -right-0.5 bottom-0 w-1 h-2 sm:h-3 bg-[#030914] rounded-t-sm border-t border-sky-500/20" />
+                  <div className="absolute -left-0.5 bottom-0 w-1 h-2.5 sm:h-3.5 bg-[#030914] rounded-t-sm border-t border-sky-400/30" />
+                  <div className="absolute -right-0.5 bottom-0 w-1 h-2.5 sm:h-3.5 bg-[#030914] rounded-t-sm border-t border-sky-400/30" />
                 </div>
               ))}
             </div>
