@@ -86,75 +86,6 @@ export const TicketPrinterAnimation: React.FC<TicketPrinterAnimationProps> = ({
     return '2h 49m';
   }, [activeTicket?.durationSeconds]);
 
-  // Thumbnail / Poster Preview Source (with local video frame fallback)
-  const [localExtractedPoster, setLocalExtractedPoster] = useState<string | null>(null);
-
-  const posterSource = useMemo(() => {
-    if (activeTicket?.thumbnailDataUrl) return activeTicket.thumbnailDataUrl;
-    if (localExtractedPoster) return localExtractedPoster;
-    if (activeTicket?.sourceUrl && !activeTicket.isLocal) {
-      return `https://i.ytimg.com/vi/${activeTicket.sourceUrl}/hqdefault.jpg`;
-    }
-    return null;
-  }, [activeTicket?.thumbnailDataUrl, localExtractedPoster, activeTicket?.sourceUrl, activeTicket?.isLocal]);
-
-  // Dynamic frame extractor fallback if activeTicket didn't have thumbnailDataUrl
-  useEffect(() => {
-    if (activeTicket?.isLocal && !activeTicket.thumbnailDataUrl && activeTicket.sourceUrl) {
-      try {
-        const videoEl = document.createElement('video');
-        videoEl.preload = 'auto';
-        videoEl.muted = true;
-        videoEl.playsInline = true;
-        videoEl.src = activeTicket.sourceUrl;
-
-        videoEl.onloadedmetadata = () => {
-          const seekTarget = videoEl.duration > 4 ? Math.min(5, Math.max(1, videoEl.duration * 0.1)) : 0.5;
-          try {
-            videoEl.currentTime = seekTarget;
-          } catch (_) {}
-        };
-
-        videoEl.onseeked = () => {
-          try {
-            const canvas = document.createElement('canvas');
-            canvas.width = 320;
-            canvas.height = 320;
-            const ctx = canvas.getContext('2d');
-            if (ctx && videoEl.videoWidth > 0 && videoEl.videoHeight > 0) {
-              const minDim = Math.min(videoEl.videoWidth, videoEl.videoHeight);
-              const sx = (videoEl.videoWidth - minDim) / 2;
-              const sy = (videoEl.videoHeight - minDim) / 2;
-              ctx.drawImage(videoEl, sx, sy, minDim, minDim, 0, 0, 320, 320);
-              const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
-              setLocalExtractedPoster(dataUrl);
-              setImageLoaded(true);
-            }
-          } catch (_) {}
-        };
-      } catch (_) {}
-    }
-  }, [activeTicket?.isLocal, activeTicket?.thumbnailDataUrl, activeTicket?.sourceUrl]);
-
-  // Pre-load poster image to prevent pop-in during printing
-  useEffect(() => {
-    if (posterSource) {
-      if (posterSource.startsWith('data:') || posterSource.startsWith('blob:')) {
-        setImageLoaded(true);
-      }
-      const img = new Image();
-      img.src = posterSource;
-      img.onload = () => setImageLoaded(true);
-      img.onerror = () => {
-        if (!posterSource.startsWith('data:')) {
-          setImageLoaded(false);
-        }
-      };
-    } else {
-      setImageLoaded(false);
-    }
-  }, [posterSource]);
-
   // Aperture Label
   const getApertureLabel = (ratio: AspectRatioMode) => {
     switch (ratio) {
@@ -415,32 +346,7 @@ export const TicketPrinterAnimation: React.FC<TicketPrinterAnimationProps> = ({
               </div>
             </div>
 
-            {/* Content Poster / Movie Artwork Section (Dedicated Cinema Poster Framing) */}
-            <div className="relative z-10 pt-3 pb-1.5 px-4 flex flex-col items-center">
-              <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-xl bg-stone-900 border-2 border-[#d8cdb4] overflow-hidden shadow-[inset_0_2px_6px_rgba(0,0,0,0.4),0_2px_8px_rgba(0,0,0,0.15)] flex items-center justify-center relative aspect-square group/poster">
-                {posterSource ? (
-                  <img
-                    src={posterSource}
-                    alt={activeTicket?.movieTitle || 'Movie poster'}
-                    className={`w-full h-full object-cover object-[center_35%] contrast-[1.08] saturate-[1.05] transition-all duration-300 ${
-                      imageLoaded ? 'opacity-95 scale-100' : 'opacity-85 scale-[1.02]'
-                    }`}
-                    loading="eager"
-                    onLoad={() => setImageLoaded(true)}
-                  />
-                ) : (
-                  <img
-                    src="/cinemorph_artwork.png"
-                    alt="CineMorph Cinema"
-                    className="w-full h-full object-cover object-center contrast-105 opacity-90"
-                    loading="eager"
-                  />
-                )}
-                {/* Vintage Sepia Thermal Print & Film Tone Scrim */}
-                <div className="absolute inset-0 bg-gradient-to-t from-amber-950/20 via-transparent to-black/10 mix-blend-multiply pointer-events-none" />
-                <div className="absolute inset-0 border border-black/10 rounded-xl pointer-events-none" />
-              </div>
-            </div>
+
 
             {/* Movie Title & Runtime Section */}
             <div className="relative z-10 py-2 px-4 text-center space-y-0.5">

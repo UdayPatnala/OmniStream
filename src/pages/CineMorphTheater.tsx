@@ -48,7 +48,7 @@ export function CineMorphTheater() {
     activeLocalMedia, localMediaHistory, addLocalMediaToHistory,
     theaterSeatingEnabled, setTheaterSeatingEnabled,
     curtainAnimationEnabled, setCurtainAnimationEnabled,
-    ecoMode, setEcoMode, devicePerformanceProfile
+    devicePerformanceProfile
   } = useAppStore();
 
   const isLocalMedia = id?.startsWith('local-') || !!activeLocalMedia;
@@ -406,7 +406,6 @@ export function CineMorphTheater() {
   const hybridDecision = hybridMediaRouter.determineRoute({
     isLocal: isLocalMedia,
     durationSeconds: duration,
-    userEcoMode: ecoMode,
   });
 
   // ── Master Hybrid Routing & Adaptive Performance Sampling ────────
@@ -1675,20 +1674,7 @@ export function CineMorphTheater() {
                 <span>Speed: {speedRate}x</span>
               </button>
 
-              {/* Eco Mode */}
-              <button
-                onClick={() => {
-                  const next = !ecoMode;
-                  setEcoMode(next);
-                  showToast(next ? '🌱 Eco Mode: Enabled' : '⚡ 60FPS Mode: Active');
-                }}
-                className={`p-2.5 rounded-xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
-                  ecoMode ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-amber-950/20 text-amber-300/60 border-amber-900/20 hover:bg-amber-900/30'
-                }`}
-              >
-                <Zap className="w-4 h-4 text-emerald-400" />
-                <span>{ecoMode ? 'Eco Mode' : '60FPS Mode'}</span>
-              </button>
+
 
               {/* Dimmer */}
               <button

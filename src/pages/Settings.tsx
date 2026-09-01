@@ -18,8 +18,7 @@ export function SettingsPage() {
     rootLandingPreference, setRootLandingPreference,
     theaterSeatingEnabled, setTheaterSeatingEnabled,
     curtainAnimationEnabled, setCurtainAnimationEnabled,
-    devicePerformanceProfile, setDevicePerformanceProfile,
-    ecoMode, setEcoMode
+    devicePerformanceProfile, setDevicePerformanceProfile
   } = useAppStore();
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -261,18 +260,6 @@ export function SettingsPage() {
               <option value="balanced">Balanced (1500ms Sampling • Medium LOD)</option>
               <option value="low">Low Power (3000ms Sampling • Minimal LOD)</option>
               <option value="ultra-low">Ultra Low (Zero Canvas Sampling • Native Only)</option>
-            </select>
-          </div>
-
-          <div className="space-y-2">
-            <label className="block text-xs font-bold text-utube-text">Eco Mode (Battery & CPU Saver)</label>
-            <select
-              value={ecoMode ? 'true' : 'false'}
-              onChange={(e) => setEcoMode(e.target.value === 'true')}
-              className="w-full h-12 px-4 rounded-2xl border border-utube-border bg-utube-surface text-utube-text focus:outline-none focus:border-utube-primary text-sm cursor-pointer shadow-sm"
-            >
-              <option value="false">Standard / Auto Adaptive</option>
-              <option value="true">🌱 Enabled (Throttled Background Processing)</option>
             </select>
           </div>
         </div>

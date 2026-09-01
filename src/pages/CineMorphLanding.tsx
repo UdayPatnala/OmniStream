@@ -7,7 +7,6 @@ import {
 import { useAppStore } from '../store';
 import { LocalMediaItem } from '../types';
 import { useTicketStore } from '../state/useTicketStore';
-import { posterService } from '../lib/cinemorph/posterService';
 import { mediaParser } from '../lib/cinemorph/mediaParser';
 
 export function CineMorphLanding() {
@@ -45,15 +44,6 @@ export function CineMorphLanding() {
       const fileId = `local-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
       const title = file.name.replace(/\.[^/.]+$/, '');
 
-      // Resolve and preload dynamic movie poster from the local video before printer starts
-      const posterRes = await posterService.resolvePoster({
-        id: fileId,
-        sourceUrl: blobUrl,
-        isLocal: true,
-        file: file,
-        title: title,
-      });
-
       // Demux media container streams (audio tracks, video streams, codecs)
       const containerAnalysis = await mediaParser.parseMediaFile(file, file.name);
 
@@ -66,7 +56,6 @@ export function CineMorphLanding() {
         duration: 0,
         progress: 0,
         lastWatchedAt: Date.now(),
-        thumbnail: posterRes.url,
         aspectRatio: containerAnalysis.videoStreams[0]?.aspectRatio,
         containerAnalysis,
       };
@@ -79,8 +68,6 @@ export function CineMorphLanding() {
         source: blobUrl,
         isLocal: true,
         file: file,
-        posterUrl: posterRes.url,
-        thumbnailUrl: posterRes.url,
       });
 
       navigate(`/theater/${fileId}`);

@@ -120,9 +120,6 @@ interface AppState {
   devicePerformanceProfile: DevicePerformanceProfile;
   setDevicePerformanceProfile: (profile: DevicePerformanceProfile) => void;
 
-  ecoMode: boolean;
-  setEcoMode: (eco: boolean) => void;
-
   watchLater: Video[];
   addToWatchLater: (video: Video) => void;
   removeFromWatchLater: (videoId: string) => void;
@@ -215,8 +212,7 @@ export const useAppStore = create<AppState>()(
       devicePerformanceProfile: 'balanced',
       setDevicePerformanceProfile: (devicePerformanceProfile) => set({ devicePerformanceProfile }),
 
-      ecoMode: false,
-      setEcoMode: (ecoMode) => set({ ecoMode }),
+
 
       rankingProfile: 'balanced',
       setRankingProfile: (rankingProfile) => set({ rankingProfile }),

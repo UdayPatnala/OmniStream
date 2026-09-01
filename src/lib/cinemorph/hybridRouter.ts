@@ -79,9 +79,8 @@ export class HybridMediaRouter {
     durationSeconds: number;
     hasCanvasFailed?: boolean;
     isNetworkThrottled?: boolean;
-    userEcoMode?: boolean;
   }): AdaptivePerformanceDecision {
-    const profile = context.userEcoMode ? 'low' : this.currentProfile;
+    const profile = this.currentProfile;
 
     // Route I: Offline Airgap
     if (!this.metrics.isOnline && context.isLocal) {
