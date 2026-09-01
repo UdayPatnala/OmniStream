@@ -1,8 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { 
-  Sparkles, RefreshCw, X, Ticket, 
-  Disc, Clapperboard, Layers, Play, Clock, ArrowRight
+  Sparkles, RefreshCw, X, 
+  Disc, Clapperboard, Layers
 } from 'lucide-react';
 import { useAppStore } from '../store';
 import { LocalMediaItem } from '../types';
@@ -15,7 +15,6 @@ export function CineMorphLanding() {
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const navigate = useNavigate();
-  const tickets = useTicketStore((state) => state.tickets);
   const { 
     localMediaHistory, 
     addLocalMediaToHistory, 
@@ -205,55 +204,6 @@ export function CineMorphLanding() {
             <div className="mt-4 px-4 py-2 bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-semibold rounded-xl flex items-center gap-2 animate-in fade-in duration-200">
               <X className="w-4 h-4 shrink-0" />
               <span>{localFileError}</span>
-            </div>
-          )}
-
-          {/* Admission Tickets Shelf for 1-click resumption */}
-          {tickets.length > 0 && (
-            <div className="w-full max-w-lg mt-8 pt-6 border-t border-cinemorph-border/60 text-left space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold text-cinemorph-text-muted uppercase tracking-widest flex items-center gap-1.5 font-mono">
-                  <Ticket className="w-3.5 h-3.5 text-cinemorph-primary" />
-                  <span>Saved Admission Passes</span>
-                </span>
-                <span className="text-[10px] font-mono text-cinemorph-text-muted">
-                  {tickets.length} {tickets.length === 1 ? 'ticket' : 'tickets'}
-                </span>
-              </div>
-
-              <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-                {tickets.slice(0, 3).map((t) => (
-                  <div
-                    key={t.ticketId}
-                    onClick={() => {
-                      useTicketStore.getState().resumeFromTicket(t.ticketId);
-                      navigate(`/theater/${t.sourceUrl}`);
-                    }}
-                    className="p-3 rounded-2xl bg-cinemorph-surface hover:bg-cinemorph-surface/90 border border-cinemorph-border/70 hover:border-cinemorph-primary/50 transition-all flex items-center justify-between cursor-pointer group shadow-sm"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-8 h-8 rounded-lg bg-cinemorph-card border border-cinemorph-border flex items-center justify-center shrink-0">
-                        <Play className="w-3.5 h-3.5 text-cinemorph-primary group-hover:scale-110 transition-transform" />
-                      </div>
-                      <div className="min-w-0">
-                        <h4 className="text-xs font-bold text-cinemorph-text truncate group-hover:text-cinemorph-primary transition-colors">
-                          {t.movieTitle}
-                        </h4>
-                        <div className="flex items-center gap-2 text-[10px] text-cinemorph-text-muted font-mono">
-                          <span>{t.aspectRatio}</span>
-                          <span>•</span>
-                          <span className="flex items-center gap-0.5">
-                            <Clock className="w-2.5 h-2.5" />
-                            {Math.floor(t.timestampSeconds / 60)}m saved
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <ArrowRight className="w-4 h-4 text-cinemorph-text-muted group-hover:text-cinemorph-primary group-hover:translate-x-0.5 transition-all shrink-0 ml-2" />
-                  </div>
-                ))}
-              </div>
             </div>
           )}
         </div>

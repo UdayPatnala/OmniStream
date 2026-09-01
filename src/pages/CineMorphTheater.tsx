@@ -798,32 +798,30 @@ export function CineMorphTheater() {
           maxWidth: isFullscreen
             ? `min(98vw, calc(94vh * (${frameStyle.aspectRatioStyle})))`
             : frameAspectRatio === '1.43:1'
-            ? `min(94vw, calc(76vh * (${frameStyle.aspectRatioStyle})))`
+            ? `min(92vw, calc(70vh * (${frameStyle.aspectRatioStyle})))`
             : frameAspectRatio === '4.3:1'
-            ? `min(98vw, calc(82vh * (${frameStyle.aspectRatioStyle})))`
-            : `min(94vw, calc(76vh * (${frameStyle.aspectRatioStyle})))`,
+            ? `min(96vw, calc(74vh * (${frameStyle.aspectRatioStyle})))`
+            : `min(92vw, calc(70vh * (${frameStyle.aspectRatioStyle})))`,
           maxHeight: isFullscreen 
-            ? '94vh' 
+            ? '95vh' 
             : frameAspectRatio === '1.43:1' 
-            ? '76vh' 
+            ? '70vh' 
             : frameAspectRatio === '4.3:1' 
-            ? '82vh' 
-            : '76vh',
-          filter: isOriginalMode ? 'none' : presentationMode === 'cinema' ? 'brightness(1.03) contrast(1.02)' : 'none',
+            ? '74vh' 
+            : '70vh',
+          filter: 'none',
           borderRadius: isOriginalMode
-            ? '10px'
-            : presentationMode === 'cinema'
-            ? '12px 12px 28px 28px / 12px 12px 16px 16px'
-            : '10px',
+            ? '8px'
+            : '12px',
           transform: isOriginalMode
             ? 'none'
             : presentationMode === 'cinema' 
-            ? (frameAspectRatio === '4.3:1' ? 'perspective(1200px) rotateX(1deg) scale(1.12)' : 'perspective(1200px) rotateX(0.8deg)') 
+            ? (frameAspectRatio === '4.3:1' ? 'perspective(1200px) rotateX(0.5deg) scale(1.05)' : 'perspective(1200px) rotateX(0.4deg)') 
             : 'none',
           boxShadow: isOriginalMode
             ? '0 10px 30px rgba(0,0,0,0.5)'
             : presentationMode === 'cinema' 
-            ? '0 0 120px rgba(0,0,0,0.98), inset 0 0 40px rgba(0,0,0,0.9)' 
+            ? '0 0 90px rgba(0,0,0,0.95)' 
             : '0 20px 25px -5px rgba(0,0,0,0.1)'
         }}
       >
@@ -842,27 +840,6 @@ export function CineMorphTheater() {
             transform: isOriginalMode ? 'none' : presentationMode === 'cinema' ? frameStyle.videoScaleTransform : 'none',
           }}
         >
-          {/* True Concave Curved Cinema Screen Proscenium Geometry Overlay */}
-          <div className="absolute inset-0 pointer-events-none z-20 transition-opacity duration-500 ease-out opacity-100">
-            <svg
-              className="absolute inset-0 w-full h-full pointer-events-none"
-              viewBox="0 0 1000 600"
-              preserveAspectRatio="none"
-            >
-              {/* Top Inward Concave Proscenium Edge (subtle concave curve dipping down 12px at center) */}
-              <path
-                d="M 0 0 L 1000 0 L 1000 4 Q 500 16 0 4 Z"
-                fill="#070503"
-              />
-
-              {/* Bottom Inward Concave Proscenium Edge (subtle concave curve rising up 12px at center) */}
-              <path
-                d="M 0 600 L 1000 600 L 1000 596 Q 500 584 0 596 Z"
-                fill="#070503"
-              />
-            </svg>
-          </div>
-
           {/* Theatrical Velvet Curtain Panels */}
           {curtainAnimationEnabled && (
             <div className="absolute inset-0 pointer-events-none z-25 overflow-hidden flex">
@@ -1082,23 +1059,23 @@ export function CineMorphTheater() {
         </div>
       </div>
 
-      {/* ── Natural Cinema Auditorium Seating (Rendered ONLY in IMAX / True IMAX • Zero Obstruction) ── */}
+      {/* ── Natural Cinema Auditorium Seating (Rendered ONLY in IMAX / True IMAX • Zero Screen Obstruction) ── */}
       {theaterSeatingEnabled && isIMAXMode && (
-        <div className="absolute bottom-0 inset-x-0 h-10 sm:h-14 pointer-events-none z-10 flex flex-col justify-end items-center px-4 sm:px-12 select-none">
+        <div className="absolute bottom-0 inset-x-0 h-8 sm:h-10 pointer-events-none z-10 flex flex-col justify-end items-center px-4 sm:px-12 select-none">
           {/* Natural Auditorium VIP Recliner Row */}
-          <div className="w-full max-w-5xl flex justify-between items-end gap-4 sm:gap-8 opacity-90">
+          <div className="w-full max-w-5xl flex justify-between items-end gap-4 sm:gap-8 opacity-60">
             {/* Left Seat Bank */}
             <div className="flex-1 flex gap-1.5 sm:gap-2.5 justify-end">
               {[1, 2, 3, 4, 5].map((s) => (
                 <div
                   key={`seat-l-${s}`}
-                  className="flex-1 max-w-[56px] h-8 sm:h-12 rounded-t-xl bg-gradient-to-b from-[#2a070e] via-[#160307] to-[#080103] border-t border-rose-950/40 relative flex flex-col items-center justify-start pt-1 shadow-2xl"
+                  className="flex-1 max-w-[50px] h-6 sm:h-9 rounded-t-xl bg-gradient-to-b from-[#24060c] via-[#120205] to-[#040001] border-t border-rose-950/30 relative flex flex-col items-center justify-start pt-0.5 shadow-2xl"
                 >
                   {/* Subtle Plush Headrest */}
-                  <div className="w-[80%] h-2.5 sm:h-4 rounded-t-lg bg-gradient-to-b from-[#3d0b15] to-[#20050a] border-t border-rose-900/30 shadow-inner" />
+                  <div className="w-[80%] h-2 sm:h-3 rounded-t-lg bg-gradient-to-b from-[#330911] to-[#180407] border-t border-rose-900/20 shadow-inner" />
                   {/* Armrests */}
-                  <div className="absolute -left-1 bottom-0 w-1.5 h-4 sm:h-6 bg-[#100204] rounded-t-sm border-t border-white/5" />
-                  <div className="absolute -right-1 bottom-0 w-1.5 h-4 sm:h-6 bg-[#100204] rounded-t-sm border-t border-white/5" />
+                  <div className="absolute -left-1 bottom-0 w-1 h-3 sm:h-5 bg-[#0a0102] rounded-t-sm border-t border-white/5" />
+                  <div className="absolute -right-1 bottom-0 w-1 h-3 sm:h-5 bg-[#0a0102] rounded-t-sm border-t border-white/5" />
                 </div>
               ))}
             </div>
@@ -1111,13 +1088,13 @@ export function CineMorphTheater() {
               {[1, 2, 3, 4, 5].map((s) => (
                 <div
                   key={`seat-r-${s}`}
-                  className="flex-1 max-w-[56px] h-8 sm:h-12 rounded-t-xl bg-gradient-to-b from-[#2a070e] via-[#160307] to-[#080103] border-t border-rose-950/40 relative flex flex-col items-center justify-start pt-1 shadow-2xl"
+                  className="flex-1 max-w-[50px] h-6 sm:h-9 rounded-t-xl bg-gradient-to-b from-[#24060c] via-[#120205] to-[#040001] border-t border-rose-950/30 relative flex flex-col items-center justify-start pt-0.5 shadow-2xl"
                 >
                   {/* Subtle Plush Headrest */}
-                  <div className="w-[80%] h-2.5 sm:h-4 rounded-t-lg bg-gradient-to-b from-[#3d0b15] to-[#20050a] border-t border-rose-900/30 shadow-inner" />
+                  <div className="w-[80%] h-2 sm:h-3 rounded-t-lg bg-gradient-to-b from-[#330911] to-[#180407] border-t border-rose-900/20 shadow-inner" />
                   {/* Armrests */}
-                  <div className="absolute -left-1 bottom-0 w-1.5 h-4 sm:h-6 bg-[#100204] rounded-t-sm border-t border-white/5" />
-                  <div className="absolute -right-1 bottom-0 w-1.5 h-4 sm:h-6 bg-[#100204] rounded-t-sm border-t border-white/5" />
+                  <div className="absolute -left-1 bottom-0 w-1 h-3 sm:h-5 bg-[#0a0102] rounded-t-sm border-t border-white/5" />
+                  <div className="absolute -right-1 bottom-0 w-1 h-3 sm:h-5 bg-[#0a0102] rounded-t-sm border-t border-white/5" />
                 </div>
               ))}
             </div>

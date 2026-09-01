@@ -163,7 +163,7 @@ export function Watch() {
       <div className={`grid gap-6 ${theaterLayout ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-3'}`}>
 
         {/* ── Main: Player + Metadata ── */}
-        <div className={`${theaterLayout ? 'w-full max-w-6xl mx-auto' : 'lg:col-span-2'} space-y-4`}>
+        <div className={`${theaterLayout ? 'w-full' : 'lg:col-span-2'} space-y-4`}>
 
           {/* U-Tube Dedicated Player (with Theater A & OMS Handoff) */}
           <UTubePlayer

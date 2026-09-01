@@ -389,7 +389,7 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
     <div
       className={
         theaterMode
-          ? 'relative w-full py-6 sm:py-8 px-2 sm:px-6 bg-gradient-to-b from-[#080d18] via-[#050810] to-[#020408] rounded-3xl border border-sky-950/60 shadow-[0_20px_80px_rgba(2,132,199,0.12)] overflow-hidden transition-all duration-500 my-4'
+          ? 'relative w-full min-h-[75vh] sm:min-h-[82vh] md:min-h-[86vh] flex flex-col justify-between p-2 sm:p-4 bg-gradient-to-b from-[#060a14] via-[#03060c] to-[#010204] rounded-3xl border border-sky-950/70 shadow-[0_25px_90px_rgba(2,132,199,0.18)] overflow-hidden transition-all duration-500 my-2'
           : 'relative w-full'
       }
     >
@@ -397,21 +397,21 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
       {theaterMode && (
         <>
           {/* Ambient Blue Radial Backlight */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] h-[80%] bg-sky-600/10 rounded-full blur-[140px] pointer-events-none" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[95%] h-[90%] bg-sky-600/12 rounded-full blur-[160px] pointer-events-none" />
 
           {/* Left Wall Strip Light */}
-          <div className="absolute left-2 sm:left-4 top-12 bottom-20 w-1 sm:w-1.5 bg-gradient-to-b from-transparent via-sky-400 to-transparent rounded-full shadow-[0_0_15px_rgba(56,189,248,0.7)] opacity-70 pointer-events-none" />
+          <div className="absolute left-2 sm:left-4 top-10 bottom-16 w-1 sm:w-1.5 bg-gradient-to-b from-transparent via-sky-400 to-transparent rounded-full shadow-[0_0_15px_rgba(56,189,248,0.7)] opacity-70 pointer-events-none" />
 
           {/* Right Wall Strip Light */}
-          <div className="absolute right-2 sm:right-4 top-12 bottom-20 w-1 sm:w-1.5 bg-gradient-to-b from-transparent via-sky-400 to-transparent rounded-full shadow-[0_0_15px_rgba(56,189,248,0.7)] opacity-70 pointer-events-none" />
+          <div className="absolute right-2 sm:right-4 top-10 bottom-16 w-1 sm:w-1.5 bg-gradient-to-b from-transparent via-sky-400 to-transparent rounded-full shadow-[0_0_15px_rgba(56,189,248,0.7)] opacity-70 pointer-events-none" />
 
           {/* Top Control Bar in U-Tube Theater */}
-          <div className="relative z-30 w-full flex items-center justify-between px-2 sm:px-4 pb-4">
+          <div className="relative z-30 w-full flex items-center justify-between px-2 sm:px-4 pb-3">
             <div className="flex items-center gap-2 text-xs text-sky-300 font-bold uppercase tracking-wider font-sans">
               <span className="w-2 h-2 rounded-full bg-sky-400 animate-pulse shadow-[0_0_8px_rgba(56,189,248,0.9)]" />
               <span>U-Tube Modern Cinema</span>
               <span className="text-[10px] font-mono font-medium text-sky-400/60 lowercase hidden sm:inline">
-                (theater layout)
+                (immersive theater layout)
               </span>
             </div>
 
@@ -439,24 +439,17 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
         </>
       )}
 
-      {/* ── Curved Screen Viewport Container ── */}
+      {/* ── True Full-Screen Immersive Video Viewport Container ── */}
       <div
         ref={containerRef}
         onMouseMove={resetControlsTimer}
         onMouseEnter={() => setControlsVisible(true)}
         onMouseLeave={() => isPlaying && setControlsVisible(false)}
-        className={`relative w-full aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl select-none group font-sans ${
+        className={`relative w-full bg-black rounded-2xl overflow-hidden shadow-2xl select-none group font-sans ${
           theaterMode
-            ? 'border border-sky-900/50 shadow-[0_15px_40px_rgba(0,0,0,0.9)] max-w-5xl mx-auto'
-            : className
+            ? 'flex-1 aspect-video w-full border border-sky-900/40 shadow-[0_20px_60px_rgba(0,0,0,0.95)]'
+            : `aspect-video ${className}`
         }`}
-        style={
-          theaterMode
-            ? {
-                transform: 'perspective(1200px) rotateX(0.6deg)',
-              }
-            : undefined
-        }
       >
         {/* ── Video Surface (YouTube Embed) ── */}
         <iframe
@@ -761,28 +754,6 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
           </div>
         </div>
       </div>
-
-      {/* ── Theater A: Modern Blue Seating Rows (Lightweight Scalable SVG) ── */}
-      {theaterMode && (
-        <div className="relative w-full max-w-4xl mx-auto pt-6 pb-2 pointer-events-none select-none">
-          {/* Back Row (Smaller, deeper blue) */}
-          <div className="flex justify-center gap-2 sm:gap-3 opacity-40 mb-1.5">
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((s) => (
-              <div key={s} className="w-7 sm:w-10 h-4 sm:h-5 rounded-t-md bg-gradient-to-b from-[#1e3a8a] to-[#0f172a] border-t border-sky-400/30 shadow-sm" />
-            ))}
-          </div>
-
-          {/* Front Row (Larger, prominent blue identity) */}
-          <div className="flex justify-center gap-2.5 sm:gap-4 opacity-75">
-            {[1, 2, 3, 4, 5, 6, 7, 8].map((s) => (
-              <div
-                key={s}
-                className="w-9 sm:w-12 h-6 sm:h-8 rounded-t-lg bg-gradient-to-b from-[#2563eb] via-[#1d4ed8] to-[#0f172a] border-t-2 border-sky-300/50 shadow-[0_4px_12px_rgba(2,132,199,0.3)]"
-              />
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 };
