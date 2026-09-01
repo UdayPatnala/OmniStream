@@ -8,6 +8,7 @@ import { useAppStore } from '../store';
 import { LocalMediaItem } from '../types';
 import { useTicketStore } from '../state/useTicketStore';
 import { posterService } from '../lib/cinemorph/posterService';
+import { mediaParser } from '../lib/cinemorph/mediaParser';
 
 export function CineMorphLanding() {
   const [loading, setLoading] = useState(false);
@@ -53,6 +54,9 @@ export function CineMorphLanding() {
         title: title,
       });
 
+      // Demux media container streams (audio tracks, video streams, codecs)
+      const containerAnalysis = await mediaParser.parseMediaFile(file, file.name);
+
       const mediaItem: LocalMediaItem = {
         id: fileId,
         name: title,
@@ -63,6 +67,8 @@ export function CineMorphLanding() {
         progress: 0,
         lastWatchedAt: Date.now(),
         thumbnail: posterRes.url,
+        aspectRatio: containerAnalysis.videoStreams[0]?.aspectRatio,
+        containerAnalysis,
       };
 
       addLocalMediaToHistory(mediaItem);

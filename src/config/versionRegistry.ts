@@ -36,8 +36,8 @@ export interface OmniStreamVersionRegistry {
 }
 
 export const VERSION_REGISTRY: OmniStreamVersionRegistry = {
-  version: '1.5.1',
-  codename: 'Threshold Baseline (Theater Hardened)',
+  version: '1.5.2',
+  codename: 'Universal Stream Compatibility & Audio Engine',
   releaseDate: '2026-09-01',
   status: 'STABLE_BASELINE',
   products: {
@@ -45,7 +45,7 @@ export const VERSION_REGISTRY: OmniStreamVersionRegistry = {
       id: 'cinemorph',
       code: 'CM',
       name: 'CineMorph Theater & Private Ingest',
-      version: '1.5.1',
+      version: '1.5.2',
       subsystems: [
         {
           id: 'smart-framing',
@@ -53,6 +53,20 @@ export const VERSION_REGISTRY: OmniStreamVersionRegistry = {
           name: 'Adaptive Smart Framing Engine',
           version: '1.0.1',
           description: 'Aspect-ratio proscenium aperture geometry, deadband hysteresis, and temporal smoothing',
+        },
+        {
+          id: 'media-demuxer',
+          code: 'CM-DEMUX',
+          name: 'Lightweight Client-Side Stream Demuxer',
+          version: '1.0.0',
+          description: 'ISOBMFF MP4/MOV and EBML Matroska/WebM binary header scanner, Unicode title extractor, and ISO language mapper',
+        },
+        {
+          id: 'audio-routing',
+          code: 'CM-AUD',
+          name: 'Active Audio Routing & Hardware Stream Selector',
+          version: '1.0.1',
+          description: 'Real-time multi-channel audio stream switching, Web Audio synchronization, and codec playability probing',
         },
         {
           id: 'video-quality',
@@ -74,7 +88,7 @@ export const VERSION_REGISTRY: OmniStreamVersionRegistry = {
       id: 'utube',
       code: 'UT',
       name: 'U-Tube Video Discovery & Watch Engine',
-      version: '1.5.1',
+      version: '1.5.2',
       subsystems: [], // U-Tube operates as a single unified product module
     },
   },

@@ -169,6 +169,48 @@ class CineMorphAudioEngine {
     }
   }
 
+  private activeTrackIndex = 0;
+
+  /**
+   * Switches active hardware audio track if supported by browser/mediaElement
+   */
+  public setActiveAudioTrack(trackIndex: number, mediaElement?: HTMLMediaElement | null): boolean {
+    this.activeTrackIndex = trackIndex;
+
+    if (!mediaElement) return true;
+
+    try {
+      // 1. Check for standard HTMLMediaElement.audioTracks
+      const tracks = (mediaElement as any).audioTracks;
+      if (tracks && typeof tracks.length === 'number' && tracks.length > 0) {
+        let matched = false;
+        for (let i = 0; i < tracks.length; i++) {
+          if (i === trackIndex) {
+            tracks[i].enabled = true;
+            matched = true;
+          } else {
+            tracks[i].enabled = false;
+          }
+        }
+        return matched;
+      }
+
+      // 2. WebAudio Graph Resync
+      if (this.audioCtx && this.audioCtx.state === 'suspended') {
+        this.audioCtx.resume().catch(() => {});
+      }
+
+      return true;
+    } catch (err) {
+      console.warn('[CineMorphAudioEngine] Error switching audio track:', err);
+      return false;
+    }
+  }
+
+  public getActiveAudioTrackIndex(): number {
+    return this.activeTrackIndex;
+  }
+
   public reset(): void {
     try {
       if (this.sourceNode) {

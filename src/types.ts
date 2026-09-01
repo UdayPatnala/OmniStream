@@ -224,6 +224,67 @@ export interface PlayerRecoveryState {
 
 export type RankingProfile = 'balanced' | 'recency' | 'tutorials' | 'authority';
 
+export interface MediaAudioTrack {
+  id: string;
+  streamIndex: number;
+  label: string;
+  originalTitle?: string;
+  language: string;
+  languageCode: string;
+  codec: string;
+  channels: number;
+  channelLayout: string;
+  sampleRate?: number;
+  bitDepth?: number;
+  bitrate?: number;
+  isDefault: boolean;
+  isForced?: boolean;
+  isPlayable: boolean;
+  unsupportedReason?: string;
+}
+
+export interface MediaVideoStream {
+  id: string;
+  streamIndex: number;
+  label: string;
+  codec: string;
+  width: number;
+  height: number;
+  resolution: string;
+  aspectRatio: string;
+  frameRate?: number;
+  colorSpace?: string;
+  isDefault: boolean;
+  isPlayable: boolean;
+  unsupportedReason?: string;
+}
+
+export interface MediaSubtitleTrack {
+  id: string;
+  streamIndex: number;
+  label: string;
+  language: string;
+  languageCode: string;
+  format: string;
+  isDefault: boolean;
+  isForced: boolean;
+}
+
+export interface MediaContainerAnalysis {
+  containerFormat: string;
+  mimeType: string;
+  durationSeconds: number;
+  fileSizeBytes: number;
+  audioTracks: MediaAudioTrack[];
+  videoStreams: MediaVideoStream[];
+  subtitleTracks: MediaSubtitleTrack[];
+  defaultAudioTrackId: string;
+  defaultVideoStreamId: string;
+  isContainerSupported: boolean;
+  isPlaybackSupported: boolean;
+  compatibilitySummary: string;
+}
+
 export interface LocalMediaItem {
   id: string;
   name: string;
@@ -236,6 +297,7 @@ export interface LocalMediaItem {
   thumbnail?: string;
   aspectRatio?: string;
   dominantColor?: string;
+  containerAnalysis?: MediaContainerAnalysis;
 }
 
 export interface LocalVideoAnalysis {

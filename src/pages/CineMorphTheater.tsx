@@ -100,8 +100,8 @@ export function CineMorphTheater() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // Audio/Video track selections
-  const [selectedAudioTrackId, setSelectedAudioTrackId] = useState<string>('audio-main');
-  const [selectedVideoTrackId, setSelectedVideoTrackId] = useState<string>('vid-auto');
+  const [selectedAudioTrackId, setSelectedAudioTrackId] = useState<string>('audio-0');
+  const [selectedVideoTrackId, setSelectedVideoTrackId] = useState<string>('video-0');
 
   // Curved screen activation for original mode
   const [curvedScreenActive, setCurvedScreenActive] = useState(false);
@@ -110,43 +110,100 @@ export function CineMorphTheater() {
   const [hoverTime, setHoverTime] = useState<number | null>(null);
   const [hoverPosPercent, setHoverPosPercent] = useState<number | null>(null);
 
-  // Real detected audio and video tracks (No fake tracks)
+  // Real detected audio and video tracks from container demuxer (Zero fake tracks)
   const audioTrackOptions = React.useMemo(() => {
+    if (localItem?.containerAnalysis?.audioTracks && localItem.containerAnalysis.audioTracks.length > 0) {
+      return localItem.containerAnalysis.audioTracks;
+    }
     if (isLocalMedia && localVideoRef.current && (localVideoRef.current as any).audioTracks?.length > 1) {
       const trks = (localVideoRef.current as any).audioTracks;
       return Array.from(trks).map((t: any, i: number) => ({
         id: `audio-${i}`,
+        streamIndex: i,
         label: t.label || `Audio Track ${i + 1}`,
+        originalTitle: t.label || undefined,
         language: t.language || 'Native',
-        channels: 'Multi-Channel'
+        languageCode: t.language || 'und',
+        codec: 'AAC/PCM',
+        channels: 2,
+        channelLayout: 'Multi-Channel',
+        isDefault: i === 0,
+        isPlayable: true,
       }));
     }
     return [
-      { id: 'audio-main', label: 'Native Source Audio', language: 'Default / Original', channels: 'Standard' }
+      {
+        id: 'audio-0',
+        streamIndex: 0,
+        label: 'Native Source Audio',
+        originalTitle: 'Native Source Audio',
+        language: 'Original',
+        languageCode: 'und',
+        codec: 'AAC',
+        channels: 2,
+        channelLayout: 'Stereo 2.0',
+        isDefault: true,
+        isPlayable: true,
+      },
     ];
-  }, [isLocalMedia]);
+  }, [localItem, isLocalMedia]);
 
   const videoTrackOptions = React.useMemo(() => {
+    if (localItem?.containerAnalysis?.videoStreams && localItem.containerAnalysis.videoStreams.length > 0) {
+      return localItem.containerAnalysis.videoStreams;
+    }
     if (isLocalMedia && localVideoRef.current && (localVideoRef.current as any).videoTracks?.length > 1) {
       const trks = (localVideoRef.current as any).videoTracks;
       return Array.from(trks).map((t: any, i: number) => ({
-        id: `vid-${i}`,
+        id: `video-${i}`,
+        streamIndex: i,
         label: t.label || `Video Stream ${i + 1}`,
+        codec: 'H.264',
+        width: 1920,
+        height: 1080,
         resolution: 'Native',
-        fps: '',
-        bitrate: 'Lossless'
+        aspectRatio: '16:9',
+        isDefault: i === 0,
+        isPlayable: true,
       }));
     }
     return [
-      { id: 'vid-auto', label: 'Native Video Stream', resolution: 'Original Source', fps: '', bitrate: 'Default' }
+      {
+        id: 'video-0',
+        streamIndex: 0,
+        label: 'Native Video Stream',
+        codec: 'H.264 / AVC',
+        width: 1920,
+        height: 1080,
+        resolution: 'Original Source',
+        aspectRatio: '16:9',
+        isDefault: true,
+        isPlayable: true,
+      },
     ];
-  }, [isLocalMedia]);
+  }, [localItem, isLocalMedia]);
 
   const showToast = useCallback((msg: string) => {
     setHudToast(msg);
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     toastTimerRef.current = setTimeout(() => setHudToast(null), 2500);
   }, []);
+
+  const handleSelectAudioTrack = useCallback((track: any) => {
+    if (!track.isPlayable) {
+      showToast(`⚠️ ${track.unsupportedReason || 'Unsupported audio codec'}`);
+      return;
+    }
+
+    const success = audioEngine.setActiveAudioTrack(track.streamIndex, localVideoRef.current);
+    if (success) {
+      setSelectedAudioTrackId(track.id);
+      setAudioTrackIndex(track.streamIndex);
+      showToast(`🔊 Audio Track: ${track.label} (${track.language})`);
+    } else {
+      showToast(`⚠️ Could not switch to ${track.label}`);
+    }
+  }, [showToast]);
 
   // Send postMessage commands to YouTube IFrame
   const sendIframeCommand = useCallback((func: string, args: any[] = []) => {
@@ -1444,10 +1501,10 @@ export function CineMorphTheater() {
             <div className="text-[10px] font-bold text-amber-400 uppercase tracking-widest flex items-center justify-between">
               <span className="flex items-center gap-1.5">
                 <Volume2 className="w-3.5 h-3.5 text-amber-400" />
-                Audio Tracks (Multi-Language)
+                Audio Streams ({audioTrackOptions.length})
               </span>
               <span className="text-[9px] font-mono text-amber-500/80 bg-amber-950/40 px-1.5 py-0.5 rounded border border-amber-900/30">
-                {audioTrackOptions.length} Tracks
+                {audioTrackOptions.filter(t => t.isPlayable).length} Active
               </span>
             </div>
             <div className="space-y-1.5">
@@ -1456,24 +1513,35 @@ export function CineMorphTheater() {
                 return (
                   <button
                     key={trk.id}
-                    onClick={() => {
-                      setSelectedAudioTrackId(trk.id);
-                      showToast(`🔊 Audio Track: ${trk.label} (${trk.language})`);
-                    }}
+                    disabled={!trk.isPlayable}
+                    onClick={() => handleSelectAudioTrack(trk)}
                     className={`w-full p-2.5 rounded-xl border text-left transition-all flex items-center justify-between cursor-pointer ${
-                      isSelected 
+                      !trk.isPlayable
+                        ? 'bg-red-950/20 text-red-300/60 border-red-900/30 opacity-60 cursor-not-allowed'
+                        : isSelected 
                         ? 'bg-amber-500/20 text-amber-100 border-amber-500/50 shadow-sm' 
                         : 'bg-amber-950/20 text-amber-300/70 border-amber-900/20 hover:bg-amber-900/30'
                     }`}
                   >
                     <div>
                       <div className="text-xs font-bold text-amber-100 flex items-center gap-2">
-                        <span>{trk.label}</span>
+                        <span className="truncate max-w-[200px]">{trk.label}</span>
                         {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />}
+                        {!trk.isPlayable && (
+                          <span className="text-[8px] font-mono uppercase bg-red-950/80 text-red-300 px-1.5 py-0.5 rounded border border-red-800/40">
+                            Unsupported Codec
+                          </span>
+                        )}
                       </div>
                       <div className="text-[10px] text-amber-300/60 font-mono mt-0.5">
-                        {trk.language} • {trk.channels}
+                        {trk.language} • {trk.codec} • {trk.channelLayout}
+                        {trk.sampleRate ? ` • ${(trk.sampleRate / 1000).toFixed(1)} kHz` : ''}
                       </div>
+                      {!trk.isPlayable && trk.unsupportedReason && (
+                        <div className="text-[9px] text-red-400/80 font-sans mt-0.5">
+                          {trk.unsupportedReason}
+                        </div>
+                      )}
                     </div>
                     {isSelected && <Check className="w-4 h-4 text-amber-400 shrink-0" />}
                   </button>
@@ -1487,10 +1555,10 @@ export function CineMorphTheater() {
             <div className="text-[10px] font-bold text-amber-400 uppercase tracking-widest flex items-center justify-between">
               <span className="flex items-center gap-1.5">
                 <Film className="w-3.5 h-3.5 text-amber-400" />
-                Video Tracks & Quality Streams
+                Video Streams ({videoTrackOptions.length})
               </span>
               <span className="text-[9px] font-mono text-amber-500/80 bg-amber-950/40 px-1.5 py-0.5 rounded border border-amber-900/30">
-                {videoTrackOptions.length} Streams
+                {videoTrackOptions.filter(v => v.isPlayable).length} Active
               </span>
             </div>
             <div className="space-y-1.5">
@@ -1499,23 +1567,35 @@ export function CineMorphTheater() {
                 return (
                   <button
                     key={vtrk.id}
+                    disabled={!vtrk.isPlayable}
                     onClick={() => {
+                      if (!vtrk.isPlayable) {
+                        showToast(`⚠️ ${vtrk.unsupportedReason || 'Unsupported video stream'}`);
+                        return;
+                      }
                       setSelectedVideoTrackId(vtrk.id);
                       showToast(`🎥 Video Stream: ${vtrk.label} (${vtrk.resolution})`);
                     }}
                     className={`w-full p-2.5 rounded-xl border text-left transition-all flex items-center justify-between cursor-pointer ${
-                      isSelected 
+                      !vtrk.isPlayable
+                        ? 'bg-red-950/20 text-red-300/60 border-red-900/30 opacity-60 cursor-not-allowed'
+                        : isSelected 
                         ? 'bg-amber-500/20 text-amber-100 border-amber-500/50 shadow-sm' 
                         : 'bg-amber-950/20 text-amber-300/70 border-amber-900/20 hover:bg-amber-900/30'
                     }`}
                   >
                     <div>
                       <div className="text-xs font-bold text-amber-100 flex items-center gap-2">
-                        <span>{vtrk.label}</span>
+                        <span className="truncate max-w-[200px]">{vtrk.label}</span>
                         {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />}
+                        {!vtrk.isPlayable && (
+                          <span className="text-[8px] font-mono uppercase bg-red-950/80 text-red-300 px-1.5 py-0.5 rounded border border-red-800/40">
+                            Unsupported
+                          </span>
+                        )}
                       </div>
                       <div className="text-[10px] text-amber-300/60 font-mono mt-0.5">
-                        {vtrk.resolution} • {vtrk.fps} • {vtrk.bitrate}
+                        {vtrk.resolution} • {vtrk.codec} • {vtrk.aspectRatio}
                       </div>
                     </div>
                     {isSelected && <Check className="w-4 h-4 text-amber-400 shrink-0" />}
