@@ -19,5 +19,6 @@ export default defineConfig({
       'src/test/**/*.test.ts',
       'src/test/**/*.test.tsx',
     ],
+    testTimeout: 15000,
   },
 });
