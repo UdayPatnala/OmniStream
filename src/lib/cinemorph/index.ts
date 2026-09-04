@@ -8,3 +8,4 @@ export * from './adaptiveCinemaEngine';
 export * from './oms/omsPipeline';
 export * from './oms/types';
 export * from './mediaParser';
+export * from './captionService';

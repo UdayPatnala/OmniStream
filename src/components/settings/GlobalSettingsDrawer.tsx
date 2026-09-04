@@ -32,8 +32,6 @@ export const GlobalSettingsDrawer: React.FC<GlobalSettingsDrawerProps> = ({ isOp
     setFrameAspectRatio, 
     devicePerformanceProfile, 
     setDevicePerformanceProfile, 
-    ecoMode, 
-    setEcoMode, 
     clearHistory, 
     clearSearchHistory 
   } = useAppStore();
@@ -234,25 +232,6 @@ export const GlobalSettingsDrawer: React.FC<GlobalSettingsDrawerProps> = ({ isOp
                   <option value="balanced">Balanced</option>
                   <option value="low">Low Power</option>
                 </select>
-              </div>
-
-              <div className="flex items-center justify-between pt-2 border-t border-utube-border">
-                <div>
-                  <div className="text-xs font-bold text-utube-text">Battery Saver</div>
-                  <div className="text-[10px] text-utube-text-muted">Throttle ambient analysis</div>
-                </div>
-                <button
-                  onClick={() => {
-                    const next = !ecoMode;
-                    setEcoMode(next);
-                    showToast(next ? '🌱 Battery Saver Active' : '⚡ Full Performance Active');
-                  }}
-                  className={`w-10 h-5 rounded-full transition-colors relative p-0.5 cursor-pointer ${
-                    ecoMode ? 'bg-emerald-600' : 'bg-utube-border'
-                  }`}
-                >
-                  <div className={`w-4 h-4 rounded-full bg-white transition-transform ${ecoMode ? 'translate-x-5' : 'translate-x-0'}`} />
-                </button>
               </div>
             </div>
           </section>

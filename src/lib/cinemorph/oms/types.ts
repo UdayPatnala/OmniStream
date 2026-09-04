@@ -18,6 +18,7 @@ export interface OMS_SceneCutEvent {
   deltaRatio: number;
   timestamp: number;
   sceneId: number;
+  transitionType?: 'CONTINUOUS' | 'POSSIBLE_TRANSITION' | 'CONFIRMED_CUT';
 }
 
 export interface OMS_SubjectDetection {

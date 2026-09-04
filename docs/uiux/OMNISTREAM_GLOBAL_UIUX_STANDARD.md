@@ -71,3 +71,11 @@ $$\text{Native CSS/HTML5} \;\succ\; \text{Small Local Engine} \;\succ\; \text{Li
 1. **Zero Cloud Dependency for Core Features**: Playback, smart-framing, audio EQ, ticket issuance, and search persistence must function $100\%$ offline and client-side.
 2. **Zero Paid APIs**: No user is ever required to provide a credit card or paid API key.
 3. **Fail-Safe Playback**: An AI failure, WebGL context loss, or network drop must immediately and silently fall back to uncropped original playback without crashing the user session.
+
+---
+
+## 4. Master Visual Identity & Experience Separation Authority
+
+- **OMNISTREAM (Master Brand)**: A single polished product offering two completely distinct ways to experience video. The UI must NEVER feel like a generic developer dashboard.
+- **U-TUBE (Video Discovery & Watch Identity)**: Light canvas (`#FFFFFF`), crisp high-contrast red accents (`#E50914`), video-first, minimalist. Feels like: *"My personal clean video platform."*
+- **CINEMORPH (Theatrical & Private Cinema Identity)**: Vintage warm paper (`#FDFBF7`), rich amber (`#D97706`) and charcoal tones, physical thermal ticket ritual, fixed aperture, and dark cinema auditorium (`#030308`). Screen sits strictly behind the aperture frame. Feels like: *"I am entering a private cinema."*

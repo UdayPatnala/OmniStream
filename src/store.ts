@@ -229,17 +229,20 @@ export const useAppStore = create<AppState>()(
       subscriptions: [],
       subscribe: (channel) => set((state) => {
         if (state.subscriptions.find(c => c.id === channel.id)) return state;
-        const minimalChannel: Channel = {
+        const normalizedChannel: Channel = {
           id: channel.id,
-          title: channel.title,
-          description: '',
-          thumbnails: {
+          title: channel.title || 'YouTube Channel',
+          description: channel.description || '',
+          thumbnails: channel.thumbnails || {
             default: '',
             medium: '',
             high: ''
-          }
+          },
+          subscriberCount: channel.subscriberCount,
+          videoCount: channel.videoCount,
+          bannerUrl: channel.bannerUrl,
         };
-        return { subscriptions: [...state.subscriptions, minimalChannel] };
+        return { subscriptions: [...state.subscriptions, normalizedChannel] };
       }),
       unsubscribe: (channelId) => set((state) => ({
         subscriptions: state.subscriptions.filter(c => c.id !== channelId)

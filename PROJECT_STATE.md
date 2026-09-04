@@ -5,10 +5,10 @@
 ---
 
 ## 1. Executive Status
-- **Current Phase**: `PHASE 4 / THRESHOLD REINVENTION & ENGINE ISOLATION`
-- **Release State**: `STABLE / PRODUCTION READY` (`v2.1.0`)
-- **Automated Verification**: **47 Test Suites / 219 Tests Passing (100% Pass Rate)**
-- **TypeScript Integrity**: `0 Errors` (`npx tsc --noEmit`)
+- **Current Phase**: `OMNISTREAM v1.8.0 / COURSE CORRECTION & FUNCTIONAL RECOVERY`
+- **Release State**: `STABLE / PRODUCTION READY` (`v1.8.0`)
+- **Automated Verification**: **59 Test Suites / 302 Tests Passing (100% Pass Rate)**
+- **TypeScript Integrity**: `0 Errors` (`npm run lint` / `tsc --noEmit`)
 - **Bundle & Security**: `0 Vulnerabilities` (`npm audit`), clean Vite + esbuild bundle.
 
 ---
@@ -17,18 +17,16 @@
 
 | Domain | Subsystem | Status | Implementation Details | Test Coverage |
 |---|---|---|---|---|
-| **Threshold Portal** | Spatial Gravitational Fields | `STABLE` | Asymmetric dual-engine portal with RAF cursor light field, zero cards/borders, AROH seal. | 100% (6 tests) |
-| **Shared Core** | Dual-Tier Storage | `STABLE` | LocalStorage + IndexedDB with auto-recovery from corrupted JSON (`__corrupted_*` archive). | 100% (18 tests) |
-| **Shared Core** | Device Profiler | `STABLE` | Probes WASM SIMD, WebGPU, Web Workers, OffscreenCanvas, AudioContext. | 100% (6 tests) |
-| **Shared Core** | Telemetry HUD | `STABLE` | 60 FPS ring-buffer diagnostic overlay with 0 React state mutations. | 100% (6 tests) |
-| **CineMorph** | CSS3D Curved Theater | `STABLE` | 3 fixed formats (Original default, 1.90:1 IMAX, 1.43:1 True IMAX) with seating/curve conditioned on IMAX. Hook order violation (#310) fully resolved. | 100% (20 tests) |
-| **CineMorph** | Parametric Audio DSP | `STABLE` | 5-Band Biquad Filters (+20dB Speech Boost, 80Hz High-Pass, DRC loudness). | 100% (14 tests) |
-| **CineMorph** | Ticket Printer UX | `STABLE` | 10s mechanical printing intro with chiptune sound & 1-click timestamp resumption. | 100% (22 tests) |
-| **U-Tube** | Strict Product Boundary | `STABLE` | Isolated navigation (OmniStream + CineMorph transitions only), U-Tube library, preferences, zero global clutter. | 100% (24 tests) |
-| **U-Tube** | Subscriptions Feed | `STABLE` | 4-Hour background cached feed with offline fallback. | 100% (12 tests) |
-| **OMS** | 13-Stage Framing Pipeline | `STABLE` | Vision COM, motion tracking, Rule-of-Thirds heuristics, Kalman temporal smoothing. | 100% (28 tests) |
-| **OMS** | Capability Resolver | `STABLE` | Declarative pre-flight checks, failure classifier, execution watchdog timer. | 100% (13 tests) |
-| **OMS** | BlazeFace WASM | `CANDIDATE` | Sandboxed for 10s ticket intro pre-scan only. | Benchmarked |
+| **Threshold Portal** | Cosmic Dual-Portal Gateway | `STABLE` | Asymmetric dual-engine portal (`/`) with interactive light field, U-Tube & CineMorph entries, AROH seal. | 100% (6 tests) |
+| **CineMorph Landing** | Virtual Theater Ingestion Hall | `FROZEN / STABLE` | Interactive artwork file picker (`/cinemorph`), drag/drop media ingestion, UI exploration frozen. | 100% (3 tests) |
+| **CineMorph Theater** | Fixed Formats & Smart Framing | `STABLE` | 3 distinct formats (Original uncropped, 1.90:1 IMAX, 1.43:1 True IMAX) with concave curvature & seating. | 100% (20 tests) |
+| **CineMorph Demuxer** | Container & Stream Demuxer (I4) | `STABLE` | Multi-track audio discovery (MP4 tail moov + MKV BCP47/Name), honest codec playability probing. | 100% (8 tests) |
+| **CineMorph Audio** | Parametric DSP & Studio Controls | `STABLE` | 5-Band Biquad Filters (+20dB Speech Boost, 80Hz High-Pass, DRC loudness) inside Theater Studio drawer. | 100% (14 tests) |
+| **CineMorph Captions** | Real-Time Caption Sync (I3) | `STABLE` | WebVTT/SRT live parser, active cue sync, standardized unobtrusive CaptionOverlay. | 100% (10 tests) |
+| **U-Tube Engine** | Timeline & Seek Interaction (I2) | `STABLE` | State-machine seeker (syncing/scrubbing/seeking), pointer capture, race-free timecode synchronization. | 100% (12 tests) |
+| **U-Tube Engine** | Discovery & Subscriptions (I1) | `STABLE` | Topic-aware search proxy, cached subscriptions feed, decoupled channel navigation. | 100% (14 tests) |
+| **OMS Intelligence** | Universal Perception (E1-E12) | `STABLE` | Normalized evidence contracts, smart framing, best frame poster cascade, temporal stabilization. | 100% (28 tests) |
+| **Shared Core** | Dual-Tier Storage & Resilience | `STABLE` | LocalStorage + IndexedDB with corrupted payload auto-recovery archive. | 100% (18 tests) |
 
 ---
 

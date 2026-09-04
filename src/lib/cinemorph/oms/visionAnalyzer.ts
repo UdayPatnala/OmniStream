@@ -1,11 +1,16 @@
 import { OMS_FrameSample, OMS_VisionAnalysisResult, OMS_SubjectDetection } from './types';
+import { IVisualPerceptionEvidence } from '../../oms/interfaces';
 
 /**
  * visionAnalyzer.ts - Stage 4: Multi-Subject & Saliency Vision Analyzer
  * Identifies focal regions, multi-subject centers of mass, and subtitle safe zone occlusion.
+ * Seamlessly integrates normalized IVisualPerceptionEvidence when available.
  */
 export class OMS_VisionAnalyzer {
-  public analyze(sample: OMS_FrameSample): OMS_VisionAnalysisResult {
+  public analyze(
+    sample: OMS_FrameSample,
+    enhancedEvidence?: IVisualPerceptionEvidence | null
+  ): OMS_VisionAnalysisResult {
     const { data, width, height } = sample;
     const subjects: OMS_SubjectDetection[] = [];
 
@@ -38,7 +43,32 @@ export class OMS_VisionAnalyzer {
     const normX = totalWeight > 0 ? (weightedX / totalWeight) / width : 0.5;
     const normY = totalWeight > 0 ? (weightedY / totalWeight) / height : 0.5;
 
-    // Primary detected subject focal box
+    // 1. If enhanced ML perception evidence is present with valid candidates, use them as primary focal anchors
+    if (enhancedEvidence && enhancedEvidence.status === 'AVAILABLE' && enhancedEvidence.candidates.length > 0) {
+      for (const cand of enhancedEvidence.candidates) {
+        subjects.push({
+          x: cand.box.x + cand.box.width / 2,
+          y: cand.box.y + cand.box.height / 2,
+          width: cand.box.width,
+          height: cand.box.height,
+          confidence: cand.confidence,
+          type: cand.type,
+        });
+      }
+
+      const primary = subjects[0];
+      const subtitleZoneBlocked = subtitlePixels >= (width * 0.4);
+
+      return {
+        subjects,
+        primarySubject: primary,
+        combinedCenter: enhancedEvidence.focalCenter,
+        subtitleZoneBlocked,
+        confidence: primary.confidence,
+      };
+    }
+
+    // 2. Classical Baseline Fallback (Contrast COM)
     const primarySubject: OMS_SubjectDetection = {
       x: Math.max(0.1, Math.min(0.9, normX)),
       y: Math.max(0.1, Math.min(0.9, normY)),
@@ -49,7 +79,6 @@ export class OMS_VisionAnalyzer {
     };
     subjects.push(primarySubject);
 
-    // Subtitle zone blocked if dense high-luminance pixels detected in lower third
     const subtitleZoneBlocked = subtitlePixels >= (width * 0.4);
 
     return {
@@ -61,3 +90,4 @@ export class OMS_VisionAnalyzer {
     };
   }
 }
+

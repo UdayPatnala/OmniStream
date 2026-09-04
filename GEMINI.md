@@ -7,19 +7,22 @@ OmniStream combines two distinct viewing engines:
 
 **CRITICAL RULE**: Before making any design, architecture, or implementation decisions, you MUST read and comprehend the full product constitution.
 The complete product constitution (P1 through P5 master specs) is located at:
-`d:\PROJECT\AROH Open Source\Products\OmniStream\OMNISTREAM_MASTER_SPECS.md`
+`d:\PROJECT\AROH Open Source\Products\OmniStream\docs\specs\OMNISTREAM_MASTER_SPECS.md`
 
 The final 100-point build manifesto is located at:
-`d:\PROJECT\AROH Open Source\Products\OmniStream\OMNISTREAM_FINAL_BUILD_AGENT.md`
+`d:\PROJECT\AROH Open Source\Products\OmniStream\docs\specs\OMNISTREAM_FINAL_BUILD_AGENT.md`
 
 The Intelligence Architecture constraints are located at:
-`d:\PROJECT\AROH Open Source\Products\OmniStream\OMNISTREAM_INTELLIGENCE_ARCHITECTURE.md`
+`d:\PROJECT\AROH Open Source\Products\OmniStream\docs\specs\OMNISTREAM_INTELLIGENCE_ARCHITECTURE.md`
 
 The final Requirement Clarifications and Assumption Controls are located at:
-`d:\PROJECT\AROH Open Source\Products\OmniStream\OMNISTREAM_FINAL_REQUIREMENT_CLARIFICATION_AND_ASSUMPTION_CONTROL.md`
+`d:\PROJECT\AROH Open Source\Products\OmniStream\docs\specs\OMNISTREAM_FINAL_REQUIREMENT_CLARIFICATION_AND_ASSUMPTION_CONTROL.md`
 
 The OmniStream Intelligence System (OMS) Identity Standard is located at:
-`d:\PROJECT\AROH Open Source\Products\OmniStream\OMNISTREAM_OMS_IDENTITY_STANDARD.md`
+`d:\PROJECT\AROH Open Source\Products\OmniStream\docs\specs\OMNISTREAM_OMS_IDENTITY_STANDARD.md`
+
+The Master Guardian Principles are located at:
+`d:\PROJECT\AROH Open Source\Products\OmniStream\docs\specs\OMNISTREAM_MASTER_GUARDIAN.md`
 
 You MUST use the `view_file` tool to read these files if you do not already have them in your context. Do NOT guess the architecture. The user has explicitly stated: "make layers, models, llms anything needed to achieve the goal."
 
@@ -159,7 +162,53 @@ Prioritize optimization by user impact:
 - **Adaptive Quality**: Hardware profile determines execution tier (Tier 3 WASM → Tier 2 Canvas CV → Tier 1 Baseline Crop) without surprising the user.
 - **When NOT to Optimize**: Never optimize without measurable problems, on rarely used paths, or when complexity outweighs performance gain.
 
+## OmniStream v1.8.0 Universal Perception & Intelligence Invariants
 
+### 1. Git Policy & Version Tracking Invariant
+- **Zero Git Writes During Automation**: Do not run `git commit`, `git push`, `git tag`, `git merge`, or `git branch` during execution phases unless explicitly directed by the user.
+- **Independent Version Tracking**: Version progression is recorded in internal registries (`VERSION_REGISTRY`, `package.json`, `VERSION_HISTORY.md`) and verified by automated tests without requiring git tags.
 
+### 2. PDS (Perception-Decision-Stabilization) Decoupled Flow
+- **One-Directional Pipeline**:
+  $$\text{Perception (Detects)} \longrightarrow \text{OmniStream (Decides)} \longrightarrow \text{Spring Physics (Stabilizes)} \longrightarrow \text{Rendering (Executes)}$$
+- **Strict Evidence Boundaries**: Models emit canonical normalized evidence (`IVisualPerceptionEvidence`, `IAudioPerceptionEvidence`). No model directly mutates DOM styles, CSS transforms, or audio gains.
+- **Switching Hysteresis**: Subject switching requires a persistence margin ($\Delta \ge 0.08$) to eliminate rapid focal jumping between competing subjects.
 
+### 3. Audio Perception & Dynamic Clarity Invariants
+- **Spectral Perception**: Audio understanding analyzes real-time Web Audio API FFT frequency bins ($300\text{ Hz} - 3.4\text{ kHz}$) to evaluate speech likelihood and clarity deficit.
+- **DSP Adaptation**: Adapts 5-band parametric equalizer dialogue clarity smoothly ($\text{factor} = 0.12$) without abrupt gain jumping or artificial spatial distortion.
+
+### 4. Backpressure & Stale Result Protection
+- **Frame Skipping on Busy**: If inference is active, intermediate video frames are skipped; historical inference backlogs are never processed.
+- **Freshness Validation**: Out-of-order inferences ($t < t_{\text{last}}$) are discarded to protect temporal continuity.
+
+## Technology & Implementation Freedom — Right Tool for the Right Subsystem
+
+### 1. No Artificial Stack Imprisonment
+Do not artificially restrict OmniStream implementation to the existing TypeScript/React codebase. The current stack is not a technical prison.
+For AI, ML, media intelligence, performance-critical processing, backend services, tooling, or specialized tasks, evaluate and use whichever technology is genuinely most appropriate:
+- **TypeScript / JavaScript**: Browser UI, user interaction, client state.
+- **WebAssembly / Rust / C++ / WebGPU**: High-throughput computer vision, low-latency audio DSP, in-browser fast-path neural models.
+- **Python**: Model research, benchmarking, neural preprocessing, dataset validation, server-side inference.
+- **ONNX Runtime / MediaPipe**: Standardized local and cross-platform neural inference runtimes.
+- **Node.js / Express / Native Tooling**: Server/API orchestration, stream demuxing, media inspection.
+
+### 2. Justification Gate & Anti-Accumulation Rule
+Technology freedom does NOT mean technology accumulation. Never add tools, frameworks, or dependencies merely to appear advanced.
+Evaluate every candidate against 10 strict criteria:
+1. Exact problem solved.
+2. Capability of current stack to solve it efficiently.
+3. Material superiority of the alternative.
+4. Measurable performance/latency gain.
+5. Added architectural complexity.
+6. Deployment and container footprint.
+7. Maintenance burden and ecosystem stability.
+8. Privacy and local-first compliance.
+9. Clean boundary integration via adapters.
+10. ROI of technological change.
+
+### 3. Decoupled Model Adapter Invariant
+All specialized tools and ML runtimes must sit behind clean capability contracts:
+$$\text{Model / Specialized Tech} \longrightarrow \text{Adapter Boundary} \longrightarrow \text{Normalized Evidence} \longrightarrow \text{OmniStream Logic} \longrightarrow \text{Rendering}$$
+The rest of OmniStream must never become tightly coupled to a specific runtime, framework, or language.
 

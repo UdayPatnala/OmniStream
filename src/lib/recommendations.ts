@@ -124,6 +124,17 @@ export function getRecommendedVideos(
   // Sort descending by recommendation score
   scoredVideos.sort((a, b) => b.score - a.score);
 
-  return scoredVideos.map(item => item.video);
+  // Apply channel diversity: max 2 videos per channel in top recommendations
+  const channelCount: Record<string, number> = {};
+  const diverseVideos: Video[] = [];
+  for (const item of scoredVideos) {
+    const cId = item.video.channelId || item.video.channelTitle || 'unknown';
+    if ((channelCount[cId] || 0) < 2) {
+      channelCount[cId] = (channelCount[cId] || 0) + 1;
+      diverseVideos.push(item.video);
+    }
+  }
+
+  return diverseVideos.length > 0 ? diverseVideos : scoredVideos.map(item => item.video);
 }
 

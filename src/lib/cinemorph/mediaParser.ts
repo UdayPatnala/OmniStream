@@ -67,7 +67,7 @@ const LANGUAGE_MAP: Record<string, string> = {
   da: 'Danish',
   fin: 'Finnish',
   fi: 'Finnish',
-  und: 'Original / Undetermined',
+  und: 'Undetermined',
   mis: 'Uncoded Language',
   mul: 'Multiple Languages',
   zxx: 'No Linguistic Content',
@@ -75,11 +75,12 @@ const LANGUAGE_MAP: Record<string, string> = {
 
 /**
  * Convert ISO language code into clear natural label
+ * Returns 'Undetermined' when language is unlabelled (Zero fake language assumptions)
  */
 export function resolveLanguageName(code?: string): string {
-  if (!code) return 'Original Audio';
+  if (!code) return 'Undetermined';
   const clean = code.trim().toLowerCase().split('-')[0];
-  return LANGUAGE_MAP[clean] || code.toUpperCase();
+  return LANGUAGE_MAP[clean] || (clean === 'und' ? 'Undetermined' : code.toUpperCase());
 }
 
 /**
@@ -136,14 +137,14 @@ export function probeAudioCodecPlayability(codec: string, channels = 2): { isPla
       }
     }
     return {
-      isPlayable: true,
-      unsupportedReason: 'Dolby Digital AC-3/E-AC-3 (Hardware passthrough or stereo fold-down active)',
+      isPlayable: false,
+      unsupportedReason: 'Dolby Digital AC-3/E-AC-3 requires browser hardware decoder not present in this environment',
     };
   }
-  if (norm.includes('DTS')) {
+  if (norm.includes('DTS') || norm.includes('TRUEHD')) {
     return {
       isPlayable: false,
-      unsupportedReason: 'DTS / DTS-HD requires licensed hardware decoder or bitstream pass-through',
+      unsupportedReason: 'DTS / TrueHD multi-channel audio is unsupported by browser audio decoders',
     };
   }
 
@@ -196,8 +197,8 @@ export class CineMorphMediaParser {
     }
 
     try {
-      // Step 1: Read the first 1.5MB for header analysis
-      const headerChunk = await this.readChunk(file, 0, Math.min(1.5 * 1024 * 1024, fileSizeBytes));
+      // Step 1: Read the first 4MB for header analysis
+      const headerChunk = await this.readChunk(file, 0, Math.min(4 * 1024 * 1024, fileSizeBytes));
       const dataView = new DataView(headerChunk);
 
       // Check for Matroska / WebM (EBML) signature (0x1A45DFA3)
@@ -220,13 +221,24 @@ export class CineMorphMediaParser {
 
   private isEBML(view: DataView): boolean {
     if (view.byteLength < 4) return false;
-    return view.getUint32(0) === 0x1a45dfa3;
+    if (view.getUint32(0) === 0x1a45dfa3) return true;
+    const len = Math.min(view.byteLength - 4, 128);
+    for (let i = 0; i <= len; i++) {
+      if (view.getUint32(i) === 0x1a45dfa3) return true;
+    }
+    return false;
   }
 
   private isISOBMFF(view: DataView): boolean {
     if (view.byteLength < 8) return false;
     const type = this.readFourCC(view, 4);
-    return ['ftyp', 'moov', 'mdat', 'free', 'wide'].includes(type);
+    if (['ftyp', 'moov', 'mdat', 'free', 'wide'].includes(type)) return true;
+    const len = Math.min(view.byteLength - 8, 128);
+    for (let i = 0; i <= len; i++) {
+      const t = this.readFourCC(view, i + 4);
+      if (['ftyp', 'moov', 'mdat', 'free', 'wide'].includes(t)) return true;
+    }
+    return false;
   }
 
   private readFourCC(view: DataView, offset: number): string {
@@ -284,12 +296,13 @@ export class CineMorphMediaParser {
       offset += step;
     }
 
-    // If moov is at the end of the file (common in YouTube/FastStart exports)
+    // If moov is at the end of the file (common in non-faststart MP4 exports)
     if (!moovBuffer && fileSizeBytes > initialChunk.byteLength) {
-      const tailSize = Math.min(2 * 1024 * 1024, fileSizeBytes);
+      const tailSize = Math.min(4 * 1024 * 1024, fileSizeBytes);
       const tailChunk = await this.readChunk(file, fileSizeBytes - tailSize, tailSize);
       const tailView = new DataView(tailChunk);
 
+      // Try box traversal first
       let tOffset = 0;
       while (tOffset + 8 <= tailView.byteLength) {
         const bSize = tailView.getUint32(tOffset);
@@ -300,6 +313,22 @@ export class CineMorphMediaParser {
         }
         if (bSize <= 0) break;
         tOffset += bSize;
+      }
+
+      // If box traversal didn't align, perform byte-level scan for 'moov' tag
+      if (!moovBuffer) {
+        const uint8Tail = new Uint8Array(tailChunk);
+        for (let i = 0; i <= uint8Tail.length - 8; i++) {
+          if (
+            uint8Tail[i + 4] === 0x6d && // 'm'
+            uint8Tail[i + 5] === 0x6f && // 'o'
+            uint8Tail[i + 6] === 0x6f && // 'o'
+            uint8Tail[i + 7] === 0x76    // 'v'
+          ) {
+            moovBuffer = tailChunk.slice(i);
+            break;
+          }
+        }
       }
     }
 
@@ -312,11 +341,11 @@ export class CineMorphMediaParser {
       audioTracks.push({
         id: 'audio-0',
         streamIndex: 0,
-        label: 'Original Audio (AAC)',
-        originalTitle: 'Original Audio',
-        language: 'Original',
+        label: 'Audio Stream #1 (Direct Source)',
+        originalTitle: undefined,
+        language: 'Undetermined',
         languageCode: 'und',
-        codec: 'AAC',
+        codec: 'Source Audio',
         channels: 2,
         channelLayout: 'Stereo 2.0',
         sampleRate: 48000,
@@ -329,11 +358,11 @@ export class CineMorphMediaParser {
       videoStreams.push({
         id: 'video-0',
         streamIndex: 0,
-        label: 'Main Video (H.264)',
-        codec: 'H.264 / AVC',
+        label: 'Video Stream #1 (Direct Source)',
+        codec: 'Source Video',
         width: 1920,
         height: 1080,
-        resolution: '1920x1080 (1080p FHD)',
+        resolution: 'Source Resolution',
         aspectRatio: '16:9',
         isDefault: true,
         isPlayable: true,
@@ -462,10 +491,12 @@ export class CineMorphMediaParser {
       const probe = probeAudioCodecPlayability(displayCodec, channels);
       const streamIdx = audioTracks.length;
 
-      // Prioritize original embedded title
+      // Prioritize genuine original embedded title, fallback to honest descriptive label
       const label = trackTitle 
         ? trackTitle 
-        : `${languageName} — ${displayCodec} (${channelLayout})`;
+        : languageName !== 'Undetermined'
+        ? `${languageName} • ${displayCodec} (${channelLayout})`
+        : `Audio Track #${streamIdx + 1} • ${displayCodec} (${channelLayout})`;
 
       audioTracks.push({
         id: `audio-${streamIdx}`,
@@ -488,10 +519,14 @@ export class CineMorphMediaParser {
       const streamIdx = videoStreams.length;
       const aspectRatio = this.calculateAspectRatio(width, height);
 
+      const label = trackTitle
+        ? trackTitle
+        : `Video Stream #${streamIdx + 1} • ${displayCodec} (${width}x${height})`;
+
       videoStreams.push({
         id: `video-${streamIdx}`,
         streamIndex: streamIdx,
-        label: trackTitle || `Video Stream ${streamIdx + 1} (${displayCodec})`,
+        label,
         codec: displayCodec,
         width,
         height,
@@ -503,10 +538,16 @@ export class CineMorphMediaParser {
       });
     } else if (handlerType === 'sbtl' || handlerType === 'text') {
       const streamIdx = subtitleTracks.length;
+      const label = trackTitle
+        ? trackTitle
+        : languageName !== 'Undetermined'
+        ? `${languageName} Subtitles`
+        : `Subtitle Track #${streamIdx + 1}`;
+
       subtitleTracks.push({
         id: `sub-${streamIdx}`,
         streamIndex: streamIdx,
-        label: trackTitle || `${languageName} Subtitles`,
+        label,
         language: languageName,
         languageCode,
         format: 'Embedded Timed Text',
@@ -636,10 +677,17 @@ export class CineMorphMediaParser {
     const videoStreams: MediaVideoStream[] = [];
     const subtitleTracks: MediaSubtitleTrack[] = [];
 
-    const uint8 = new Uint8Array(initialChunk);
+    let uint8 = new Uint8Array(initialChunk);
     let pos = 0;
 
-    const tracksPos = this.findEbmlId(uint8, [0x16, 0x54, 0xae, 0x6b]);
+    let tracksPos = this.findEbmlId(uint8, [0x16, 0x54, 0xae, 0x6b]);
+    if (tracksPos === -1 && fileSizeBytes > initialChunk.byteLength) {
+      const expandedSize = Math.min(8 * 1024 * 1024, fileSizeBytes);
+      const expandedChunk = await this.readChunk(file, 0, expandedSize);
+      uint8 = new Uint8Array(expandedChunk);
+      tracksPos = this.findEbmlId(uint8, [0x16, 0x54, 0xae, 0x6b]);
+    }
+
     if (tracksPos !== -1) {
       pos = tracksPos + 4;
       const { length: tracksLength, bytesRead } = this.readEbmlVint(uint8, pos);
@@ -668,11 +716,11 @@ export class CineMorphMediaParser {
       audioTracks.push({
         id: 'audio-0',
         streamIndex: 0,
-        label: 'Primary Audio (Opus/Vorbis/AAC)',
-        originalTitle: 'Primary Audio',
-        language: 'Original',
+        label: 'Audio Stream #1 (Direct Source)',
+        originalTitle: undefined,
+        language: 'Undetermined',
         languageCode: 'und',
-        codec: 'Opus',
+        codec: 'Source Audio',
         channels: 2,
         channelLayout: 'Stereo 2.0',
         sampleRate: 48000,
@@ -685,11 +733,11 @@ export class CineMorphMediaParser {
       videoStreams.push({
         id: 'video-0',
         streamIndex: 0,
-        label: 'Master Video (VP9/H.264)',
-        codec: 'VP9 / H.264',
+        label: 'Video Stream #1 (Direct Source)',
+        codec: 'Source Video',
         width: 1920,
         height: 1080,
-        resolution: '1920x1080',
+        resolution: 'Source Resolution',
         aspectRatio: '16:9',
         isDefault: true,
         isPlayable: true,
@@ -752,7 +800,7 @@ export class CineMorphMediaParser {
         p += br;
         trackName = new TextDecoder('utf-8').decode(bytes.subarray(p, p + len));
         p += len;
-      } else if (idByte === 0x22 && bytes[p] === 0xb5 && bytes[p + 1] === 0x9c) { // Language (0x22B59C)
+      } else if (idByte === 0x22 && bytes[p] === 0xb5 && (bytes[p + 1] === 0x9c || bytes[p + 1] === 0x9d)) { // Language (0x22B59C) or LanguageBCP47 (0x22B59D)
         p += 2;
         const { length: len, bytesRead: br } = this.readEbmlVint(bytes, p);
         p += br;
@@ -819,7 +867,9 @@ export class CineMorphMediaParser {
 
       const label = trackName
         ? trackName
-        : `${languageName} — ${displayCodec} (${channelLayout})`;
+        : languageName !== 'Undetermined'
+        ? `${languageName} • ${displayCodec} (${channelLayout})`
+        : `Audio Track #${streamIdx + 1} • ${displayCodec} (${channelLayout})`;
 
       audioTracks.push({
         id: `audio-${streamIdx}`,
@@ -841,10 +891,14 @@ export class CineMorphMediaParser {
       const probe = probeVideoCodecPlayability(displayCodec);
       const aspectRatio = this.calculateAspectRatio(width, height);
 
+      const label = trackName
+        ? trackName
+        : `Video Stream #${streamIdx + 1} • ${displayCodec} (${width}x${height})`;
+
       videoStreams.push({
         id: `video-${streamIdx}`,
         streamIndex: streamIdx,
-        label: trackName || `Video Stream ${streamIdx + 1} (${displayCodec})`,
+        label,
         codec: displayCodec,
         width,
         height,
@@ -856,10 +910,16 @@ export class CineMorphMediaParser {
       });
     } else if (trackType === 17) { // Subtitle Track
       const streamIdx = subtitleTracks.length;
+      const label = trackName
+        ? trackName
+        : languageName !== 'Undetermined'
+        ? `${languageName} Subtitles`
+        : `Subtitle Track #${streamIdx + 1}`;
+
       subtitleTracks.push({
         id: `sub-${streamIdx}`,
         streamIndex: streamIdx,
-        label: trackName || `${languageName} Subtitles`,
+        label,
         language: languageName,
         languageCode,
         format: displayCodec || 'SubRip (SRT)',
@@ -995,11 +1055,11 @@ export class CineMorphMediaParser {
     const audioTrack: MediaAudioTrack = {
       id: 'audio-0',
       streamIndex: 0,
-      label: 'Native Source Audio',
-      originalTitle: 'Native Source Audio',
-      language: 'Original',
+      label: `Audio Stream #1 (${ext.toUpperCase() || 'Direct'})`,
+      originalTitle: undefined,
+      language: 'Undetermined',
       languageCode: 'und',
-      codec: ext === 'mkv' ? 'Opus/AAC' : 'AAC',
+      codec: ext.toUpperCase() || 'Direct Audio',
       channels: 2,
       channelLayout: 'Stereo 2.0',
       sampleRate: 48000,
@@ -1010,11 +1070,11 @@ export class CineMorphMediaParser {
     const videoStream: MediaVideoStream = {
       id: 'video-0',
       streamIndex: 0,
-      label: 'Main Video Stream',
-      codec: 'H.264 / AVC',
+      label: `Video Stream #1 (${ext.toUpperCase() || 'Direct'})`,
+      codec: ext.toUpperCase() || 'Direct Video',
       width: 1920,
       height: 1080,
-      resolution: '1920x1080 (1080p FHD)',
+      resolution: 'Source Resolution',
       aspectRatio: '16:9',
       isDefault: true,
       isPlayable: true,
@@ -1032,7 +1092,7 @@ export class CineMorphMediaParser {
       defaultVideoStreamId: 'video-0',
       isContainerSupported: true,
       isPlaybackSupported: true,
-      compatibilitySummary: 'Native Media Stream (1 Audio, 1 Video)',
+      compatibilitySummary: 'Direct Media Stream (1 Audio, 1 Video)',
     };
   }
 }

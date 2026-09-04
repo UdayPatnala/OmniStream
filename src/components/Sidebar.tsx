@@ -15,7 +15,7 @@ import { useAppStore } from '../store';
 //   Feed, Subscriptions, History, Collections, Explore categories, U-Tube preferences
 
 // The single permitted cross-product escape from U-Tube
-const gatewayEscape = { to: '/', icon: Layers, label: 'OmniStream', title: 'Return to OmniStream Gateway' };
+const gatewayEscape = { to: '/', icon: Layers, label: 'OmniStream', title: 'Return to OmniStream' };
 
 // U-Tube primary navigation
 const mainNavItems = [

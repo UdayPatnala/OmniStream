@@ -73,10 +73,12 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
   const [hoverTime, setHoverTime] = useState<number | null>(null);
   const [hoverPositionX, setHoverPositionX] = useState<number>(0);
   const [isScrubbing, setIsScrubbing] = useState(false);
+  const [scrubTime, setScrubTime] = useState(0);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const controlsTimerRef = useRef<NodeJS.Timeout | null>(null);
   const pollTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const lastSeekTimestampRef = useRef<number>(0);
 
   // Show transient HUD Toast
   const showToast = useCallback((msg: string) => {
@@ -105,8 +107,23 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
     }
   }, [isPlaying, showSettingsMenu, isScrubbing]);
 
-  // Initial time seek
+  // Video Change Reset & Initial Seek
   useEffect(() => {
+    setCurrentTime(initialTime || 0);
+    setDuration(0);
+    setBufferedFraction(0);
+    setIsScrubbing(false);
+    setScrubTime(0);
+    setHoverTime(null);
+
+    // Dispatch listening handshake to iframe API
+    if (iframeRef.current?.contentWindow) {
+      iframeRef.current.contentWindow.postMessage(
+        JSON.stringify({ event: 'listening' }),
+        '*'
+      );
+    }
+
     if (initialTime > 0) {
       const timer = setTimeout(() => {
         sendIframeCommand('seekTo', [initialTime, true]);
@@ -114,17 +131,20 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
       }, 600);
       return () => clearTimeout(timer);
     }
-  }, [initialTime, sendIframeCommand]);
+  }, [video.id, initialTime, sendIframeCommand]);
 
   // Periodic polling for progress & state from iframe
   useEffect(() => {
     pollTimerRef.current = setInterval(() => {
       if (isPlaying && !isScrubbing) {
-        setCurrentTime((prev) => {
-          const next = duration > 0 ? Math.min(duration, prev + 0.25) : prev + 0.25;
-          onTimeUpdate?.(next, duration, isPlaying);
-          return next;
-        });
+        const timeSinceSeek = Date.now() - lastSeekTimestampRef.current;
+        if (timeSinceSeek > 400) {
+          setCurrentTime((prev) => {
+            const next = duration > 0 ? Math.min(duration, prev + 0.25) : prev + 0.25;
+            onTimeUpdate?.(next, duration, isPlaying);
+            return next;
+          });
+        }
       }
     }, 250);
 
@@ -139,9 +159,12 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
       try {
         const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
         if (data && data.event === 'infoDelivery' && data.info) {
+          const timeSinceSeek = Date.now() - lastSeekTimestampRef.current;
           if (typeof data.info.currentTime === 'number' && !isScrubbing) {
-            setCurrentTime(data.info.currentTime);
-            onTimeUpdate?.(data.info.currentTime, duration, isPlaying);
+            if (timeSinceSeek > 400 || Math.abs(data.info.currentTime - currentTime) < 3) {
+              setCurrentTime(data.info.currentTime);
+              onTimeUpdate?.(data.info.currentTime, duration, isPlaying);
+            }
           }
           if (typeof data.info.duration === 'number' && data.info.duration > 0) {
             setDuration(data.info.duration);
@@ -163,7 +186,7 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
 
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [isScrubbing, duration, isPlaying, onNext, onTimeUpdate]);
+  }, [isScrubbing, duration, isPlaying, currentTime, onNext, onTimeUpdate]);
 
   // Save history on initial playback
   useEffect(() => {
@@ -244,7 +267,14 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
   const toggleSubtitles = useCallback(() => {
     const next = !subtitlesOn;
     setSubtitlesOn(next);
-    sendIframeCommand(next ? 'loadModule' : 'unloadModule', ['captions']);
+    if (next) {
+      sendIframeCommand('loadModule', ['captions']);
+      sendIframeCommand('setOption', ['captions', 'track', { languageCode: 'en' }]);
+      sendIframeCommand('setOption', ['captions', 'fontSize', 1]);
+    } else {
+      sendIframeCommand('unloadModule', ['captions']);
+      sendIframeCommand('setOption', ['captions', 'track', {}]);
+    }
     showToast(next ? '💬 Subtitles / CC On' : '💬 Subtitles / CC Off');
   }, [subtitlesOn, sendIframeCommand, showToast]);
 
@@ -350,22 +380,113 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
     );
   };
 
-  // Progress Bar Seek Calculation
-  const handleProgressBarClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!progressTrackRef.current || !duration) return;
-    const rect = progressTrackRef.current.getBoundingClientRect();
-    const pos = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-    const targetTime = pos * duration;
-    setCurrentTime(targetTime);
-    sendIframeCommand('seekTo', [targetTime, true]);
+  // ── Seeker & Timeline Interaction Engine ──
+  const calculateTimeFromPointer = useCallback(
+    (clientX: number): number => {
+      if (!progressTrackRef.current || !duration || duration <= 0) return 0;
+      const rect = progressTrackRef.current.getBoundingClientRect();
+      if (rect.width <= 0) return 0;
+      const fraction = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+      return fraction * duration;
+    },
+    [duration]
+  );
+
+  const commitSeek = useCallback(
+    (targetTime: number) => {
+      if (isNaN(targetTime) || !isFinite(targetTime) || duration <= 0) return;
+      const clampedTime = Math.max(0, Math.min(duration, targetTime));
+      lastSeekTimestampRef.current = Date.now();
+      setCurrentTime(clampedTime);
+      setScrubTime(clampedTime);
+      sendIframeCommand('seekTo', [clampedTime, true]);
+      onTimeUpdate?.(clampedTime, duration, isPlaying);
+      showToast(`⏱ ${formatTime(clampedTime)}`);
+    },
+    [duration, isPlaying, onTimeUpdate, sendIframeCommand, showToast]
+  );
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.button !== 0 || !duration || duration <= 0) return;
+    e.preventDefault();
+    e.stopPropagation();
+
+    setIsScrubbing(true);
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch (_) {}
+
+    const newTime = calculateTimeFromPointer(e.clientX);
+    setScrubTime(newTime);
+    setHoverTime(newTime);
+    if (progressTrackRef.current) {
+      const rect = progressTrackRef.current.getBoundingClientRect();
+      setHoverPositionX(Math.max(0, Math.min(rect.width, e.clientX - rect.left)));
+    }
   };
 
-  const handleProgressBarMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!progressTrackRef.current || !duration) return;
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!progressTrackRef.current || !duration || duration <= 0) return;
     const rect = progressTrackRef.current.getBoundingClientRect();
-    const pos = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-    setHoverTime(pos * duration);
-    setHoverPositionX(e.clientX - rect.left);
+    const clampedX = Math.max(0, Math.min(rect.width, e.clientX - rect.left));
+    const newTime = calculateTimeFromPointer(e.clientX);
+
+    setHoverPositionX(clampedX);
+    setHoverTime(newTime);
+
+    if (isScrubbing) {
+      setScrubTime(newTime);
+    }
+  };
+
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isScrubbing) return;
+    e.preventDefault();
+    e.stopPropagation();
+
+    try {
+      if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+        e.currentTarget.releasePointerCapture(e.pointerId);
+      }
+    } catch (_) {}
+
+    setIsScrubbing(false);
+    const targetTime = calculateTimeFromPointer(e.clientX);
+    commitSeek(targetTime);
+  };
+
+  const handlePointerCancel = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isScrubbing) return;
+    try {
+      if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+        e.currentTarget.releasePointerCapture(e.pointerId);
+      }
+    } catch (_) {}
+    setIsScrubbing(false);
+    setHoverTime(null);
+  };
+
+  const handleProgressBarClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    if (!progressTrackRef.current || !duration || duration <= 0) return;
+    const targetTime = calculateTimeFromPointer(e.clientX);
+    commitSeek(targetTime);
+  };
+
+  const handleTimelineKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!duration || duration <= 0) return;
+    if (['ArrowLeft', 'ArrowRight', 'Home', 'End', 'PageUp', 'PageDown'].includes(e.key)) {
+      e.preventDefault();
+      e.stopPropagation();
+      let target = currentTime;
+      if (e.key === 'ArrowLeft') target -= 5;
+      else if (e.key === 'ArrowRight') target += 5;
+      else if (e.key === 'PageDown') target -= 30;
+      else if (e.key === 'PageUp') target += 30;
+      else if (e.key === 'Home') target = 0;
+      else if (e.key === 'End') target = duration;
+      commitSeek(target);
+    }
   };
 
   const formatTime = (secs: number) => {
@@ -381,8 +502,9 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
     return `${mins}:${pad(remSecs)}`;
   };
 
-  const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
-  const bufferedPercent = Math.min(100, bufferedFraction * 100);
+  const displayTime = isScrubbing ? scrubTime : currentTime;
+  const progressPercent = duration > 0 ? Math.min(100, Math.max(0, (displayTime / duration) * 100)) : 0;
+  const bufferedPercent = Math.min(100, Math.max(0, bufferedFraction * 100));
 
   // ── Render: Theater A (U-Tube Blue Theater Environment) vs Standard Player ────
   return (
@@ -522,10 +644,22 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
             {/* Progress Track */}
             <div
               ref={progressTrackRef}
+              tabIndex={0}
+              role="slider"
+              aria-label="Video timeline scrubber"
+              aria-valuemin={0}
+              aria-valuemax={duration || 100}
+              aria-valuenow={displayTime}
+              aria-valuetext={`${formatTime(displayTime)} of ${formatTime(duration)}`}
+              onPointerDown={handlePointerDown}
+              onPointerMove={handlePointerMove}
+              onPointerUp={handlePointerUp}
+              onPointerCancel={handlePointerCancel}
               onClick={handleProgressBarClick}
-              onMouseMove={handleProgressBarMouseMove}
-              onMouseLeave={() => setHoverTime(null)}
-              className="relative w-full h-1.5 hover:h-2.5 bg-white/25 rounded-full cursor-pointer transition-all flex items-center group/track"
+              onKeyDown={handleTimelineKeyDown}
+              onMouseEnter={() => setControlsVisible(true)}
+              onMouseLeave={() => !isScrubbing && setHoverTime(null)}
+              className="relative w-full h-1.5 hover:h-2.5 bg-white/25 hover:bg-white/35 rounded-full cursor-pointer transition-all flex items-center group/track touch-none outline-none focus-visible:ring-2 focus-visible:ring-red-500"
             >
               {/* Buffered Progress */}
               <div
@@ -541,17 +675,19 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
 
               {/* Scrubber Handle */}
               <div
-                className="absolute top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-red-600 shadow-md group-hover/track:scale-125 transition-transform"
-                style={{ left: `calc(${Math.min(100, Math.max(0, progressPercent))}% - 6px)` }}
+                className={`absolute top-1/2 -translate-y-1/2 w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-red-600 shadow-md border border-white/30 transition-transform ${
+                  isScrubbing ? 'scale-125 ring-4 ring-red-500/40' : 'group-hover/track:scale-125'
+                }`}
+                style={{ left: `calc(${Math.min(100, Math.max(0, progressPercent))}% - 7px)` }}
               />
 
-              {/* Hover Preview Tooltip */}
-              {hoverTime !== null && (
+              {/* Hover / Scrub Preview Tooltip */}
+              {(hoverTime !== null || isScrubbing) && (
                 <div
-                  className="absolute -top-8 -translate-x-1/2 px-2 py-1 rounded bg-black/90 text-white text-[10px] font-mono font-bold shadow-md pointer-events-none"
+                  className="absolute -top-8 -translate-x-1/2 px-2 py-1 rounded bg-black/90 text-white text-[10px] font-mono font-bold shadow-md border border-white/10 pointer-events-none z-50 whitespace-nowrap"
                   style={{ left: `${hoverPositionX}px` }}
                 >
-                  {formatTime(hoverTime)}
+                  {formatTime(isScrubbing ? scrubTime : (hoverTime ?? 0))}
                 </div>
               )}
             </div>
@@ -613,7 +749,7 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
 
                 {/* Timestamp */}
                 <div className="text-[11px] text-gray-300 font-mono tracking-tight ml-1">
-                  <span>{formatTime(currentTime)}</span>
+                  <span>{formatTime(displayTime)}</span>
                   <span className="text-gray-500 mx-1">/</span>
                   <span>{formatTime(duration)}</span>
                 </div>

@@ -58,6 +58,23 @@ export class OMS_CandidateGenerator {
         scale: minScale * 1.06,
         aspectRatio,
       },
+      {
+        id: 'imax_expanded_headroom',
+        name: 'IMAX 1.43:1 Vertical Headroom',
+        panX: 0,
+        panY: -0.08,
+        scale: minScale * 1.05,
+        aspectRatio,
+      },
+      {
+        id: 'imax_two_shot_union',
+        name: 'IMAX Balanced Two-Shot Union',
+        panX: 0,
+        panY: -0.03,
+        scale: minScale * 1.08,
+        aspectRatio,
+      },
     ];
   }
 }
+

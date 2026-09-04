@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { searchVideos } from '../lib/youtube';
 import { SearchResult, SearchFilterType } from '../types';
@@ -28,19 +28,34 @@ export function Search() {
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
 
+  const latestRequestIdRef = useRef(0);
+
   useEffect(() => {
+    const requestId = ++latestRequestIdRef.current;
+    
     async function fetchResults() {
-      if (!query) return;
+      if (!query.trim()) {
+        setResults([]);
+        setLoading(false);
+        return;
+      }
       
       try {
         setLoading(true);
-        const res = await searchVideos(query, activeFilter);
-        setResults(res.results);
-        setNextPageToken(res.nextPageToken);
+        const res = await searchVideos(query.trim(), activeFilter);
+        // Stale response protection: only update if this is still the latest request
+        if (requestId === latestRequestIdRef.current) {
+          setResults(res.results);
+          setNextPageToken(res.nextPageToken);
+        }
       } catch (err: any) {
-        // Safe silent fallback handled by youtube.ts
+        if (requestId === latestRequestIdRef.current) {
+          setResults([]);
+        }
       } finally {
-        setLoading(false);
+        if (requestId === latestRequestIdRef.current) {
+          setLoading(false);
+        }
       }
     }
 
@@ -51,7 +66,7 @@ export function Search() {
     if (!nextPageToken || !query || loadingMore) return;
     try {
       setLoadingMore(true);
-      const res = await searchVideos(query, activeFilter, nextPageToken);
+      const res = await searchVideos(query.trim(), activeFilter, nextPageToken);
       setResults(prev => [...prev, ...res.results]);
       setNextPageToken(res.nextPageToken);
     } catch (err: any) {
@@ -98,7 +113,7 @@ export function Search() {
   const topMatch = filteredResults.length > 0 ? filteredResults[0] : null;
 
   return (
-    <div className="space-y-6 py-2 max-w-[1700px] mx-auto select-none font-sans text-utube-text">
+    <div className="space-y-6 max-w-[1800px] mx-auto pb-12 select-none font-sans text-utube-text">
       {/* Top Relevant Match Banner */}
       {topMatch && !loading && (
         <div className="bg-utube-card border border-utube-border rounded-3xl p-5 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
@@ -129,17 +144,25 @@ export function Search() {
         </div>
       )}
 
-      <div className="flex flex-col gap-3 border-b border-utube-border pb-3">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <h1 className="text-base sm:text-lg font-bold text-utube-text">Results for &ldquo;{query}&rdquo;</h1>
+      {/* Top Banner / Filter Controls */}
+      <div className="space-y-3 pb-2 border-b border-utube-border">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <h1 className="text-base sm:text-lg font-bold text-utube-text truncate">
+              Results for &ldquo;<span className="text-utube-primary">{query}</span>&rdquo;
+            </h1>
+            <span className="text-xs text-utube-text-muted font-mono">
+              {!loading && `(${filteredResults.length} items)`}
+            </span>
+          </div>
           
-          {/* Main Content Type Filter Chips */}
-          <div className="flex flex-wrap gap-2">
-            {filterTabs.map(tab => (
+          {/* Filter Type Pills */}
+          <div className="flex items-center gap-1.5 overflow-x-auto hide-scrollbar py-1">
+            {filterTabs.map((tab) => (
               <button
                 key={tab.type}
                 onClick={() => setActiveFilter(tab.type)}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all shrink-0 cursor-pointer ${
                   activeFilter === tab.type
                     ? 'bg-utube-text text-utube-bg font-bold shadow-sm'
                     : 'bg-utube-surface text-utube-text-secondary hover:text-utube-text hover:bg-utube-border/60 border border-utube-border/60'
@@ -151,7 +174,7 @@ export function Search() {
           </div>
         </div>
 
-        {/* Secondary Specification Filters (Upload Date, Duration, Sort By) */}
+        {/* Secondary Specification Filters */}
         <div className="flex flex-wrap items-center gap-3 pt-1 text-xs text-utube-text-secondary">
           <span className="font-bold text-utube-text-muted">Filters:</span>
           
@@ -188,17 +211,30 @@ export function Search() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 gap-y-8">
-        {loading ? (
-          Array.from({ length: 12 }).map((_, i) => <VideoCardSkeleton key={i} />)
-        ) : (
-          filteredResults.map((item, idx) => (
+      {/* Results Grid / Loading / Empty State */}
+      {loading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 gap-y-8">
+          {Array.from({ length: 12 }).map((_, i) => <VideoCardSkeleton key={i} />)}
+        </div>
+      ) : filteredResults.length === 0 ? (
+        <div className="flex flex-col items-center justify-center h-[40vh] text-center max-w-md mx-auto text-utube-text">
+          <div className="w-16 h-16 bg-utube-surface rounded-full flex items-center justify-center mb-4 border border-utube-border">
+            <SearchIcon className="w-6 h-6 text-utube-text-muted" />
+          </div>
+          <h2 className="text-base font-bold text-utube-text mb-1">No Results Found</h2>
+          <p className="text-xs text-utube-text-muted">
+            We couldn&apos;t find any matches for &ldquo;{query}&rdquo;. Try checking for typos or searching for broader topics.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 gap-y-8">
+          {filteredResults.map((item, idx) => (
             <VideoCard key={`${item.id}-${idx}`} video={item} />
-          ))
-        )}
-      </div>
+          ))}
+        </div>
+      )}
 
-      {nextPageToken && !loading && (
+      {nextPageToken && !loading && filteredResults.length > 0 && (
         <div className="flex justify-center pt-6">
           <button
             onClick={loadMore}

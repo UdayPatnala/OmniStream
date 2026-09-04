@@ -8,6 +8,8 @@ This document serves as the authoritative, permanent version timeline and Git re
 
 | Version | Date | Type | Quick Summary | Git Tag | Commit |
 |---|---|:---:|---|:---:|:---:|
+| **v1.8.0** | 2026-09-02 | `MINOR` | Universal Perception & Intelligent Smart Framing: MediaPipe BlazeFace WASM SIMD perception, normalized evidence schema, multi-subject composition, switching hysteresis, cascaded poster intelligence, 3-state scene transition engine, and Web Audio dynamic speech clarity adaptation. | `v1.8.0` | `internal` |
+| **v1.5.5** | 2026-09-02 | `PATCH` | Safe Pre-v1.8.0 Baseline Checkpoint: Decoupled Perception-Decision-Stabilization contracts, zero runtime neural dependencies in core, and strict baseline test verification. | `v1.5.5` | `internal` |
 | **v1.5.2** | 2026-09-01 | `MINOR` | Lightweight client-side media demuxing engine for MP4/MKV/WebM/MOV/Audio with multi-track audio detection, original Unicode title preservation, live hardware/WebAudio stream switching, and codec playability verification. | `v1.5.2` | [`3467c79`](https://github.com/UdayPatnala/OmniStream/commit/3467c79) |
 | **v1.5.1** | 2026-09-01 | `PATCH` | Calibrated exact concave cinema screen curvature hierarchy (Original: 0%, CineMorph IMAX: 0.65%, True IMAX: 0.95%, U-Tube: 1.25%) with 3-tier proportional auditorium seating and zero video distortion. | `v1.5.1` | [`8a42eaa`](https://github.com/UdayPatnala/OmniStream/commit/8a42eaa) |
 | **v1.5.0** | 2026-09-01 | `MINOR` | Stable baseline checkpoint uniting U-Tube and CineMorph under central gateway. | `v1.5.0` | [`1431a08`](https://github.com/UdayPatnala/OmniStream/commit/1431a08) |
@@ -16,6 +18,50 @@ This document serves as the authoritative, permanent version timeline and Git re
 ---
 
 ## Version Entries
+
+### v1.8.0
+
+- **Date**: 2026-09-02
+- **Type**: `MINOR` (Universal Perception & Intelligent Smart Framing)
+- **Previous Version**: `v1.5.5`
+
+#### Quick
+Completed full implementation of OmniStream v1.8.0 Execution Phases (E1 through E12), Scope Restoration & UI Freeze, CineMorph Theater Fixed Formats & Aspect Ratio Recovery, CineMorph Real-Time Timed Captions synchronization (I3), U-Tube Functional Architecture Recovery (I1 & I2), and CineMorph Media Compatibility & Audio Track Discovery (I4).
+- **Scope Restoration & UI Freeze**: Surgical rollback of unintended lobby redesign experiments; master Cosmic Threshold Portal restored on `/`; CineMorph Virtual Theater Ingestion Hall restored on `/cinemorph` with landing UI strictly frozen.
+- **Architectural & Terminology Alignment**: Confirmed AROH as branding presence only (zero artificial module overhead), and confirmed Studio as the CineMorph Theater player/controller environment.
+- **CineMorph Theater Aspect Ratio & Mode Recovery**: Fixed derived mode flags in `CineMorphTheater.tsx` ensuring `1.43:1 True IMAX`, `1.90:1 IMAX`, and `Original` engage their distinct concave curvatures, smart framing scale transforms, and proportional seating layouts.
+- **Issue Fix I4 (CineMorph Media Compatibility & Audio Discovery)**: Multi-track audio discovery enhanced with MP4 tail-moov scanning, Matroska BCP47/Name extraction, strict priority for genuine track titles, browser `AudioTracks` API probing, and honest feedback on unsupported audio codecs (DTS / TrueHD / non-passthrough AC3).
+- **Issue Fix I3 (Caption System Repair & Visual Unification)**: Real-time WebVTT/SRT parser with active cue synchronization (`cuechange`), zero static placeholders, and unified `CaptionOverlay` standardizing transparent background, white text, subtle multi-layer drop shadow, responsive font sizing (`clamp(14px, 2vw, 20px)`), and control-safe positioning across both theater experiences.
+- **U-Tube Issue I1 (Discovery, Search, Subscriptions)**: Genuine search proxy, topic-aware recommendations with diversity constraints, single source of truth subscriptions, and decoupled channel navigation.
+- **U-Tube Issue I2 (Player Timeline & Scrubbing)**: State-machine separated seeker (`SYNCING`, `SCRUBBING`, `SEEKING`), pointer capture (`setPointerCapture`) with `touch-action: none`, seek-aware synchronization preventing race conditions, and keyboard accessibility.
+
+#### Module Version Hierarchy
+- **OmniStream Core (`OS`)**: `v1.8.0`
+  - *Cosmic Dual-Portal Threshold Gateway (`OS-THRESHOLD`)*: `v1.8.0`
+  - *Unified Caption & Accessibility Overlay (`OS-CAPTION`)*: `v1.8.0`
+- **CineMorph Product (`CM`)**: `v1.8.0`
+  - *Adaptive Smart Framing Engine (`CM-SF`)*: `v1.8.0`
+  - *Universal Visual & Audio Perception System (`CM-PERCEPT`)*: `v1.8.0`
+  - *Video & Frame Quality Intelligence (`CM-VQ`)*: `v1.8.0`
+  - *5-Band Parametric Audio DSP & Dynamic Clarity (`CM-DSP`)*: `v1.8.0`
+  - *Lightweight Stream Demuxer (`CM-DEMUX`)*: `v1.0.0`
+  - *Active Audio Routing Engine (`CM-AUD`)*: `v1.0.1`
+- **U-Tube Product (`UT`)**: `v1.8.0`
+  - *U-Tube Core Discovery & Watch Engine (`UT-CORE`)*: `v1.8.0`
+  - *U-Tube Timeline & Seeker Engine (`UT-SEEK`)*: `v1.8.0`
+
+---
+
+### v1.5.5
+
+- **Date**: 2026-09-02
+- **Type**: `PATCH` (Safe Pre-v1.8.0 Baseline Checkpoint)
+- **Previous Version**: `v1.5.2`
+
+#### Quick
+Verified clean architectural baseline and zero-neural-dependency fallback guarantees prior to E1-E12 perception integration.
+
+---
 
 ### v1.5.2
 

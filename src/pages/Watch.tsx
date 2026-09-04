@@ -94,11 +94,11 @@ export function Watch() {
     // Fetch related videos
     (async () => {
       try {
-        const rels = await getRelatedVideos(id);
+        const rels = await getRelatedVideos(id, activeVideo?.title || video?.title);
         setRelated(rels.filter(r => r.id !== id));
       } catch (_) {}
     })();
-  }, [id]);
+  }, [id, activeVideo?.title]);
 
   const isSubscribed = subscriptions.some(s => s.id === video?.channelId);
   const isLiked = video ? isLikedVideo(video.id) : false;

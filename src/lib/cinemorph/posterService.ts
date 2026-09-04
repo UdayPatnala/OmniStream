@@ -1,4 +1,4 @@
-﻿/**
+/**
  * posterService.ts — OmniStream Dynamic Video Poster & Preview Extraction Engine
  * Copyright (c) Patnala Uday Kumar. All rights reserved.
  *
@@ -15,6 +15,8 @@
  * - Session memory caching (zero duplicate renders)
  * - Full image preloading guarantee before ticket emerges
  */
+
+import { PosterIntelligenceEngine } from './posterIntelligence';
 
 export interface MediaPosterRequest {
   id?: string;
@@ -276,7 +278,16 @@ class PosterService {
         }
       };
 
-      videoEl.onloadedmetadata = () => {
+      videoEl.onloadedmetadata = async () => {
+        try {
+          const posterEngine = new PosterIntelligenceEngine();
+          const bestResult = await posterEngine.selectBestPosterFrame(videoEl, 4);
+          if (bestResult && bestResult.bestImageDataUrl) {
+            cleanup();
+            return resolve(bestResult.bestImageDataUrl);
+          }
+        } catch (_) {}
+
         const dur = videoEl.duration || hintDuration || 0;
         // Skip opening black frames / logos: sample at 12% or at least 2.5s in
         const seekTarget = dur > 15 ? Math.min(15, Math.max(2.5, dur * 0.12)) : 0.8;

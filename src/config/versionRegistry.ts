@@ -28,7 +28,7 @@ export interface OmniStreamVersionRegistry {
   readonly version: string; // Authoritative OS Version (matches package.json and git tags)
   readonly codename: string;
   readonly releaseDate: string;
-  readonly status: 'STABLE_BASELINE' | 'ACTIVE_DEVELOPMENT' | 'RELEASE_CANDIDATE';
+  readonly status: 'STABLE_BASELINE' | 'ACTIVE_DEVELOPMENT' | 'RELEASE_CANDIDATE' | 'STABLE_RELEASE';
   readonly products: {
     readonly cinemorph: ProductVersionInfo;
     readonly utube: ProductVersionInfo;
@@ -36,51 +36,58 @@ export interface OmniStreamVersionRegistry {
 }
 
 export const VERSION_REGISTRY: OmniStreamVersionRegistry = {
-  version: '1.5.2',
-  codename: 'Universal Stream Compatibility & Audio Engine',
-  releaseDate: '2026-09-01',
-  status: 'STABLE_BASELINE',
+  version: '1.8.0',
+  codename: 'Universal Perception & Intelligent Smart Framing',
+  releaseDate: '2026-09-02',
+  status: 'STABLE_RELEASE',
   products: {
     cinemorph: {
       id: 'cinemorph',
       code: 'CM',
       name: 'CineMorph Theater & Private Ingest',
-      version: '1.5.2',
+      version: '1.8.0',
       subsystems: [
         {
           id: 'smart-framing',
           code: 'CM-SF',
           name: 'Adaptive Smart Framing Engine',
-          version: '1.0.1',
-          description: 'Aspect-ratio proscenium aperture geometry, deadband hysteresis, and temporal smoothing',
+          version: '1.8.0',
+          description: 'Enhanced composition scoring, switching hysteresis, and spring temporal controller',
         },
         {
-          id: 'media-demuxer',
+          id: 'perception',
+          code: 'CM-PERCEPT',
+          name: 'Universal Visual & Audio Perception System',
+          version: '1.8.0',
+          description: 'Client-side BlazeFace WASM SIMD and Web Audio API spectral perception',
+        },
+        {
+          id: 'stream-demux',
           code: 'CM-DEMUX',
           name: 'Lightweight Client-Side Stream Demuxer',
           version: '1.0.0',
-          description: 'ISOBMFF MP4/MOV and EBML Matroska/WebM binary header scanner, Unicode title extractor, and ISO language mapper',
+          description: 'ISOBMFF MP4/MOV and EBML Matroska/WebM binary header scanner',
         },
         {
-          id: 'audio-routing',
+          id: 'audio-router',
           code: 'CM-AUD',
           name: 'Active Audio Routing & Hardware Stream Selector',
           version: '1.0.1',
-          description: 'Real-time multi-channel audio stream switching, Web Audio synchronization, and codec playability probing',
+          description: 'HTMLMediaElement multi-track audio switching and Web Audio synchronization',
         },
         {
           id: 'video-quality',
           code: 'CM-VQ',
           name: 'Video & Frame Quality Intelligence',
-          version: '1.0.0',
-          description: 'Laplacian edge variance sharpness, contrast entropy, and multi-tier poster cascade ranking',
+          version: '1.8.0',
+          description: 'Laplacian variance sharpness, contrast entropy, and cascaded poster intelligence',
         },
         {
           id: 'audio-dsp',
           code: 'CM-DSP',
-          name: '5-Band Parametric Audio DSP',
-          version: '1.0.0',
-          description: 'Web Audio API biquad filter graph, dialogue clarity, and spatial acoustic simulation',
+          name: '5-Band Parametric Audio DSP & Dynamic Clarity',
+          version: '1.8.0',
+          description: 'Web Audio API biquad filter graph, dynamic clarity boost, and spatial acoustic simulation',
         },
       ],
     },
@@ -88,11 +95,11 @@ export const VERSION_REGISTRY: OmniStreamVersionRegistry = {
       id: 'utube',
       code: 'UT',
       name: 'U-Tube Video Discovery & Watch Engine',
-      version: '1.5.2',
+      version: '1.8.0',
       subsystems: [], // U-Tube operates as a single unified product module
     },
   },
-} as const;
+};
 
 /**
  * Returns formatted version string for developer telemetry and diagnostics

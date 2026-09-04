@@ -71,45 +71,65 @@ export function VideoCard({ video, progress }: VideoCardProps) {
         </div>
       )}
 
-      <Link to={isVideo ? `/watch/${video.id}` : `/channel/${video.id}`} className="flex flex-col gap-2.5 cursor-pointer">
-        {/* Thumbnail Container */}
-        <div className="aspect-video bg-utube-surface rounded-2xl relative overflow-hidden border border-utube-border/40">
-          <img 
-            src={video.thumbnails.high || video.thumbnails.medium} 
-            alt={video.title} 
-            className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-200"
-            loading="lazy"
-          />
-          {duration && (
-            <div className="absolute bottom-2 right-2 bg-black/85 backdrop-blur-sm px-2 py-0.5 rounded-md text-[11px] font-mono font-semibold text-white tracking-wide shadow-md">
-              {formatDuration(duration)}
-            </div>
-          )}
-          {activeProgress > 0 && (
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-utube-surface">
-              <div className="h-full bg-utube-primary" style={{ width: `${Math.min(100, activeProgress)}%` }} />
-            </div>
-          )}
-        </div>
+      {/* Video Content Card */}
+      <div className="flex flex-col gap-2.5">
+        {/* Thumbnail Container -> Opens Watch Page */}
+        <Link to={isVideo ? `/watch/${video.id}` : `/channel/${video.id}`} className="block cursor-pointer">
+          <div className="aspect-video bg-utube-surface rounded-2xl relative overflow-hidden border border-utube-border/40">
+            <img 
+              src={video.thumbnails.high || video.thumbnails.medium} 
+              alt={video.title} 
+              className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-200"
+              loading="lazy"
+            />
+            {duration && (
+              <div className="absolute bottom-2 right-2 bg-black/85 backdrop-blur-sm px-2 py-0.5 rounded-md text-[11px] font-mono font-semibold text-white tracking-wide shadow-md">
+                {formatDuration(duration)}
+              </div>
+            )}
+            {activeProgress > 0 && (
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-utube-surface">
+                <div className="h-full bg-utube-primary" style={{ width: `${Math.min(100, activeProgress)}%` }} />
+              </div>
+            )}
+          </div>
+        </Link>
 
         {/* Info Container */}
         <div className="flex gap-3 items-start px-0.5 relative">
-          <div className="w-8 h-8 rounded-full bg-utube-surface flex-shrink-0 overflow-hidden mt-0.5 border border-utube-border">
+          {/* Channel Avatar -> Opens Channel Page */}
+          <Link 
+            to={`/channel/${video.channelId || video.id}`}
+            onClick={(e) => e.stopPropagation()}
+            className="w-8 h-8 rounded-full bg-utube-surface flex-shrink-0 overflow-hidden mt-0.5 border border-utube-border hover:opacity-80 transition-opacity cursor-pointer"
+            title={video.channelTitle}
+          >
             <img src={video.thumbnails.medium} alt={video.channelTitle} className="w-full h-full object-cover" />
-          </div>
+          </Link>
+
           <div className="flex flex-col min-w-0 flex-1 pr-6">
-            <h3 className="text-sm font-semibold line-clamp-2 text-utube-text leading-snug group-hover:text-utube-primary transition-colors">
-              {video.title}
-            </h3>
-            <span className="text-xs text-utube-text-secondary hover:text-utube-text mt-1 truncate transition-colors">
+            {/* Title -> Opens Watch Page */}
+            <Link to={isVideo ? `/watch/${video.id}` : `/channel/${video.id}`} className="cursor-pointer">
+              <h3 className="text-sm font-semibold line-clamp-2 text-utube-text leading-snug group-hover:text-utube-primary transition-colors">
+                {video.title}
+              </h3>
+            </Link>
+
+            {/* Channel Title -> Opens Channel Page */}
+            <Link 
+              to={`/channel/${video.channelId || video.id}`}
+              onClick={(e) => e.stopPropagation()}
+              className="text-xs text-utube-text-secondary hover:text-utube-primary mt-1 truncate transition-colors inline-block cursor-pointer"
+            >
               {video.channelTitle}
-            </span>
+            </Link>
+
             <span className="text-[11px] text-utube-text-muted mt-0.5">
               {views ? `${formatViews(views)} views • ` : ''}{formatTimeAgo(video.publishedAt)}
             </span>
           </div>
         </div>
-      </Link>
+      </div>
 
       {/* Overflow 3-Dots Menu Toggle Button */}
       <div className="absolute bottom-2 right-0 z-20">

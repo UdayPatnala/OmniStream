@@ -30,8 +30,11 @@ import {
   extractVideoScript, 
   localVideoAnalyzer,
   hybridMediaRouter,
-  adaptiveCinemaEngine
+  adaptiveCinemaEngine,
+  mediaParser
 } from '../lib/cinemorph';
+import { CineMorphCaptionController } from '../lib/cinemorph/captionService';
+import { CaptionOverlay } from '../components/common/CaptionOverlay';
 
 type TheaterState = 'pre-show' | 'loading' | 'playing' | 'paused' | 'ended' | 'error';
 
@@ -41,9 +44,9 @@ export function CineMorphTheater() {
   const { 
     activeVideo, setActiveVideo, versionMode, history, cinemaMode, setCinemaMode,
     audioEQ, setAudioEQ,
-    frameAspectRatio, setFrameAspectRatio,
-    reframeMode,
     cinemorphTheme, setCinemorphTheme,
+    frameAspectRatio, setFrameAspectRatio,
+    reframeMode, setReframeMode,
     glowIntensity, setGlowIntensity,
     activeLocalMedia, localMediaHistory, addLocalMediaToHistory,
     theaterSeatingEnabled, setTheaterSeatingEnabled,
@@ -64,6 +67,8 @@ export function CineMorphTheater() {
   const controlsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const frameAnalysisTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const captionControllerRef = useRef<CineMorphCaptionController>(new CineMorphCaptionController());
+  const subtitleFileInputRef = useRef<HTMLInputElement | null>(null);
 
   // ── States ──────────────────────────────────────────────────────────────────
   const [video, setVideo] = useState<Video | null>(
@@ -91,6 +96,7 @@ export function CineMorphTheater() {
   const [selectedAudioTrack, setSelectedAudioTrack] = useState('original');
   const [selectedSubtitleTrack, setSelectedSubtitleTrack] = useState('off');
   const [subtitlesOn, setSubtitlesOn] = useState(false);
+  const [activeCaptionText, setActiveCaptionText] = useState<string | null>(null);
   const [speedRate, setSpeedRate] = useState(1);
   const [audioTrackIndex, setAudioTrackIndex] = useState(0);
   const [hudToast, setHudToast] = useState<string | null>(null);
@@ -121,11 +127,11 @@ export function CineMorphTheater() {
       return Array.from(trks).map((t: any, i: number) => ({
         id: `audio-${i}`,
         streamIndex: i,
-        label: t.label || `Audio Track ${i + 1}`,
+        label: t.label || `Audio Track #${i + 1}`,
         originalTitle: t.label || undefined,
-        language: t.language || 'Native',
+        language: t.language || 'Undetermined',
         languageCode: t.language || 'und',
-        codec: 'AAC/PCM',
+        codec: 'Direct Audio',
         channels: 2,
         channelLayout: 'Multi-Channel',
         isDefault: i === 0,
@@ -136,11 +142,11 @@ export function CineMorphTheater() {
       {
         id: 'audio-0',
         streamIndex: 0,
-        label: 'Native Source Audio',
-        originalTitle: 'Native Source Audio',
-        language: 'Original',
+        label: 'Audio Stream #1 (Direct Source)',
+        originalTitle: undefined,
+        language: 'Undetermined',
         languageCode: 'und',
-        codec: 'AAC',
+        codec: 'Source Audio',
         channels: 2,
         channelLayout: 'Stereo 2.0',
         isDefault: true,
@@ -158,11 +164,11 @@ export function CineMorphTheater() {
       return Array.from(trks).map((t: any, i: number) => ({
         id: `video-${i}`,
         streamIndex: i,
-        label: t.label || `Video Stream ${i + 1}`,
-        codec: 'H.264',
+        label: t.label || `Video Stream #${i + 1}`,
+        codec: 'Direct Video',
         width: 1920,
         height: 1080,
-        resolution: 'Native',
+        resolution: 'Source Resolution',
         aspectRatio: '16:9',
         isDefault: i === 0,
         isPlayable: true,
@@ -172,17 +178,61 @@ export function CineMorphTheater() {
       {
         id: 'video-0',
         streamIndex: 0,
-        label: 'Native Video Stream',
-        codec: 'H.264 / AVC',
+        label: 'Video Stream #1 (Direct Source)',
+        codec: 'Source Video',
         width: 1920,
         height: 1080,
-        resolution: 'Original Source',
+        resolution: 'Source Resolution',
         aspectRatio: '16:9',
         isDefault: true,
         isPlayable: true,
       },
     ];
   }, [localItem, isLocalMedia]);
+
+  // Real detected subtitle tracks from container analysis or native TextTrack
+  const subtitleTrackOptions = React.useMemo(() => {
+    if (localItem?.containerAnalysis?.subtitleTracks && localItem.containerAnalysis.subtitleTracks.length > 0) {
+      return localItem.containerAnalysis.subtitleTracks;
+    }
+    if (isLocalMedia && localVideoRef.current && localVideoRef.current.textTracks?.length > 0) {
+      const trks = localVideoRef.current.textTracks;
+      return Array.from(trks).map((t: TextTrack, i: number) => ({
+        id: `sub-${i}`,
+        streamIndex: i,
+        label: t.label || (t.language ? `${t.language} Subtitles` : `Subtitle Track #${i + 1}`),
+        language: t.language || 'Undetermined',
+        languageCode: t.language || 'und',
+        format: 'WebVTT',
+        isDefault: i === 0,
+        isForced: false,
+      }));
+    }
+    return [];
+  }, [localItem, isLocalMedia]);
+
+  // Caption Controller Setup & Video Attachment Lifecycle
+  useEffect(() => {
+    const controller = captionControllerRef.current;
+    controller.setOnChange((text) => {
+      setActiveCaptionText(text);
+    });
+    return () => {
+      controller.detachVideo();
+    };
+  }, []);
+
+  useEffect(() => {
+    captionControllerRef.current.setEnabled(subtitlesOn);
+  }, [subtitlesOn]);
+
+  useEffect(() => {
+    if (isLocalMedia && localVideoRef.current) {
+      captionControllerRef.current.attachVideo(localVideoRef.current);
+    } else {
+      captionControllerRef.current.detachVideo();
+    }
+  }, [localItem?.url, isLocalMedia]);
 
   const showToast = useCallback((msg: string) => {
     setHudToast(msg);
@@ -196,13 +246,19 @@ export function CineMorphTheater() {
       return;
     }
 
-    const success = audioEngine.setActiveAudioTrack(track.streamIndex, localVideoRef.current);
-    if (success) {
+    const result = audioEngine.setActiveAudioTrack(track.streamIndex, localVideoRef.current);
+    if (result.success) {
       setSelectedAudioTrackId(track.id);
       setAudioTrackIndex(track.streamIndex);
-      showToast(`🔊 Audio Track: ${track.label} (${track.language})`);
+      if (result.switched) {
+        showToast(`🔊 Audio Track: ${track.label}`);
+      } else {
+        showToast(`🔊 ${track.label} (Active)`);
+      }
+    } else if (result.method === 'unsupported_browser') {
+      showToast(`ℹ️ Browser does not support switching multi-track audio; primary stream active.`);
     } else {
-      showToast(`⚠️ Could not switch to ${track.label}`);
+      showToast(`⚠️ ${result.message || 'Could not switch audio track'}`);
     }
   }, [showToast]);
 
@@ -223,8 +279,8 @@ export function CineMorphTheater() {
 
   // ── Derived mode flags — MUST be declared before any hook that references them ──────
   // These only depend on store/state values that are already initialized above.
-  const isOriginalMode = frameAspectRatio === 'original' || presentationMode === 'original';
-  const isIMAXMode = (frameAspectRatio === '1.90:1' || frameAspectRatio === '1.43:1') && presentationMode !== 'original';
+  const isOriginalMode = frameAspectRatio === 'original';
+  const isIMAXMode = frameAspectRatio === '1.90:1' || frameAspectRatio === '1.43:1';
 
   useEffect(() => {
     if (!screenContainerRef.current || !containerRef.current) return;
@@ -263,11 +319,15 @@ export function CineMorphTheater() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, [showTracksDrawer, showStudioDrawer, showShortcuts]);
 
-  const handleDirectLocalUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleDirectLocalUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const localId = `local-${Date.now()}`;
     const fileUrl = URL.createObjectURL(file);
+
+    // Demux local media container
+    const containerAnalysis = await mediaParser.parseMediaFile(file, file.name);
+
     const newItem: LocalMediaItem = {
       id: localId,
       name: file.name,
@@ -277,6 +337,8 @@ export function CineMorphTheater() {
       duration: 0,
       progress: 0,
       lastWatchedAt: Date.now(),
+      aspectRatio: containerAnalysis.videoStreams[0]?.aspectRatio,
+      containerAnalysis,
     };
     useAppStore.getState().setActiveLocalMedia(newItem);
     useAppStore.getState().addLocalMediaToHistory(newItem);
@@ -303,6 +365,23 @@ export function CineMorphTheater() {
     if (!id) return;
 
     if (isLocalMedia && localItem) {
+      // If container analysis is missing, run demuxer on active blob URL
+      if (!localItem.containerAnalysis && localItem.url) {
+        fetch(localItem.url)
+          .then((r) => r.blob())
+          .then((blob) => mediaParser.parseMediaFile(blob, localItem.name))
+          .then((containerAnalysis) => {
+            const updatedItem: LocalMediaItem = {
+              ...localItem,
+              containerAnalysis,
+              aspectRatio: containerAnalysis.videoStreams[0]?.aspectRatio || localItem.aspectRatio,
+            };
+            useAppStore.getState().setActiveLocalMedia(updatedItem);
+            useAppStore.getState().addLocalMediaToHistory(updatedItem);
+          })
+          .catch(() => {});
+      }
+
       const localVideoObj: Video = {
         id: localItem.id,
         title: localItem.name,
@@ -672,6 +751,13 @@ export function CineMorphTheater() {
     const currentIdx = ratios.indexOf(frameAspectRatio);
     const nextRatio = currentIdx === -1 ? 'original' : ratios[(currentIdx + 1) % ratios.length];
     setFrameAspectRatio(nextRatio);
+    if (nextRatio === 'original') {
+      setPresentationMode('original');
+      setCinemaMode(false);
+    } else {
+      setPresentationMode('cinema');
+      setCinemaMode(true);
+    }
     const label = nextRatio === 'original' 
       ? 'Original (Native Source - 100% Uncropped)' 
       : nextRatio === '1.43:1' 
@@ -885,14 +971,11 @@ export function CineMorphTheater() {
             : 'polygon(0% 0.80%, 0.25% 0.30%, 0.80% 0.10%, 10% 0.32%, 25% 0.68%, 50% 0.90%, 75% 0.68%, 90% 0.32%, 99.20% 0.10%, 99.75% 0.30%, 100% 0.80%, 100% 99.20%, 99.75% 99.70%, 99.20% 99.90%, 90% 99.68%, 75% 99.32%, 50% 99.10%, 25% 99.32%, 10% 99.68%, 0.80% 99.90%, 0.25% 99.70%, 0% 99.20%)',
         }}
       >
-        {/* Subtitles / CC Visual Text Overlay */}
-        {subtitlesOn && !showIntroBumper && theaterState !== 'ended' && (
-          <div className="absolute bottom-8 inset-x-0 z-30 flex justify-center pointer-events-none px-6 animate-in fade-in duration-200">
-            <div className="bg-black/90 text-white text-sm sm:text-base md:text-lg font-bold px-5 py-2 rounded-xl border border-white/20 shadow-2xl backdrop-blur-md tracking-wide text-center max-w-2xl font-sans drop-shadow-md">
-              {video?.title ? `[CC] Playing: ${video.title}` : `[Closed Captions Enabled]` }
-            </div>
-          </div>
-        )}
+        {/* Subtitles / Real-Time Timed Caption Overlay */}
+        <CaptionOverlay
+          text={activeCaptionText}
+          visible={subtitlesOn && !showIntroBumper && theaterState !== 'ended'}
+        />
 
         <div
           className="w-full h-full transition-transform duration-500 relative overflow-hidden"
@@ -1337,6 +1420,8 @@ export function CineMorphTheater() {
                 <button
                   onClick={() => { 
                     setFrameAspectRatio('1.43:1'); 
+                    setPresentationMode('cinema');
+                    setCinemaMode(true);
                     showToast('🎬 Aspect Ratio: True IMAX (1.43:1)'); 
                   }}
                   className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
@@ -1351,6 +1436,8 @@ export function CineMorphTheater() {
                 <button
                   onClick={() => { 
                     setFrameAspectRatio('1.90:1'); 
+                    setPresentationMode('cinema');
+                    setCinemaMode(true);
                     showToast('🎬 Aspect Ratio: IMAX (1.90:1)'); 
                   }}
                   className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
@@ -1365,6 +1452,8 @@ export function CineMorphTheater() {
                 <button
                   onClick={() => { 
                     setFrameAspectRatio('original'); 
+                    setPresentationMode('original');
+                    setCinemaMode(false);
                     showToast('🎬 Aspect Ratio: Original Native Source'); 
                   }}
                   className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
@@ -1531,21 +1620,24 @@ export function CineMorphTheater() {
 
           {/* ── Subtitles & Closed Captions ── */}
           <div className="space-y-2.5 pb-4 border-b border-amber-900/30">
-            <div className="text-[10px] font-bold text-amber-400 uppercase tracking-widest flex items-center gap-1.5">
-              <Captions className="w-3.5 h-3.5 text-amber-400" />
-              Subtitles & Closed Captions
+            <div className="text-[10px] font-bold text-amber-400 uppercase tracking-widest flex items-center justify-between">
+              <span className="flex items-center gap-1.5">
+                <Captions className="w-3.5 h-3.5 text-amber-400" />
+                Subtitles & Closed Captions
+              </span>
+              {subtitleTrackOptions.length > 0 && (
+                <span className="text-[9px] font-mono text-amber-400/70">
+                  {subtitleTrackOptions.length} Track{subtitleTrackOptions.length > 1 ? 's' : ''}
+                </span>
+              )}
             </div>
+
             <button
               onClick={() => {
                 const nextCc = !subtitlesOn;
                 setSubtitlesOn(nextCc);
                 sendIframeCommand(nextCc ? 'loadModule' : 'unloadModule', ['captions']);
-                if (isLocalMedia && localVideoRef.current) {
-                  const tracks = localVideoRef.current.textTracks;
-                  for (let i = 0; i < tracks.length; i++) {
-                    tracks[i].mode = nextCc ? 'showing' : 'disabled';
-                  }
-                }
+                captionControllerRef.current.setEnabled(nextCc);
                 showToast(nextCc ? '💬 Subtitles / CC Enabled' : '💬 Subtitles / CC Disabled');
               }}
               className={`w-full p-2.5 rounded-xl border text-xs font-semibold flex items-center justify-between transition-all cursor-pointer ${
@@ -1560,6 +1652,79 @@ export function CineMorphTheater() {
                 {subtitlesOn ? 'ON' : 'OFF'}
               </span>
             </button>
+
+            {/* Detected Subtitle Tracks List */}
+            {subtitleTrackOptions.length > 0 && subtitlesOn && (
+              <div className="space-y-1.5 pt-1">
+                <div className="text-[10px] font-mono text-amber-300/60 uppercase tracking-wider">
+                  Available Streams
+                </div>
+                <div className="space-y-1 max-h-36 overflow-y-auto pr-1">
+                  {subtitleTrackOptions.map((strk: any) => {
+                    const isSelected = selectedSubtitleTrack === strk.id || (selectedSubtitleTrack === 'off' && strk.isDefault);
+                    return (
+                      <button
+                        key={strk.id}
+                        onClick={() => {
+                          setSelectedSubtitleTrack(strk.id);
+                          if (isLocalMedia && localVideoRef.current && localVideoRef.current.textTracks) {
+                            for (let i = 0; i < localVideoRef.current.textTracks.length; i++) {
+                              localVideoRef.current.textTracks[i].mode = i === strk.streamIndex ? 'hidden' : 'disabled';
+                            }
+                          }
+                          showToast(`💬 Subtitles: ${strk.label}`);
+                        }}
+                        className={`w-full p-2 rounded-lg border text-left flex items-center justify-between transition-colors cursor-pointer ${
+                          isSelected
+                            ? 'bg-amber-500/20 border-amber-500/40 text-amber-100'
+                            : 'bg-amber-950/20 border-amber-900/20 text-amber-300/70 hover:bg-amber-900/30'
+                        }`}
+                      >
+                        <div className="min-w-0 pr-2">
+                          <div className="text-xs font-semibold truncate">{strk.label}</div>
+                          <div className="text-[10px] text-amber-300/60 font-mono mt-0.5">
+                            {strk.language} • {strk.format || 'Timed Text'}
+                          </div>
+                        </div>
+                        {isSelected && <Check className="w-3.5 h-3.5 text-amber-400 shrink-0" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Load External Subtitle File (.srt, .vtt) */}
+            <div className="pt-1">
+              <input
+                type="file"
+                ref={subtitleFileInputRef}
+                accept=".vtt,.srt,text/vtt,application/x-subrip"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                      const content = event.target?.result as string;
+                      if (content) {
+                        captionControllerRef.current.loadSubtitleFile(content);
+                        setSubtitlesOn(true);
+                        showToast(`💬 Subtitles Loaded: ${file.name}`);
+                      }
+                    };
+                    reader.readAsText(file);
+                  }
+                }}
+              />
+              <button
+                onClick={() => subtitleFileInputRef.current?.click()}
+                className="w-full py-1.5 px-3 rounded-lg border border-amber-900/30 bg-amber-950/30 hover:bg-amber-900/40 text-[11px] text-amber-300/80 hover:text-amber-100 flex items-center justify-center gap-2 transition-colors cursor-pointer"
+              >
+                <FileText className="w-3.5 h-3.5 text-amber-400" />
+                <span>Load External Subtitle (.srt, .vtt)</span>
+              </button>
+            </div>
           </div>
 
           {/* ── Environment & Playback Tools ── */}

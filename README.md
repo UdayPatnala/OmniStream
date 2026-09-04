@@ -15,7 +15,9 @@
 ## Architectural Documentation & Intelligence
 
 For complete architecture diagrams, capability maps, model registries, fallback chains, and ADRs, see:
-📖 **[`OMNISTREAM_LIVING_ARCHITECTURE_INTELLIGENCE.md`](./OMNISTREAM_LIVING_ARCHITECTURE_INTELLIGENCE.md)**
+📖 **[`docs/architecture/OMNISTREAM_LIVING_ARCHITECTURE_INTELLIGENCE.md`](./docs/architecture/OMNISTREAM_LIVING_ARCHITECTURE_INTELLIGENCE.md)**
+📖 **[`START_HERE.md`](./START_HERE.md)**
+📖 **[`GEMINI.md`](./GEMINI.md)**
 
 ---
 
@@ -23,7 +25,7 @@ For complete architecture diagrams, capability maps, model registries, fallback 
 
 ### Prerequisites
 - Node.js >= 18.0.0
-- npm or bun
+- npm
 
 ### Installation
 ```bash
@@ -35,9 +37,9 @@ npm install
 npm run dev
 ```
 
-### Run Full 5-Tier Test Harness (47 suites, 218 tests)
+### Run Full Test Suite (58 suites, 294 tests)
 ```bash
-npm test
+npx vitest run
 ```
 
 ### Production Build

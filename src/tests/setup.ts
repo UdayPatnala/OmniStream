@@ -145,6 +145,30 @@ HTMLCanvasElement.prototype.getContext = vi.fn(function(this: HTMLCanvasElement,
   if (contextId === '2d') {
     return mockCanvasContext as any;
   }
+  if (contextId === 'webgl' || contextId === 'webgl2') {
+    return {
+      getExtension: vi.fn(),
+      getParameter: vi.fn(() => 'Mock WebGL Vendor'),
+      createTexture: vi.fn(),
+      bindTexture: vi.fn(),
+      texParameteri: vi.fn(),
+      texImage2D: vi.fn(),
+      viewport: vi.fn(),
+      clearColor: vi.fn(),
+      clear: vi.fn(),
+      enable: vi.fn(),
+      disable: vi.fn(),
+      createShader: vi.fn(),
+      shaderSource: vi.fn(),
+      compileShader: vi.fn(),
+      getShaderParameter: vi.fn(() => true),
+      createProgram: vi.fn(),
+      attachShader: vi.fn(),
+      linkProgram: vi.fn(),
+      getProgramParameter: vi.fn(() => true),
+      useProgram: vi.fn(),
+    } as any;
+  }
   return null;
 }) as any;
 

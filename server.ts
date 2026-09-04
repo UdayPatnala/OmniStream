@@ -51,6 +51,136 @@ async function startServer() {
     }
   });
 
+  // YouTube Real Search Proxy Endpoint
+  app.get('/api/search', async (req, res) => {
+    const query = (req.query.q as string) || '';
+    const filterType = (req.query.type as string) || 'all';
+    if (!query) return res.json({ results: [] });
+
+    try {
+      const targetUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
+      const response = await fetch(targetUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept-Language': 'en-US,en;q=0.9',
+        },
+      });
+
+      if (response.ok) {
+        const html = await response.text();
+        const match = html.match(/var ytInitialData = ({.*?});<\/script>/) || html.match(/window\["ytInitialData"\] = ({.*?});<\/script>/);
+        if (match) {
+          const data = JSON.parse(match[1]);
+          const sections = data.contents?.twoColumnSearchResultsRenderer?.primaryContents?.sectionListRenderer?.contents || [];
+          const results: any[] = [];
+          const seenIds = new Set<string>();
+
+          for (const s of sections) {
+            const items = s.itemSectionRenderer?.contents || [];
+            for (const item of items) {
+              if (item.videoRenderer && (filterType === 'all' || filterType === 'video')) {
+                const vr = item.videoRenderer;
+                const videoId = vr.videoId;
+                if (videoId && !seenIds.has(videoId)) {
+                  seenIds.add(videoId);
+                  results.push({
+                    id: videoId,
+                    type: 'video',
+                    title: vr.title?.runs?.[0]?.text || vr.title?.accessibility?.accessibilityData?.label || 'YouTube Video',
+                    channelTitle: vr.ownerText?.runs?.[0]?.text || vr.shortBylineText?.runs?.[0]?.text || 'Creator',
+                    channelId: vr.ownerText?.runs?.[0]?.navigationEndpoint?.browseEndpoint?.browseId || vr.shortBylineText?.runs?.[0]?.navigationEndpoint?.browseEndpoint?.browseId || 'UC_creator',
+                    publishedAt: vr.publishedTimeText?.simpleText || 'Recently',
+                    thumbnails: {
+                      medium: vr.thumbnail?.thumbnails?.[0]?.url || `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`,
+                      high: vr.thumbnail?.thumbnails?.slice(-1)[0]?.url || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+                    },
+                    duration: vr.lengthText?.simpleText ? `PT${vr.lengthText.simpleText.replace(':', 'M')}S` : 'PT10M00S',
+                    viewCount: vr.viewCountText?.simpleText || '1.2M views',
+                  });
+                }
+              } else if (item.channelRenderer && (filterType === 'all' || filterType === 'channel')) {
+                const cr = item.channelRenderer;
+                const channelId = cr.channelId;
+                if (channelId && !seenIds.has(channelId)) {
+                  seenIds.add(channelId);
+                  results.push({
+                    id: channelId,
+                    type: 'channel',
+                    title: cr.title?.simpleText || 'YouTube Creator',
+                    channelTitle: cr.title?.simpleText || 'YouTube Creator',
+                    channelId: channelId,
+                    publishedAt: 'Active',
+                    thumbnails: {
+                      medium: cr.thumbnail?.thumbnails?.[0]?.url || '',
+                      high: cr.thumbnail?.thumbnails?.slice(-1)[0]?.url || '',
+                    },
+                    viewCount: cr.subscriberCountText?.simpleText || 'Subscribers',
+                  });
+                }
+              }
+            }
+          }
+
+          if (results.length > 0) {
+            return res.json({ results: results.slice(0, 30) });
+          }
+        }
+      }
+    } catch (err) {}
+
+    return res.json({ results: [] });
+  });
+
+  // YouTube Popular / Discovery Feed Proxy
+  app.get('/api/popular', async (req, res) => {
+    try {
+      const targetUrl = `https://www.youtube.com/results?search_query=cinematic+4k+documentary+trailers`;
+      const response = await fetch(targetUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept-Language': 'en-US,en;q=0.9',
+        },
+      });
+
+      if (response.ok) {
+        const html = await response.text();
+        const match = html.match(/var ytInitialData = ({.*?});<\/script>/);
+        if (match) {
+          const data = JSON.parse(match[1]);
+          const sections = data.contents?.twoColumnSearchResultsRenderer?.primaryContents?.sectionListRenderer?.contents || [];
+          const results: any[] = [];
+          for (const s of sections) {
+            const items = s.itemSectionRenderer?.contents || [];
+            for (const item of items) {
+              if (item.videoRenderer) {
+                const vr = item.videoRenderer;
+                results.push({
+                  id: vr.videoId,
+                  title: vr.title?.runs?.[0]?.text || 'YouTube Video',
+                  description: vr.detailedMetadataSnippets?.[0]?.snippetText?.runs?.[0]?.text || 'Official YouTube streaming video.',
+                  channelId: vr.ownerText?.runs?.[0]?.navigationEndpoint?.browseEndpoint?.browseId || 'UC_creator',
+                  channelTitle: vr.ownerText?.runs?.[0]?.text || 'Creator',
+                  publishedAt: vr.publishedTimeText?.simpleText || 'Recently',
+                  thumbnails: {
+                    medium: vr.thumbnail?.thumbnails?.[0]?.url || `https://i.ytimg.com/vi/${vr.videoId}/mqdefault.jpg`,
+                    high: vr.thumbnail?.thumbnails?.slice(-1)[0]?.url || `https://i.ytimg.com/vi/${vr.videoId}/hqdefault.jpg`,
+                  },
+                  duration: vr.lengthText?.simpleText ? `PT${vr.lengthText.simpleText.replace(':', 'M')}S` : 'PT10M00S',
+                  viewCount: vr.viewCountText?.simpleText || '2.5M views',
+                });
+              }
+            }
+          }
+          if (results.length > 0) {
+            return res.json({ videos: results.slice(0, 24) });
+          }
+        }
+      }
+    } catch (err) {}
+
+    return res.json({ videos: [] });
+  });
+
   app.get('/api/oembed', async (req, res) => {
     const id = (req.query.id as string) || '';
     if (!id) return res.status(400).json({ error: 'Missing video id' });

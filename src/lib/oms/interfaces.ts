@@ -91,3 +91,74 @@ export interface IAudioDSPProcessor {
   reset(): void;
   dispose(): void;
 }
+
+/**
+ * ============================================================================
+ * E1 ARCHITECTURAL CONTRACTS: VISUAL & AUDIO PERCEPTION DOMAINS
+ * ============================================================================
+ */
+
+export interface IVisualSubjectCandidate {
+  readonly id: string;
+  readonly box: {
+    readonly x: number;      // [0, 1] normalized
+    readonly y: number;      // [0, 1] normalized
+    readonly width: number;  // [0, 1] normalized
+    readonly height: number; // [0, 1] normalized
+  };
+  readonly confidence: number; // [0, 1] normalized
+  readonly type: 'face' | 'person' | 'salient_region' | 'contrast_cluster';
+  readonly keypoints?: ReadonlyArray<{ readonly x: number; readonly y: number; readonly name?: string }>;
+}
+
+export interface IVisualPerceptionEvidence {
+  readonly timestamp: number;
+  readonly status: 'AVAILABLE' | 'NO_SUBJECTS' | 'DEGRADED' | 'FAILED';
+  readonly candidates: readonly IVisualSubjectCandidate[];
+  readonly primarySubject: IVisualSubjectCandidate | null;
+  readonly focalCenter: { readonly x: number; readonly y: number };
+  readonly confidence: number;
+  readonly latencyMs: number;
+  readonly source: 'enhanced_ml' | 'classical_cv' | 'safe_fallback';
+}
+
+export interface IVisualPerceptionProvider {
+  readonly id: string;
+  readonly name: string;
+  readonly version: string;
+  initialize(): Promise<boolean>;
+  processFrame(
+    frame: ImageBitmap | HTMLVideoElement | HTMLCanvasElement,
+    timestamp: number
+  ): Promise<IVisualPerceptionEvidence>;
+  isAvailable(): boolean;
+  dispose(): void;
+}
+
+export interface IAudioDialogueEvent {
+  readonly speechLikelihood: number;  // [0, 1]
+  readonly clarityDeficit: number;    // [0, 1]
+  readonly energyDb: number;          // [-100, 0]
+  readonly spectralCentroid: number;  // Hz
+}
+
+export interface IAudioPerceptionEvidence {
+  readonly timestamp: number;
+  readonly status: 'AVAILABLE' | 'NO_SIGNAL' | 'DEGRADED' | 'FAILED';
+  readonly dialogue: IAudioDialogueEvent;
+  readonly acousticEnvironment: 'dialogue' | 'music' | 'mixed' | 'ambient' | 'silent';
+  readonly recommendedClarityBoost: number; // [0, 1] normalized recommendation
+  readonly latencyMs: number;
+  readonly source: 'enhanced_ml' | 'webaudio_analyser' | 'safe_fallback';
+}
+
+export interface IAudioPerceptionProvider {
+  readonly id: string;
+  readonly name: string;
+  readonly version: string;
+  initialize(context: AudioContext, sourceNode?: AudioNode): Promise<boolean>;
+  analyze(spectrumData: Uint8Array, timestamp: number): IAudioPerceptionEvidence;
+  isAvailable(): boolean;
+  dispose(): void;
+}
+

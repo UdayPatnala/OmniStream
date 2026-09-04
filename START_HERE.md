@@ -23,7 +23,7 @@ OmniStream is a personal media experience platform unifying two distinct viewing
 | **U-Tube Discovery** | `STABLE` | Dynamic search, 4-hour cached subscriptions, token decay |
 | **Capability Resolver** | `STABLE` | Declarative pre-flight checks, failure classifier, watchdog |
 | **WASM BlazeFace** | `CANDIDATE` | Sandboxed for 10s warmup pre-scan only |
-| **Test Matrix** | `VERIFIED` | **47 test files, 219 tests passing (100% pass rate)** |
+| **Test Matrix** | `VERIFIED` | **59 test files, 302 tests passing (100% pass rate)** |
 
 ---
 
@@ -59,11 +59,11 @@ OMNISTREAM PLATFORM
 ## 5. Essential Commands
 
 ```bash
-# Run full 5-tier test suite (47 suites, 219 tests)
-npm test
+# Run full 5-tier test suite (58 suites, 294 tests)
+npx vitest run
 
 # Run type checking
-npx tsc --noEmit
+npm run lint
 
 # Start development server
 npm run dev
@@ -75,7 +75,9 @@ npm run build
 ---
 
 ## 6. Where to Look for Deep Documentation
-- 📖 **Living Architecture & Feature Map**: [`OMNISTREAM_LIVING_ARCHITECTURE_INTELLIGENCE.md`](./OMNISTREAM_LIVING_ARCHITECTURE_INTELLIGENCE.md)
-- 📖 **Release & Quality Gates**: [`OMNISTREAM_RELEASE_AND_QUALITY_GATES_PROTOCOL.md`](./OMNISTREAM_RELEASE_AND_QUALITY_GATES_PROTOCOL.md)
-- 📖 **Master Release Record**: [`RELEASE_RECORD.md`](./RELEASE_RECORD.md)
+- 📖 **Living Architecture & Feature Map**: [`docs/architecture/OMNISTREAM_LIVING_ARCHITECTURE_INTELLIGENCE.md`](./docs/architecture/OMNISTREAM_LIVING_ARCHITECTURE_INTELLIGENCE.md)
+- 📖 **Release & Quality Gates**: [`docs/protocols/OMNISTREAM_RELEASE_AND_QUALITY_GATES_PROTOCOL.md`](./docs/protocols/OMNISTREAM_RELEASE_AND_QUALITY_GATES_PROTOCOL.md)
+- 📖 **Master Specifications**: [`docs/specs/OMNISTREAM_MASTER_SPECS.md`](./docs/specs/OMNISTREAM_MASTER_SPECS.md)
+- 📖 **Version Timeline**: [`VERSION_HISTORY.md`](./VERSION_HISTORY.md)
 - 📖 **Core Constitution**: [`GEMINI.md`](./GEMINI.md)
+

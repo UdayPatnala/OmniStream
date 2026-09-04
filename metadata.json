@@ -1,6 +1,7 @@
 {
-  "name": "U Tube",
-  "description": "Clean, organized, distraction-free personal YouTube client application by Patnala Uday Kumar.",
+  "name": "OmniStream",
+  "version": "1.8.0",
+  "description": "Personal media experience platform uniting U-Tube and CineMorph by Patnala Uday Kumar.",
   "author": "Patnala Uday Kumar",
   "copyright": "© Patnala Uday Kumar"
 }

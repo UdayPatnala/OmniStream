@@ -185,6 +185,9 @@ export async function searchVideos(
   pageToken?: string
 ): Promise<SearchResponse> {
   const trimmed = query.trim();
+  if (!trimmed) {
+    return { results: [] };
+  }
 
   // Check if query is a YouTube Video URL or raw 11-char Video ID
   const directVideoId = extractYouTubeId(trimmed);
@@ -204,71 +207,90 @@ export async function searchVideos(
     }
   }
 
-  const params: Record<string, string> = {
-    part: 'snippet',
-    q: trimmed,
-    maxResults: '24',
-  };
+  // 1. Try official YouTube Data API first if key configured
+  const apiKey = getApiKey();
+  if (apiKey) {
+    const params: Record<string, string> = {
+      part: 'snippet',
+      q: trimmed,
+      maxResults: '24',
+    };
 
-  if (filterType !== 'all') {
-    params.type = filterType;
-  } else {
-    params.type = 'video,channel,playlist';
-  }
+    if (filterType !== 'all') {
+      params.type = filterType;
+    } else {
+      params.type = 'video,channel,playlist';
+    }
 
-  if (pageToken) {
-    params.pageToken = pageToken;
-  }
+    if (pageToken) {
+      params.pageToken = pageToken;
+    }
 
-  const data = await fetchAPI('/search', params);
+    const data = await fetchAPI('/search', params);
 
-  if (data && data.items && data.items.length > 0) {
-    const results: SearchResult[] = (data.items || []).map((item: any) => {
-      let itemType: 'video' | 'channel' | 'playlist' = 'video';
-      let id = item.id.videoId || item.id.channelId || item.id.playlistId || item.id;
-      if (item.id.channelId) itemType = 'channel';
-      if (item.id.playlistId) itemType = 'playlist';
+    if (data && data.items && data.items.length > 0) {
+      const results: SearchResult[] = (data.items || []).map((item: any) => {
+        let itemType: 'video' | 'channel' | 'playlist' = 'video';
+        let id = item.id.videoId || item.id.channelId || item.id.playlistId || item.id;
+        if (item.id.channelId) itemType = 'channel';
+        if (item.id.playlistId) itemType = 'playlist';
+
+        return {
+          id,
+          type: itemType,
+          title: item.snippet.title,
+          channelTitle: item.snippet.channelTitle,
+          channelId: item.snippet.channelId,
+          publishedAt: item.snippet.publishedAt,
+          thumbnails: {
+            medium: item.snippet.thumbnails?.medium?.url || `https://i.ytimg.com/vi/${id}/mqdefault.jpg`,
+            high: item.snippet.thumbnails?.high?.url || `https://i.ytimg.com/vi/${id}/hqdefault.jpg`,
+          }
+        };
+      });
 
       return {
-        id,
-        type: itemType,
-        title: item.snippet.title,
-        channelTitle: item.snippet.channelTitle,
-        channelId: item.snippet.channelId,
-        publishedAt: item.snippet.publishedAt,
-        thumbnails: {
-          medium: item.snippet.thumbnails?.medium?.url || `https://i.ytimg.com/vi/${id}/mqdefault.jpg`,
-          high: item.snippet.thumbnails?.high?.url || `https://i.ytimg.com/vi/${id}/hqdefault.jpg`,
-        }
+        results,
+        nextPageToken: data.nextPageToken,
       };
-    });
-
-    return {
-      results,
-      nextPageToken: data.nextPageToken,
-    };
+    }
   }
 
-  // Fallback filtering if API key is not present or API call returned null
+  // 2. Try Backend Search Proxy (Extracts real YouTube results)
+  try {
+    const localRes = await fetch(`${BACKEND_URL}/api/search?q=${encodeURIComponent(trimmed)}&type=${encodeURIComponent(filterType)}`);
+    if (localRes.ok) {
+      const data = await localRes.json();
+      if (data && Array.isArray(data.results) && data.results.length > 0) {
+        return {
+          results: data.results,
+        };
+      }
+    }
+  } catch (err) {}
+
+  // 3. Fallback matching only for verified offline/test dataset terms
   const queryWords = trimmed.toLowerCase().split(/\s+/).filter(w => w.length > 2);
   const matchedVideos = FALLBACK_VIDEOS.filter(v => {
     const text = `${v.title} ${v.channelTitle} ${v.description}`.toLowerCase();
     return queryWords.some(w => text.includes(w)) || text.includes(trimmed.toLowerCase());
   });
 
-  const candidatesToReturn = matchedVideos.length > 0 ? matchedVideos : FALLBACK_VIDEOS;
+  if (matchedVideos.length > 0) {
+    const searchResults: SearchResult[] = matchedVideos.map(v => ({
+      id: v.id,
+      type: 'video',
+      title: v.title,
+      channelTitle: v.channelTitle,
+      channelId: v.channelId,
+      publishedAt: v.publishedAt,
+      thumbnails: v.thumbnails,
+    }));
+    return { results: searchResults };
+  }
 
-  const searchResults: SearchResult[] = candidatesToReturn.map(v => ({
-    id: v.id,
-    type: 'video',
-    title: v.title,
-    channelTitle: v.channelTitle,
-    channelId: v.channelId,
-    publishedAt: v.publishedAt,
-    thumbnails: v.thumbnails,
-  }));
-
-  return { results: searchResults };
+  // Return real empty result when no match found (No fake mocks)
+  return { results: [] };
 }
 
 export async function getRelatedVideos(videoId: string, targetTitle?: string): Promise<Video[]> {
@@ -399,54 +421,71 @@ export async function getVideosByIds(ids: string[]): Promise<Video[]> {
 }
 
 export async function getPopularVideos(): Promise<Video[]> {
-  const data = await fetchAPI('/videos', {
-    part: 'snippet,contentDetails,statistics',
-    chart: 'mostPopular',
-    maxResults: '24',
-    regionCode: 'US',
-  });
+  const apiKey = getApiKey();
+  if (apiKey) {
+    const data = await fetchAPI('/videos', {
+      part: 'snippet,contentDetails,statistics',
+      chart: 'mostPopular',
+      maxResults: '24',
+      regionCode: 'US',
+    });
 
-  if (data && data.items && data.items.length > 0) {
-    return (data.items || []).map((item: any) => ({
-      id: item.id,
-      title: item.snippet.title,
-      description: item.snippet.description,
-      channelId: item.snippet.channelId,
-      channelTitle: item.snippet.channelTitle,
-      publishedAt: item.snippet.publishedAt,
-      thumbnails: {
-        medium: item.snippet.thumbnails?.medium?.url || `https://i.ytimg.com/vi/${item.id}/mqdefault.jpg`,
-        high: item.snippet.thumbnails?.high?.url || `https://i.ytimg.com/vi/${item.id}/hqdefault.jpg`,
-      },
-      duration: item.contentDetails?.duration,
-      viewCount: item.statistics?.viewCount,
-    }));
+    if (data && data.items && data.items.length > 0) {
+      return (data.items || []).map((item: any) => ({
+        id: item.id,
+        title: item.snippet.title,
+        description: item.snippet.description,
+        channelId: item.snippet.channelId,
+        channelTitle: item.snippet.channelTitle,
+        publishedAt: item.snippet.publishedAt,
+        thumbnails: {
+          medium: item.snippet.thumbnails?.medium?.url || `https://i.ytimg.com/vi/${item.id}/mqdefault.jpg`,
+          high: item.snippet.thumbnails?.high?.url || `https://i.ytimg.com/vi/${item.id}/hqdefault.jpg`,
+        },
+        duration: item.contentDetails?.duration,
+        viewCount: item.statistics?.viewCount,
+      }));
+    }
   }
+
+  // Try backend proxy popular endpoint
+  try {
+    const localRes = await fetch(`${BACKEND_URL}/api/popular`);
+    if (localRes.ok) {
+      const data = await localRes.json();
+      if (data && Array.isArray(data.videos) && data.videos.length > 0) {
+        return data.videos;
+      }
+    }
+  } catch (err) {}
 
   return FALLBACK_VIDEOS;
 }
 
 export async function getChannelDetails(channelId: string): Promise<Channel> {
-  const data = await fetchAPI('/channels', {
-    part: 'snippet,statistics,brandingSettings',
-    id: channelId,
-  });
+  const apiKey = getApiKey();
+  if (apiKey) {
+    const data = await fetchAPI('/channels', {
+      part: 'snippet,statistics,brandingSettings',
+      id: channelId,
+    });
 
-  if (data && data.items && data.items.length > 0) {
-    const item = data.items[0];
-    return {
-      id: item.id,
-      title: item.snippet.title,
-      description: item.snippet.description,
-      thumbnails: {
-        default: item.snippet.thumbnails?.default?.url || '',
-        medium: item.snippet.thumbnails?.medium?.url || '',
-        high: item.snippet.thumbnails?.high?.url || item.snippet.thumbnails?.medium?.url || '',
-      },
-      subscriberCount: item.statistics?.subscriberCount,
-      videoCount: item.statistics?.videoCount,
-      bannerUrl: item.brandingSettings?.image?.bannerExternalUrl,
-    };
+    if (data && data.items && data.items.length > 0) {
+      const item = data.items[0];
+      return {
+        id: item.id,
+        title: item.snippet.title,
+        description: item.snippet.description,
+        thumbnails: {
+          default: item.snippet.thumbnails?.default?.url || '',
+          medium: item.snippet.thumbnails?.medium?.url || '',
+          high: item.snippet.thumbnails?.high?.url || item.snippet.thumbnails?.medium?.url || '',
+        },
+        subscriberCount: item.statistics?.subscriberCount,
+        videoCount: item.statistics?.videoCount,
+        bannerUrl: item.brandingSettings?.image?.bannerExternalUrl,
+      };
+    }
   }
 
   const match = FALLBACK_VIDEOS.find(v => v.channelId === channelId);
@@ -465,28 +504,39 @@ export async function getChannelDetails(channelId: string): Promise<Channel> {
 }
 
 export async function getChannelVideos(channelId: string): Promise<SearchResult[]> {
-  const data = await fetchAPI('/search', {
-    part: 'snippet',
-    channelId: channelId,
-    maxResults: '24',
-    order: 'date',
-    type: 'video',
-  });
-
-  if (data && data.items && data.items.length > 0) {
-    return (data.items || []).map((item: any) => ({
-      id: item.id.videoId,
+  const apiKey = getApiKey();
+  if (apiKey) {
+    const data = await fetchAPI('/search', {
+      part: 'snippet',
+      channelId: channelId,
+      maxResults: '24',
+      order: 'date',
       type: 'video',
-      title: item.snippet.title,
-      channelTitle: item.snippet.channelTitle,
-      channelId: item.snippet.channelId,
-      publishedAt: item.snippet.publishedAt,
-      thumbnails: {
-        medium: item.snippet.thumbnails?.medium?.url || `https://i.ytimg.com/vi/${item.id.videoId}/mqdefault.jpg`,
-        high: item.snippet.thumbnails?.high?.url || `https://i.ytimg.com/vi/${item.id.videoId}/hqdefault.jpg`,
-      }
-    }));
+    });
+
+    if (data && data.items && data.items.length > 0) {
+      return (data.items || []).map((item: any) => ({
+        id: item.id.videoId,
+        type: 'video',
+        title: item.snippet.title,
+        channelTitle: item.snippet.channelTitle,
+        channelId: item.snippet.channelId,
+        publishedAt: item.snippet.publishedAt,
+        thumbnails: {
+          medium: item.snippet.thumbnails?.medium?.url || `https://i.ytimg.com/vi/${item.id.videoId}/mqdefault.jpg`,
+          high: item.snippet.thumbnails?.high?.url || `https://i.ytimg.com/vi/${item.id.videoId}/hqdefault.jpg`,
+        }
+      }));
+    }
   }
+
+  // Try querying channel videos through search
+  try {
+    const searchRes = await searchVideos(channelId);
+    if (searchRes.results.length > 0) {
+      return searchRes.results;
+    }
+  } catch (err) {}
 
   return FALLBACK_VIDEOS.filter(v => v.channelId === channelId || true).map(v => ({
     id: v.id,

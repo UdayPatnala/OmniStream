@@ -1,16 +1,30 @@
 import { AudioEQConfig, AudioPreset } from '../../types';
+import { AudioIntelligenceService } from './audioIntelligence';
 
 /**
  * CineMorph AI - Web Audio DSP Neural Audio Engine
  * Real-time Web Audio API node management for EQ, Surround 3D, and DRC.
  */
 
-class CineMorphAudioEngine {
+export interface AudioTrackSwitchResult {
+  success: boolean;
+  switched: boolean;
+  activeTrackIndex: number;
+  message: string;
+  method: 'native_api' | 'default_stream' | 'unsupported_browser';
+}
+
+/**
+ * CineMorph AI - Web Audio DSP Neural Audio Engine
+ * Real-time Web Audio API node management for EQ, Surround 3D, and DRC.
+ */
+export class CineMorphAudioEngine {
   private audioCtx: AudioContext | null = null;
   private sourceNode: MediaElementAudioSourceNode | null = null;
   private analyser: AnalyserNode | null = null;
   private isInitialized = false;
   private activeTrackIndex = 0;
+  private audioIntelligence = new AudioIntelligenceService();
 
   public init(mediaElement?: HTMLMediaElement | null): boolean {
     if (this.isInitialized) return true;
@@ -94,16 +108,30 @@ class CineMorphAudioEngine {
     }
   }
 
-  /**
-   * Switches active hardware audio track if supported by browser/mediaElement
-   */
-  public setActiveAudioTrack(trackIndex: number, mediaElement?: HTMLMediaElement | null): boolean {
-    this.activeTrackIndex = trackIndex;
+  public canSwitchAudioTracks(mediaElement?: HTMLMediaElement | null): boolean {
+    if (!mediaElement) return false;
+    const tracks = (mediaElement as any).audioTracks;
+    return Boolean(tracks && typeof tracks.length === 'number' && tracks.length > 1);
+  }
 
-    if (!mediaElement) return true;
+  /**
+   * Switches active hardware audio track if supported by browser/mediaElement.
+   * Honestly reports when browser engine does not support switching secondary tracks.
+   */
+  public setActiveAudioTrack(trackIndex: number, mediaElement?: HTMLMediaElement | null): AudioTrackSwitchResult {
+    if (!mediaElement) {
+      this.activeTrackIndex = trackIndex;
+      return {
+        success: true,
+        switched: false,
+        activeTrackIndex: trackIndex,
+        message: 'Audio track recorded',
+        method: 'default_stream',
+      };
+    }
 
     try {
-      // 1. Check for standard HTMLMediaElement.audioTracks
+      // 1. Check for standard HTMLMediaElement.audioTracks (Safari / experimental Chrome)
       const tracks = (mediaElement as any).audioTracks;
       if (tracks && typeof tracks.length === 'number' && tracks.length > 0) {
         let matched = false;
@@ -115,23 +143,67 @@ class CineMorphAudioEngine {
             tracks[i].enabled = false;
           }
         }
-        return matched;
+        if (matched) {
+          this.activeTrackIndex = trackIndex;
+          if (this.audioCtx && this.audioCtx.state === 'suspended') {
+            this.audioCtx.resume().catch(() => {});
+          }
+          return {
+            success: true,
+            switched: true,
+            activeTrackIndex: trackIndex,
+            message: `Switched to audio track #${trackIndex + 1}`,
+            method: 'native_api',
+          };
+        }
       }
 
-      // 2. WebAudio Graph Resync
-      if (this.audioCtx && this.audioCtx.state === 'suspended') {
-        this.audioCtx.resume().catch(() => {});
+      // 2. If track 0 is requested, it is the native default stream in standard HTML5 video
+      if (trackIndex === 0) {
+        this.activeTrackIndex = 0;
+        if (this.audioCtx && this.audioCtx.state === 'suspended') {
+          this.audioCtx.resume().catch(() => {});
+        }
+        return {
+          success: true,
+          switched: false,
+          activeTrackIndex: 0,
+          message: 'Default audio stream active',
+          method: 'default_stream',
+        };
       }
 
-      return true;
+      // 3. If track > 0 is requested on a browser without audioTracks API support
+      return {
+        success: false,
+        switched: false,
+        activeTrackIndex: this.activeTrackIndex,
+        message: 'Multi-track audio switching is not supported by your browser engine. Default primary stream remains active.',
+        method: 'unsupported_browser',
+      };
     } catch (err) {
       console.warn('[CineMorphAudioEngine] Error switching audio track:', err);
-      return false;
+      return {
+        success: false,
+        switched: false,
+        activeTrackIndex: this.activeTrackIndex,
+        message: 'Failed to switch audio stream',
+        method: 'unsupported_browser',
+      };
     }
   }
 
   public getActiveAudioTrackIndex(): number {
     return this.activeTrackIndex;
+  }
+
+  public getSpeechClarityInsight(timestamp?: number): {
+    appliedClarityBoost: number;
+    dialogueDetected: boolean;
+  } {
+    const spectrum = this.getSpectrumData();
+    const time = timestamp || (this.audioCtx ? this.audioCtx.currentTime : 0);
+    return this.audioIntelligence.processSpectrum(spectrum, time);
   }
 
   public reset(): void {
@@ -144,6 +216,7 @@ class CineMorphAudioEngine {
         this.audioCtx.close().catch(() => {});
       }
     } catch (e) {}
+    this.audioIntelligence.reset();
     this.audioCtx = null;
     this.analyser = null;
     this.isInitialized = false;

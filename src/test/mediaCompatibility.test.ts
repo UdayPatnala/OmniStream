@@ -22,8 +22,8 @@ describe('CineMorph Media Compatibility & Stream Demuxer', () => {
       expect(resolveLanguageName('ita')).toBe('Italian');
       expect(resolveLanguageName('kor')).toBe('Korean');
       expect(resolveLanguageName('zho')).toBe('Chinese');
-      expect(resolveLanguageName('und')).toBe('Original / Undetermined');
-      expect(resolveLanguageName('')).toBe('Original Audio');
+      expect(resolveLanguageName('und')).toBe('Undetermined');
+      expect(resolveLanguageName('')).toBe('Undetermined');
     });
 
     it('formats channel counts into standard cinema surround sound layouts', () => {
@@ -51,7 +51,7 @@ describe('CineMorph Media Compatibility & Stream Demuxer', () => {
     it('flags unsupported proprietary DTS formats with clear guidance', () => {
       const probe = probeAudioCodecPlayability('DTS-HD MA');
       expect(probe.isPlayable).toBe(false);
-      expect(probe.unsupportedReason).toContain('licensed hardware decoder');
+      expect(probe.unsupportedReason).toContain('unsupported by browser audio decoders');
     });
 
     it('verifies video codec support for H.264, VP9, AV1', () => {
@@ -222,9 +222,11 @@ describe('CineMorph Media Compatibility & Stream Demuxer', () => {
       } as unknown as HTMLMediaElement;
 
       // Switch to track 1 (English)
-      const success = audioEngine.setActiveAudioTrack(1, mockVideoEl);
+      const result = audioEngine.setActiveAudioTrack(1, mockVideoEl);
 
-      expect(success).toBe(true);
+      expect(result.success).toBe(true);
+      expect(result.switched).toBe(true);
+      expect(result.method).toBe('native_api');
       expect(mockAudioTracks[0].enabled).toBe(false);
       expect(mockAudioTracks[1].enabled).toBe(true);
       expect(audioEngine.getActiveAudioTrackIndex()).toBe(1);
@@ -236,9 +238,15 @@ describe('CineMorph Media Compatibility & Stream Demuxer', () => {
         paused: true,
       } as unknown as HTMLMediaElement;
 
-      const success = audioEngine.setActiveAudioTrack(0, mockVideoEl);
-      expect(success).toBe(true);
+      const result = audioEngine.setActiveAudioTrack(0, mockVideoEl);
+      expect(result.success).toBe(true);
+      expect(result.method).toBe('default_stream');
       expect(audioEngine.getActiveAudioTrackIndex()).toBe(0);
+
+      // Attempting to switch to secondary track on browser without audioTracks API
+      const unsuppResult = audioEngine.setActiveAudioTrack(1, mockVideoEl);
+      expect(unsuppResult.success).toBe(false);
+      expect(unsuppResult.method).toBe('unsupported_browser');
     });
   });
 });

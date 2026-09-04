@@ -270,7 +270,7 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
       <div className="flex items-center gap-2">
         <Link
           to="/"
-          title="Return to OmniStream Gateway"
+          title="Return to OmniStream"
           className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-utube-surface hover:bg-utube-border text-utube-text-secondary hover:text-utube-text border border-utube-border text-xs font-bold transition-all shadow-sm cursor-pointer active:scale-95"
         >
           <Layers className="w-3.5 h-3.5 text-utube-primary" />

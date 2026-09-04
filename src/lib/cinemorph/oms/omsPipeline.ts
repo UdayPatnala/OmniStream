@@ -7,6 +7,8 @@ import { OMS_CompositionScorer } from './compositionScorer';
 import { OMS_TemporalController } from './temporalController';
 import { OMS_ApertureTransform } from './types';
 import { OMSCapabilityResolver, ICapabilityTierDefinition, CapabilityFailureType } from '../../oms/capabilityResolver';
+import { MediaPipeBlazeFaceAdapter } from '../../oms/blazeFaceAdapter';
+import { IVisualPerceptionEvidence } from '../../oms/interfaces';
 
 export interface OMSPipelineContext {
   canvasAvailable: boolean;
@@ -33,6 +35,9 @@ export class OMS_Pipeline {
   private candidateGenerator = new OMS_CandidateGenerator();
   private scorer = new OMS_CompositionScorer();
   private temporalController = new OMS_TemporalController();
+  private perceptionAdapter = new MediaPipeBlazeFaceAdapter();
+  private lastPerceptionEvidence: IVisualPerceptionEvidence | null = null;
+  private isPerceptionBusy = false;
   private lastFailureType: CapabilityFailureType | null = null;
 
   public processFrame(
@@ -81,10 +86,25 @@ export class OMS_Pipeline {
       if (cutEvent.isHardCut) {
         this.motionAnalyzer.reset();
         this.temporalController.reset();
+        this.lastPerceptionEvidence = null;
       }
 
-      // 4. Vision Analysis
-      const vision = this.visionAnalyzer.analyze(sample);
+      // 4. Asynchronous Visual Perception Sampling (non-blocking, backpressure-safe)
+      if (!this.isPerceptionBusy && videoEl) {
+        this.isPerceptionBusy = true;
+        this.perceptionAdapter
+          .processFrame(videoEl, currentTime)
+          .then((ev) => {
+            this.lastPerceptionEvidence = ev;
+            this.isPerceptionBusy = false;
+          })
+          .catch(() => {
+            this.isPerceptionBusy = false;
+          });
+      }
+
+      // 5. Vision Analysis (integrating normalized perception evidence)
+      const vision = this.visionAnalyzer.analyze(sample, this.lastPerceptionEvidence);
 
       // 5. Motion Analysis
       const motion = this.motionAnalyzer.process(vision, currentTime);
