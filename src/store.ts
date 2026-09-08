@@ -2,6 +2,8 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Video, Channel, HistoryItem, Collection, QueueItem, SearchHistoryMetaData, BehaviorEvent, CineMorphTheme, VideoClip, RankingProfile, LocalMediaItem, FrameAspectRatio, DevicePerformanceProfile } from './types';
 
+import { useUTubeStore } from './state/useUTubeStore';
+
 // Re-export modular Milestone 1 state stores
 export { useUTubeStore, type UTubeVideo, type ChannelSubscription, type UTubeStoreState } from './state/useUTubeStore';
 export { useCineMorphStore, type AspectRatioMode, type FramingRuleMode, type CineMorphStoreState, type CineMorphVideoSource } from './state/useCineMorphStore';
@@ -242,11 +244,29 @@ export const useAppStore = create<AppState>()(
           videoCount: channel.videoCount,
           bannerUrl: channel.bannerUrl,
         };
+
+        // State Consolidation Bridge: keep modular useUTubeStore synchronized
+        try {
+          useUTubeStore.getState().subscribe({
+            channelId: channel.id,
+            channelTitle: normalizedChannel.title,
+            avatarUrl: normalizedChannel.thumbnails.medium || normalizedChannel.thumbnails.default || '',
+            subscribedAt: Date.now(),
+          });
+        } catch (_) {}
+
         return { subscriptions: [...state.subscriptions, normalizedChannel] };
       }),
-      unsubscribe: (channelId) => set((state) => ({
-        subscriptions: state.subscriptions.filter(c => c.id !== channelId)
-      })),
+      unsubscribe: (channelId) => set((state) => {
+        // State Consolidation Bridge: keep modular useUTubeStore synchronized
+        try {
+          useUTubeStore.getState().unsubscribe(channelId);
+        } catch (_) {}
+
+        return {
+          subscriptions: state.subscriptions.filter(c => c.id !== channelId)
+        };
+      }),
 
       history: {},
       addToHistory: (video, progress, duration) => set((state) => {
@@ -484,6 +504,10 @@ export const useAppStore = create<AppState>()(
             if (ls) ls.removeItem(name);
           } catch {}
         },
+      },
+      partialize: (state) => {
+        const { activeLocalMedia: _omit, localMediaHistory: _omitHistory, ...rest } = state;
+        return rest as AppState;
       },
       merge: (persistedState: any, currentState) => ({
         ...currentState,

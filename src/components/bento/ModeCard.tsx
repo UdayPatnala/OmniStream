@@ -16,7 +16,6 @@ import {
 } from 'lucide-react';
 import { useCineMorphStore } from '../../state/useCineMorphStore';
 import { useAppStore } from '../../store';
-import { useTicketStore } from '../../state/useTicketStore';
 
 interface ModeCardProps {
   mode: 'utube' | 'cinemorph';
@@ -27,7 +26,6 @@ export const ModeCard: React.FC<ModeCardProps> = ({ mode, className = '' }) => {
   const navigate = useNavigate();
   const { aspectRatio, setAspectRatio } = useCineMorphStore();
   const { history, subscriptions, setVersionMode, setFrameAspectRatio } = useAppStore();
-  const { tickets } = useTicketStore();
   const [quickQuery, setQuickQuery] = useState('');
 
   const historyCount = Object.keys(history).length;
@@ -177,8 +175,8 @@ export const ModeCard: React.FC<ModeCardProps> = ({ mode, className = '' }) => {
         {/* Quick Telemetry & Status Badges */}
         <div className="grid grid-cols-3 gap-2.5 pt-1">
           <div className="p-2.5 rounded-2xl bg-cinemorph-surface border border-cinemorph-border text-center">
-            <div className="text-sm font-black text-cinemorph-text">{tickets.length}</div>
-            <div className="text-[10px] font-medium text-cinemorph-text-muted">Saved Tickets</div>
+            <div className="text-sm font-black text-cinemorph-text">Fixed</div>
+            <div className="text-[10px] font-medium text-cinemorph-text-muted">Aperture Architecture</div>
           </div>
           <div className="p-2.5 rounded-2xl bg-cinemorph-surface border border-cinemorph-border text-center">
             <div className="text-sm font-black text-cinemorph-primary">13-Stage</div>

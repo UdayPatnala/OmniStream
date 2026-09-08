@@ -112,6 +112,11 @@ export const useCineMorphStore = create<CineMorphStoreState>()(
           storageService.removeLocal(name);
         },
       },
+      partialize: (state) => ({
+        aspectRatio: state.aspectRatio,
+        framingRule: state.framingRule,
+        diagnosticOverlayVisible: state.diagnosticOverlayVisible,
+      }),
     }
   )
 );

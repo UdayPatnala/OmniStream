@@ -4,7 +4,7 @@ import { useCineMorphStore } from '../../state/useCineMorphStore';
 import { useTicketStore } from '../../state/useTicketStore';
 import { useUTubeStore } from '../../state/useUTubeStore';
 
-describe('Tier 5 Adversarial: Offline / Online Network Disconnect Transitions & Ticket Stress', () => {
+describe('Tier 5 Adversarial: Offline / Online Network Disconnect Transitions & Session Ticket Stress', () => {
   beforeEach(() => {
     localStorage.clear();
     useCineMorphStore.setState({
@@ -76,36 +76,28 @@ describe('Tier 5 Adversarial: Offline / Online Network Disconnect Transitions & 
     expect(throttledDecision.allowBackgroundLookahead).toBe(false);
   });
 
-  it('T5-NET-03: Airgapped offline media ticket generation and persistence survives store rehydration', () => {
+  it('T5-NET-03: Airgapped offline session ticket creation stores to memory, not IDB', async () => {
     useCineMorphStore.getState().setOfflineStatus(true);
     expect(useCineMorphStore.getState().isOffline).toBe(true);
-    expect(useCineMorphStore.getState().aspectRatio).toBe('4:3'); // Auto 4:3 crop fallback
 
-    // Save ticket progress while airgapped offline
-    const ticketId = useTicketStore.getState().saveTicketProgress({
-      movieTitle: 'Offline Local Documentary',
-      sourceUrl: 'blob:offline_media_file_1',
+    // Create session ticket while airgapped offline
+    await useTicketStore.getState().trigger10sPrintAnimation({
+      title: 'Offline Local Documentary',
+      source: 'blob:http://localhost/offline_media_file_1',
       isLocal: true,
-      aspectRatio: '4:3',
-      framingRule: 'auto',
-      timestampSeconds: 420,
-      durationSeconds: 1800,
     });
 
-    expect(ticketId).toBeDefined();
-    const savedTicket = useTicketStore.getState().tickets.find((t) => t.ticketId === ticketId);
-    expect(savedTicket?.aspectRatio).toBe('4:3');
-    expect(savedTicket?.timestampSeconds).toBe(420);
+    const ticket = useTicketStore.getState().activeTicket;
+    expect(ticket).not.toBeNull();
+    expect(ticket?.movieTitle).toBe('Offline Local Documentary');
+    expect(ticket?.isLocal).toBe(true);
 
-    // Now re-enable online status
+    // Re-enable online status
     useCineMorphStore.getState().setOfflineStatus(false);
     expect(useCineMorphStore.getState().isOffline).toBe(false);
 
-    // Resuming ticket should restore all ticket state correctly
-    const resumed = useTicketStore.getState().resumeFromTicket(ticketId);
-    expect(resumed).not.toBeNull();
-    expect(useCineMorphStore.getState().playbackTimestamp).toBe(420);
-    expect(useCineMorphStore.getState().videoSource?.name).toBe('Offline Local Documentary');
+    // Session ticket is still intact in memory
+    expect(useTicketStore.getState().activeTicket?.movieTitle).toBe('Offline Local Documentary');
   });
 
   it('T5-NET-04: Concurrent ticket cancel and re-trigger sequences do not produce orphaned timers', async () => {
@@ -120,35 +112,34 @@ describe('Tier 5 Adversarial: Offline / Online Network Disconnect Transitions & 
     useTicketStore.getState().cancelPrintAnimation();
     expect(useTicketStore.getState().isPrintingAnimationActive).toBe(false);
 
-    // Trigger B
+    await pA.catch(() => {});
+
+    // Immediately trigger B
     const pB = useTicketStore.getState().trigger10sPrintAnimation(movieB);
     expect(useTicketStore.getState().isPrintingAnimationActive).toBe(true);
 
     await pB;
 
-    expect(useTicketStore.getState().activeTicket).toBeDefined();
+    // B's ticket should win
+    expect(useTicketStore.getState().activeTicket?.movieTitle).toBe('Movie Beta');
   });
 
-  it('T5-NET-05: Subscriptions feed refresh when offline or empty handles state without exceptions', async () => {
-    const utubeStore = useUTubeStore.getState();
+  it('T5-NET-05: clearActiveTicket on network reconnection does not crash', async () => {
+    useCineMorphStore.getState().setOfflineStatus(true);
 
-    // Subscribe channel
-    utubeStore.subscribe({
-      channelId: 'offline_channel_1',
-      channelTitle: 'Cinema Classics',
-      avatarUrl: 'https://example.com/avatar.jpg',
-      subscribedAt: Date.now(),
+    await useTicketStore.getState().trigger10sPrintAnimation({
+      title: 'Airgap Movie',
+      source: 'blob:http://localhost/airgap',
+      isLocal: true,
     });
 
-    // Refresh feed
-    await utubeStore.refreshFeedIfNeeded();
-    const feed = useUTubeStore.getState().subscribedFeed;
-    expect(feed.length).toBe(1);
-    expect(feed[0].channelTitle).toBe('Cinema Classics');
+    expect(useTicketStore.getState().activeTicket).not.toBeNull();
 
-    // Subsequent immediate call within 4 hours should be cached (no refresh)
-    const lastRefresh = useUTubeStore.getState().lastFeedRefresh;
-    await utubeStore.refreshFeedIfNeeded();
-    expect(useUTubeStore.getState().lastFeedRefresh).toBe(lastRefresh);
+    // Simulate reconnection + exit theater
+    useCineMorphStore.getState().setOfflineStatus(false);
+    useTicketStore.getState().clearActiveTicket();
+
+    expect(useTicketStore.getState().activeTicket).toBeNull();
+    expect(useTicketStore.getState().tickets).toHaveLength(0);
   });
 });

@@ -25,24 +25,24 @@ describe('CineMorph Artwork Interactive File Picker', () => {
     useAppStore.setState({ localMediaHistory: {} });
   });
 
-  it('renders the CineMorph artwork image as the primary accessible file picker button', () => {
+  it('renders the invisible cinema screen hotspot as the primary accessible file picker button', () => {
     render(
       <MemoryRouter>
         <CineMorphLanding />
       </MemoryRouter>
     );
 
-    // Verified: The CineMorph artwork image is rendered
-    const artworkImg = screen.getByAltText(/CineMorph AI/i);
-    expect(artworkImg).toBeInTheDocument();
-    expect(artworkImg).toHaveAttribute('src', '/cinemorph_artwork.png');
+    // Verified: The CineMorph mark is rendered in the top architectural header
+    const navLogo = screen.getByAltText(/^CineMorph$/i);
+    expect(navLogo).toBeInTheDocument();
+    expect(navLogo.getAttribute('src')).toMatch(/^\/(cinemorph|cinemorph_artwork)\.png$/);
 
-    // Verified: Accessible button role wraps the artwork
+    // Verified: Accessible button role is the invisible screen hotspot, with zero overlay image inside
     const pickerButton = screen.getByRole('button', {
       name: /Import local video or audio file into CineMorph theater/i,
     });
     expect(pickerButton).toBeInTheDocument();
-    expect(pickerButton).toContainElement(artworkImg);
+    expect(pickerButton.querySelector('img')).not.toBeInTheDocument();
 
     // Verified: No old generic "Browse Local Media" button exists
     expect(screen.queryByText(/Browse Local Media/i)).not.toBeInTheDocument();

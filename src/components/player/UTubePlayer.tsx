@@ -368,6 +368,9 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
 
   // OMS Contextual Experience Handoff
   const handleOMSHandoff = () => {
+    // 2.6 Zero Duplicate Player Rule: Pause outgoing player before transitioning
+    sendIframeCommand('pauseVideo');
+    setIsPlaying(false);
     showToast('✨ Preserving context & opening OmniStream...');
     omsTransitionService.captureAndHandoffToGateway(
       {
@@ -511,7 +514,7 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
     <div
       className={
         theaterMode
-          ? 'fixed inset-0 z-50 w-screen h-screen flex flex-col justify-between items-center px-3 sm:px-6 pt-2 sm:pt-3 pb-1 sm:pb-2 bg-gradient-to-b from-[#040814] via-[#020409] to-[#000103] overflow-hidden select-none font-sans transition-all duration-500'
+          ? 'fixed inset-0 z-50 w-full h-dvh min-h-dvh max-h-dvh flex flex-col justify-between items-center px-3 sm:px-6 pt-2 sm:pt-3 pb-1 sm:pb-2 bg-gradient-to-b from-[#040814] via-[#020409] to-[#000103] overflow-hidden select-none font-sans transition-all duration-500'
           : 'relative w-full'
       }
     >
@@ -528,7 +531,7 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
           <div className="absolute right-2 sm:right-6 top-8 bottom-16 w-1 sm:w-1.5 bg-gradient-to-b from-transparent via-sky-400 to-transparent rounded-full shadow-[0_0_20px_rgba(56,189,248,0.9)] opacity-80 pointer-events-none z-10" />
 
           {/* Top Control Bar in U-Tube Theater */}
-          <div className="relative z-30 w-full max-w-[95vw] flex items-center justify-between px-2 sm:px-4 pb-1">
+          <div className="relative z-30 w-full max-w-[95vw] flex items-center justify-between px-2 sm:px-4 pb-1 shrink-0">
             <div className="flex items-center gap-2.5 text-xs text-sky-300 font-bold uppercase tracking-wider font-sans">
               <span className="w-2.5 h-2.5 rounded-full bg-sky-400 animate-pulse shadow-[0_0_10px_rgba(56,189,248,0.9)]" />
               <span>U-Tube Modern Cinema</span>
@@ -541,7 +544,7 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
               {/* OMS Contextual Experience Transition Button */}
               <button
                 onClick={handleOMSHandoff}
-                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-300 text-xs font-bold transition-all shadow-sm cursor-pointer"
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-300 text-xs font-bold transition-all shadow-sm cursor-pointer hover:scale-105"
                 title="Transition active viewing context to CineMorph Virtual Theater"
               >
                 <Sparkles className="w-3.5 h-3.5 text-amber-400" />
@@ -569,7 +572,7 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
         onMouseLeave={() => isPlaying && setControlsVisible(false)}
         className={`relative bg-black overflow-hidden select-none group font-sans transition-all duration-500 z-20 ${
           theaterMode
-            ? 'aspect-video w-full max-w-[min(94vw,calc(74vh*1.778))] max-h-[74vh] mb-2 sm:mb-3 shadow-[0_0_100px_rgba(2,132,199,0.30),0_25px_60px_rgba(0,0,0,0.95)]'
+            ? 'aspect-video w-full max-w-[min(94vw,calc(68dvh*1.778))] max-h-[68dvh] mb-1 sm:mb-2 shadow-[0_0_100px_rgba(2,132,199,0.30),0_25px_60px_rgba(0,0,0,0.95)] shrink-0'
             : `w-full aspect-video rounded-2xl shadow-2xl ${className}`
         }`}
         style={
@@ -588,7 +591,7 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
           id="utube-video-iframe"
           src={`https://www.youtube-nocookie.com/embed/${video.id}?autoplay=1&enablejsapi=1&origin=${encodeURIComponent(
             typeof window !== 'undefined' ? window.location.origin : ''
-          )}&rel=0&playsinline=1&controls=0&modestbranding=1`}
+          )}&rel=0&playsinline=1&controls=0&modestbranding=1${initialTime > 0 ? `&start=${Math.floor(initialTime)}` : ''}`}
           title={video.title}
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           allowFullScreen

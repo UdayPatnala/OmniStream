@@ -8,6 +8,9 @@ This document serves as the authoritative, permanent version timeline and Git re
 
 | Version | Date | Type | Quick Summary | Git Tag | Commit |
 |---|---|:---:|---|:---:|:---:|
+| **v1.8.3** | 2026-09-08 | `PATCH` | CineMorph Cinema-Lounge Stabilization: Forensic bug & flow audit, transparent screen hotspot, standby prompt placement, Blob URL persistence protection, dead-code eviction, and 100% test-suite alignment. | `v1.8.3` | `HEAD` |
+| **v1.8.2** | 2026-09-05 | `PATCH` | CineMorph Saved Ticket Resumption, Pre-Flight Bumper Protection & In-Theater Media Continuity: Architectural persistence fix with IndexedDB media blob lifecycle, pre-flight playability validation before intro, proscenium reconnection affordance, throttled progress saving, and subtle lobby ticket stubs tray. | `v1.8.2` | `internal` |
+| **v1.8.1** | 2026-09-05 | `PATCH` | CineMorph True Physical Theater Projection Correction & 2.39:1 Aspect Ratio Eradication: Upgraded second environment to authentic cinema projection with proscenium recess, motorized velvet aperture masking, dynamic room light spill, and complete eradication of 2.39:1. | `v1.8.1` | `internal` |
 | **v1.8.0** | 2026-09-02 | `MINOR` | Universal Perception & Intelligent Smart Framing: MediaPipe BlazeFace WASM SIMD perception, normalized evidence schema, multi-subject composition, switching hysteresis, cascaded poster intelligence, 3-state scene transition engine, and Web Audio dynamic speech clarity adaptation. | `v1.8.0` | `internal` |
 | **v1.5.5** | 2026-09-02 | `PATCH` | Safe Pre-v1.8.0 Baseline Checkpoint: Decoupled Perception-Decision-Stabilization contracts, zero runtime neural dependencies in core, and strict baseline test verification. | `v1.5.5` | `internal` |
 | **v1.5.2** | 2026-09-01 | `MINOR` | Lightweight client-side media demuxing engine for MP4/MKV/WebM/MOV/Audio with multi-track audio detection, original Unicode title preservation, live hardware/WebAudio stream switching, and codec playability verification. | `v1.5.2` | [`3467c79`](https://github.com/UdayPatnala/OmniStream/commit/3467c79) |
@@ -18,6 +21,88 @@ This document serves as the authoritative, permanent version timeline and Git re
 ---
 
 ## Version Entries
+
+### v1.8.3
+
+- **Date**: 2026-09-08
+- **Type**: `PATCH` (CineMorph Cinema-Lounge Stabilization, Forensic Audit & Release Closure)
+- **Previous Version**: `v1.8.2`
+
+#### Quick
+Forensic runtime and UX-flow audit resolving confirmed CineMorph bugs, dead-code eviction, performance hardening, and full test-suite re-alignment to reflect intentional security behavior.
+
+- **BUG-P1-01 Fixed (store.ts)**: `localMediaHistory` and `activeLocalMedia` explicitly excluded from Zustand `partialize` to prevent dead session-scoped Blob URLs from persisting across browser restarts. In-memory store retains them; durable blobs live in IndexedDB (established in v1.8.2).
+- **BUG-P1-02/03 Fixed (CineMorphLanding.tsx)**: Added `isIngesting` session-lock and `activeSessionIdRef` to prevent race conditions on rapid file-picker clicks. Added unmount cleanup that revokes all generated Blob URLs held in `activeBlobUrlsRef`. Reset `fileInputRef.current.value` after each selection so re-selecting the same file triggers the change event.
+- **Cinema Screen Hotspot (CinemaLounge.tsx)**: Transparent, invisible clickable button proportionally aligned to the exact inner bounds of the physical cinema screen (`left: 45.2%`, `top: 21%`, `width: 30.6%`, `height: 30.2%`) using responsive CSS percentages. No hover effects, no borders, no instructional copy visible on the screen surface.
+- **Standby Prompt (CinemaLounge.tsx)**: `CLICK SCREEN TO CONTINUE` rendered as a single clean line in `font-cinematic-mono` with zero pill, border, glow, or animation. Positioned strictly below the CineMorph AI logo text at the bottom of the screen surface (`flex-col justify-end items-center pb-2 sm:pb-3`).
+- **Dead Assets Evicted**: Deleted `public/cinemorph_lobby.jpg` (335 KB), `public/cinemorph_lobby_day.jpg` (51 KB), `public/cinemorph_ui_props.jpg` (299 KB). Retained `public/cinemorph_artwork.png` (referenced by ThresholdPortal, posterService, and test suites).
+- **Dead Components Evicted**: Deleted unreferenced landing components: `CineMorphArrivalLobby.tsx`, `CineMorphLobbySpace.tsx`, `CineMorphTheaterThreshold.tsx`, `PersonalScreeningRoom.tsx`, `CineMorphBookingOffice.tsx`. Deleted obsolete test: `screeningCustomization.test.tsx`.
+- **Test Suite Re-Alignment (T1-STOR-04)**: Updated `local-storage-persistence.test.ts` T1-STOR-04 to assert that `localMediaHistory` is intentionally absent from localStorage — documenting the BUG-P1-01 fix as authoritative product behavior rather than a defect.
+- **Lint Fix (CineMorphLanding.tsx)**: Added missing `useEffect` to React import to resolve TS2304 compile error introduced by the cleanup pass.
+
+#### Module Version Hierarchy
+- **OmniStream Core (`OS`)**: `v1.8.3`
+- **CineMorph Product (`CM`)**: `v1.8.3`
+  - *Cinema-Lounge Interaction (`CM-LOUNGE`)*: `v1.8.3`
+  - *Theater & Projection Architecture (`CM-TH`)*: `v1.8.2`
+  - *Ticket & Resumption Engine (`CM-TICKET`)*: `v1.8.2`
+  - *Spatial Screening Room (`CM-ROOM`)*: `v1.8.1`
+  - *Universal Visual & Audio Perception System (`CM-PERCEPT`)*: `v1.8.0`
+- **U-Tube Product (`UT`)**: `v1.8.0` (Frozen & untouched)
+
+---
+
+### v1.8.2
+
+
+- **Date**: 2026-09-05
+- **Type**: `PATCH` (CineMorph Saved Ticket Resumption, Pre-Flight Bumper Protection & In-Theater Media Continuity)
+- **Previous Version**: `v1.8.1`
+
+#### Quick
+Comprehensive architectural resolution for saved CineMorph tickets and media resumption across browser reloads, eradicating the black/unresponsive screen failure state.
+- **Pre-Flight Playability Validation**: Implemented asynchronous pre-flight probing in `CineMorphTheater.tsx` ensuring the Theater intro bumper is never initiated if the media source is unplayable or detached.
+- **IndexedDB Media Blob Lifecycle**: Integrated automatic async persistence of local media Blobs into `IDB_STORES.MEDIA_BLOBS` upon selection and confirmed theater entry. Reconstructs fresh live `URL.createObjectURL(blob)` on demand upon reload or when resuming from saved tickets.
+- **Proscenium Reconnection Affordance**: Built an authentic, in-world theatrical reconnection stage into the cinema proscenium. If local media storage has expired or was cleared, the user is presented with an ambient affordance preserving their exact movie title, reserved seat, aspect ratio, and saved timecode, enabling 1-click re-attachment of the source reel with zero data loss.
+- **Continuous Playback Persistence & Accurate Seek**: Wired 5-second throttled progress persistence during active playback, with immediate state synchronization on `pause`, `visibilitychange`, `beforeunload`, and unmount. Restores exact timecode upon `onLoadedMetadata` seek.
+- **Subtle Lobby Saved Tickets Tray**: Embedded a compact, physical-feeling ticket stubs collection in the Left Wing of the CineMorph Lobby Space, displaying thumbnail artwork, seat assignment, and timestamp with 1-click restoration.
+- **Verified Resilience**: Full automated test coverage in `src/test/savedTicketResumption.test.ts` verifying blob URL restoration from IndexedDB, missing blob handling, ticket relinking, and YouTube ticket resumption.
+
+#### Module Version Hierarchy
+- **OmniStream Core (`OS`)**: `v1.8.2`
+- **CineMorph Product (`CM`)**: `v1.8.2`
+  - *Theater & Projection Architecture (`CM-TH`)*: `v1.8.2`
+  - *Ticket & Resumption Engine (`CM-TICKET`)*: `v1.8.2`
+  - *Spatial Screening Room (`CM-ROOM`)*: `v1.8.1`
+  - *Universal Visual & Audio Perception System (`CM-PERCEPT`)*: `v1.8.0`
+- **U-Tube Product (`UT`)**: `v1.8.0` (Frozen & untouched)
+
+---
+
+### v1.8.1
+
+- **Date**: 2026-09-05
+- **Type**: `PATCH` (CineMorph True Physical Theater Projection Correction & 2.39:1 Aspect Ratio Eradication)
+- **Previous Version**: `v1.8.0`
+
+#### Quick
+Comprehensive correction of the second CineMorph environment (**Personal Screening Room / Room Calibration**) to transform the media presentation from an embedded web player / card into a genuine physical theater projection permanently integrated into the cinema proscenium architecture, accompanied by complete eradication of the `2.39:1` aspect ratio across all CineMorph components.
+- **Physical Proscenium Screen Architecture**: Anchored an authentic matte white 1.1-gain projection fabric surface directly into the proscenium wall recess with deep 3D shadow depth, beveled proscenium frame, and dark black velvet light-absorption masking borders.
+- **True Projection Optics**: Replaced sharp flat CSS video borders with natural optical characteristics: soft lens edge falloff (`radial-gradient(ellipse)` vignetting), overhead volumetric projector beam cone, diffuse screen fabric reflection, and zero fake film grain or noise.
+- **Dynamic Environmental Light Spill**: Integrated real-time 16x9 canvas sampling of playing video/artwork to cast subtle ambient illumination onto the auditorium proscenium arch, ceiling cove downlights, and stage apron.
+- **Motorized Velvet Aperture Masking**: Aspect ratio switches now actuate physical velvet masking shutters inside the fixed architectural screen rather than resizing a web component.
+- **2.39:1 Aspect Ratio Eradication**: Cleanly removed `2.39:1` from `PersonalScreeningRoom.tsx`, `CineMorphLanding.tsx`, `CineMorphHero.tsx`, `CineMorphExperience.tsx`, and `InsideTheater.tsx`, formally consolidating the canonical 3-tier CineMorph aperture standard (`1.43:1 True IMAX`, `1.90:1 IMAX Widescreen`, `Original Directorial Native`).
+- **Physical Room Controls**: Aligned aspect ratio controls with the illuminated stage apron format monitors from `cinemorph_auditorium.jpg`, and acoustic modes with the flanking wall speaker arrays.
+
+#### Module Version Hierarchy
+- **OmniStream Core (`OS`)**: `v1.8.1`
+- **CineMorph Product (`CM`)**: `v1.8.1`
+  - *Spatial Screening Room (`CM-ROOM`)*: `v1.8.1`
+  - *Adaptive Smart Framing Engine (`CM-SF`)*: `v1.8.0`
+  - *Universal Visual & Audio Perception System (`CM-PERCEPT`)*: `v1.8.0`
+- **U-Tube Product (`UT`)**: `v1.8.0` (Frozen & untouched)
+
+---
 
 ### v1.8.0
 

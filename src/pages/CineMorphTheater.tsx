@@ -7,13 +7,13 @@
  */
 
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useAppStore } from '../store';
 import { useTicketStore } from '../state/useTicketStore';
 import { AspectRatioMode } from '../state/useCineMorphStore';
 import { omsTransitionService } from '../services/omsTransitionService';
 import { getVideosByIds } from '../lib/youtube';
-import { Video, AudioPreset, FrameAspectRatio, CineMorphTheme, GlowIntensity, LocalMediaItem } from '../types';
+import { Video, AudioPreset, FrameAspectRatio, CineMorphTheme, GlowIntensity, LocalMediaItem, MediaSubtitleTrack } from '../types';
 import { OMSLogo } from '../components/common/OMSLogo';
 import {
   Play, Pause, Volume2, VolumeX, Maximize, Minimize,
@@ -26,8 +26,6 @@ import {
   audioEngine, 
   THEME_CONFIGS, 
   calculateFrameStyle, 
-  generateAISummary, 
-  extractVideoScript, 
   localVideoAnalyzer,
   hybridMediaRouter,
   adaptiveCinemaEngine,
@@ -41,6 +39,13 @@ type TheaterState = 'pre-show' | 'loading' | 'playing' | 'paused' | 'ended' | 'e
 export function CineMorphTheater() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const locationState = location.state as {
+    startTime?: number;
+    autoPlay?: boolean;
+    omsHandoff?: boolean;
+  } | undefined;
+
   const { 
     activeVideo, setActiveVideo, versionMode, history, cinemaMode, setCinemaMode,
     audioEQ, setAudioEQ,
@@ -54,10 +59,20 @@ export function CineMorphTheater() {
     devicePerformanceProfile
   } = useAppStore();
 
-  const isLocalMedia = id?.startsWith('local-') || !!activeLocalMedia;
+  const activeTicket = useTicketStore((state) => state.activeTicket);
+  const targetTicket = activeTicket?.ticketId === id || activeTicket?.sourceUrl === id ? activeTicket : activeTicket;
+
+  const isLocalMedia = Boolean(
+    id?.startsWith('local-') || 
+    (activeLocalMedia && activeLocalMedia.id === id) || 
+    (targetTicket?.isLocal === true && (targetTicket?.ticketId === id || targetTicket?.sourceUrl === id))
+  );
   const localItem: LocalMediaItem | undefined = isLocalMedia
-    ? (activeLocalMedia?.id === id ? activeLocalMedia : localMediaHistory[id || ''])
+    ? (activeLocalMedia || undefined)
     : undefined;
+
+  const omsContext = omsTransitionService.getActiveContext();
+  const carriedStartTime = locationState?.startTime ?? (omsContext?.contentId === id ? omsContext.currentTimestampSeconds : undefined);
 
   // ── Refs ────────────────────────────────────────────────────────────────────
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
@@ -88,7 +103,8 @@ export function CineMorphTheater() {
   );
   const [entryComplete, setEntryComplete] = useState(false);
   const [curtainsOpen, setCurtainsOpen] = useState(!curtainAnimationEnabled);
-  const [showIntroBumper, setShowIntroBumper] = useState(curtainAnimationEnabled);
+  const [showIntroBumper, setShowIntroBumper] = useState(true);
+  const [isValidating, setIsValidating] = useState(true);
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [showStudioDrawer, setShowStudioDrawer] = useState(false);
   const [showTracksDrawer, setShowTracksDrawer] = useState(false);
@@ -190,14 +206,16 @@ export function CineMorphTheater() {
     ];
   }, [localItem, isLocalMedia]);
 
-  // Real detected subtitle tracks from container analysis or native TextTrack
+  const [externalSubtitleTracks, setExternalSubtitleTracks] = useState<MediaSubtitleTrack[]>([]);
+
+  // Real detected subtitle tracks from container analysis or native TextTrack + loaded external files
   const subtitleTrackOptions = React.useMemo(() => {
+    let baseTracks: MediaSubtitleTrack[] = [];
     if (localItem?.containerAnalysis?.subtitleTracks && localItem.containerAnalysis.subtitleTracks.length > 0) {
-      return localItem.containerAnalysis.subtitleTracks;
-    }
-    if (isLocalMedia && localVideoRef.current && localVideoRef.current.textTracks?.length > 0) {
+      baseTracks = localItem.containerAnalysis.subtitleTracks;
+    } else if (isLocalMedia && localVideoRef.current && localVideoRef.current.textTracks?.length > 0) {
       const trks = localVideoRef.current.textTracks;
-      return Array.from(trks).map((t: TextTrack, i: number) => ({
+      baseTracks = Array.from(trks).map((t: TextTrack, i: number) => ({
         id: `sub-${i}`,
         streamIndex: i,
         label: t.label || (t.language ? `${t.language} Subtitles` : `Subtitle Track #${i + 1}`),
@@ -208,8 +226,8 @@ export function CineMorphTheater() {
         isForced: false,
       }));
     }
-    return [];
-  }, [localItem, isLocalMedia]);
+    return [...externalSubtitleTracks, ...baseTracks];
+  }, [localItem, isLocalMedia, externalSubtitleTracks]);
 
   // Caption Controller Setup & Video Attachment Lifecycle
   useEffect(() => {
@@ -233,6 +251,37 @@ export function CineMorphTheater() {
       captionControllerRef.current.detachVideo();
     }
   }, [localItem?.url, isLocalMedia]);
+
+  // Synchronize authentic default tracks when media analysis loads or changes
+  useEffect(() => {
+    if (localItem?.containerAnalysis) {
+      const defAudioId = localItem.containerAnalysis.defaultAudioTrackId;
+      if (defAudioId) {
+        setSelectedAudioTrackId(defAudioId);
+        const trk = audioTrackOptions.find((t: any) => t.id === defAudioId);
+        if (trk) {
+          setAudioTrackIndex(trk.streamIndex);
+          if (localVideoRef.current) {
+            audioEngine.setActiveAudioTrack(trk.streamIndex, localVideoRef.current);
+          }
+        }
+      }
+      const defVideoId = localItem.containerAnalysis.defaultVideoStreamId;
+      if (defVideoId) {
+        setSelectedVideoTrackId(defVideoId);
+      }
+      if (localItem.containerAnalysis.subtitleTracks && localItem.containerAnalysis.subtitleTracks.length > 0) {
+        const defSub = localItem.containerAnalysis.subtitleTracks.find((s: any) => s.isDefault) || localItem.containerAnalysis.subtitleTracks[0];
+        if (defSub) {
+          setSelectedSubtitleTrack(defSub.id);
+          captionControllerRef.current.setActiveTrackIndex(defSub.streamIndex);
+          if (defSub.cues && defSub.cues.length > 0) {
+            captionControllerRef.current.loadParsedCues(defSub.cues);
+          }
+        }
+      }
+    }
+  }, [localItem?.id, localItem?.containerAnalysis, audioTrackOptions]);
 
   const showToast = useCallback((msg: string) => {
     setHudToast(msg);
@@ -348,6 +397,19 @@ export function CineMorphTheater() {
     navigate(`/theater/${localId}`);
   };
 
+  // Restore saved aspect ratio and presentation settings from ticket
+  useEffect(() => {
+    if (targetTicket?.aspectRatio) {
+      const ratio = targetTicket.aspectRatio;
+      const validRatio: FrameAspectRatio =
+        ratio === '1.43:1' ? '1.43:1' :
+        ratio === '1.90:1' ? '1.90:1' : 'original';
+      setFrameAspectRatio(validRatio);
+      setPresentationMode(validRatio === 'original' ? 'original' : 'cinema');
+      setCinemaMode(validRatio !== 'original');
+    }
+  }, [targetTicket?.aspectRatio, setCinemaMode, setFrameAspectRatio]);
+
   // ── Curtain Sequence ────────────────────────────────────────────────────────
   useEffect(() => {
     if (curtainAnimationEnabled) {
@@ -359,6 +421,60 @@ export function CineMorphTheater() {
       setCurtainsOpen(true);
     }
   }, [curtainAnimationEnabled]);
+
+  // ── Pre-flight Media Validation (Current Runtime Session Only) ───────────────
+  // CRITICAL INVARIANT: The intro bumper must NEVER play if the media source is unplayable.
+  useEffect(() => {
+    if (!id) return;
+    let isCancelled = false;
+
+    const validateAndPrepareMedia = async () => {
+      setIsValidating(true);
+
+      if (isLocalMedia) {
+        const activeUrl = localItem?.url || targetTicket?.sourceUrl || '';
+        let isUrlPlayable = false;
+
+        // Probe active blob URL
+        if (activeUrl && activeUrl.startsWith('blob:')) {
+          try {
+            const res = await fetch(activeUrl, { method: 'HEAD' });
+            if (res.ok || res.status === 200 || res.type === 'basic') {
+              isUrlPlayable = true;
+            }
+          } catch {
+            isUrlPlayable = false;
+          }
+        }
+
+        if (isCancelled) return;
+
+        if (isUrlPlayable && activeUrl) {
+          setIsValidating(false);
+          setTheaterState('playing');
+          setShowIntroBumper(true);
+          setPlaying(false);
+        } else {
+          // Unplayable / disconnected — DO NOT PLAY INTRO BUMPER!
+          setIsValidating(false);
+          setShowIntroBumper(false);
+          setTheaterState('error');
+        }
+      } else {
+        // YouTube online stream
+        setIsValidating(false);
+        setTheaterState('playing');
+        setShowIntroBumper(true);
+        setPlaying(false);
+      }
+    };
+
+    validateAndPrepareMedia();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [id, isLocalMedia, localItem?.url, targetTicket?.sourceUrl, curtainAnimationEnabled]);
 
   // ── Load Video / Media Metadata ─────────────────────────────────────────────
   useEffect(() => {
@@ -396,14 +512,14 @@ export function CineMorphTheater() {
       };
       setVideo(localVideoObj);
       setActiveVideo(localVideoObj);
-      setTheaterState('playing');
-      setPlaying(true);
       setEntryComplete(true);
       return;
     }
 
     const historyEntry = history[id];
-    const startPos = historyEntry?.progress && historyEntry.progress > 10 ? historyEntry.progress : 0;
+    const startPos = carriedStartTime !== undefined && carriedStartTime > 0
+      ? carriedStartTime
+      : (historyEntry?.progress && historyEntry.progress > 10 ? historyEntry.progress : 0);
 
     const fallback: Video = {
       id,
@@ -806,31 +922,13 @@ export function CineMorphTheater() {
   };
 
   const exitTheater = () => {
-    const safeAspect: AspectRatioMode = 
-      frameAspectRatio === '1.43:1' ? '1.43:1' :
-      frameAspectRatio === '1.90:1' ? '1.90:1' : 'original';
-
-    if (activeVideo) {
-      useTicketStore.getState().saveTicketProgress({
-        movieTitle: activeVideo.title,
-        sourceUrl: activeVideo.id,
-        isLocal: false,
-        durationSeconds: duration,
-        timestampSeconds: played * duration,
-        aspectRatio: safeAspect,
-        framingRule: 'auto',
-      });
-    } else if (localItem) {
-      useTicketStore.getState().saveTicketProgress({
-        movieTitle: localItem.name,
-        sourceUrl: localItem.id,
-        isLocal: true,
-        durationSeconds: duration,
-        timestampSeconds: played * duration,
-        aspectRatio: safeAspect,
-        framingRule: 'auto',
-      });
+    if (activeLocalMedia?.url && activeLocalMedia.url.startsWith('blob:')) {
+      try {
+        URL.revokeObjectURL(activeLocalMedia.url);
+      } catch (_) {}
     }
+    useAppStore.getState().setActiveLocalMedia(null);
+    useTicketStore.getState().clearActiveTicket();
     navigate('/cinemorph');
   };
 
@@ -857,10 +955,6 @@ export function CineMorphTheater() {
     isLocalMedia,
   });
 
-  // Intelligence metadata
-  const aiSummary = video ? generateAISummary(video) : null;
-  const scriptChunks = video ? extractVideoScript(video) : [];
-
   // Screen click handler: hide controls/drawers if open; enter fullscreen if closed
   const handleScreenClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -883,7 +977,7 @@ export function CineMorphTheater() {
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-screen flex flex-col items-center justify-center overflow-hidden transition-colors duration-1000 select-none font-sans bg-[#070503] text-amber-50"
+      className="relative w-full h-dvh flex flex-col items-center justify-center overflow-hidden transition-colors duration-1000 select-none font-sans bg-[#070503] text-amber-50"
       onMouseMove={resetControlsTimer}
       onTouchStart={resetControlsTimer}
     >
@@ -1006,7 +1100,40 @@ export function CineMorphTheater() {
           )}
 
           {/* Dual Source Playback Element */}
-          {showIntroBumper ? (
+          {theaterState === 'error' ? (
+            <div className="absolute inset-0 z-30 bg-[#070503] flex flex-col items-center justify-center p-6 text-center select-none animate-in fade-in duration-500">
+              <div className="relative w-18 h-18 sm:w-20 sm:h-20 rounded-2xl bg-amber-950/30 border border-amber-500/40 flex items-center justify-center mb-4 sm:mb-5 shadow-[0_0_50px_rgba(245,158,11,0.2)]">
+                <Film className="w-8 h-8 sm:w-9 sm:h-9 text-amber-400" />
+              </div>
+
+              <div className="max-w-md space-y-2 mb-6">
+                <div className="text-[11px] font-mono uppercase tracking-[0.2em] text-amber-400 font-bold">
+                  No Active Screening Session
+                </div>
+                <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                  CineMorph Theater
+                </h2>
+                <p className="text-xs text-stone-400 leading-relaxed">
+                  CineMorph screenings are temporary cinematic sessions. Select a feature presentation at the Booking Office to enter.
+                </p>
+              </div>
+
+              <button
+                onClick={exitTheater}
+                className="flex items-center gap-2.5 px-6 py-3 rounded-full bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-stone-950 font-bold text-xs shadow-xl shadow-amber-900/30 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+              >
+                <Film className="w-4 h-4 text-stone-950" />
+                <span>Return to Booking Office</span>
+              </button>
+            </div>
+          ) : isValidating ? (
+            <div className="absolute inset-0 z-20 bg-black flex flex-col items-center justify-center gap-3">
+              <div className="w-7 h-7 rounded-full border-2 border-amber-500/30 border-t-amber-400 animate-spin" />
+              <span className="text-[11px] font-mono text-amber-200/60 uppercase tracking-widest">
+                Calibrating Projection Surface...
+              </span>
+            </div>
+          ) : showIntroBumper ? (
             <div className="relative w-full h-full bg-black flex items-center justify-center overflow-hidden">
               <video
                 ref={introVideoRef}
@@ -1046,10 +1173,10 @@ export function CineMorphTheater() {
                     sendIframeCommand('playVideo');
                   }
                 }}
-                className="absolute bottom-6 right-6 z-20 px-4 py-2 rounded-full bg-white/90 hover:bg-black border border-amber-900/20 text-amber-800 text-xs font-bold tracking-wide shadow-2xl backdrop-blur-xl flex items-center gap-2 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                className="absolute bottom-6 right-6 z-20 px-4 py-2 rounded-full bg-black/70 hover:bg-black/90 border border-amber-500/40 text-amber-200 hover:text-white text-xs font-bold tracking-wide shadow-2xl backdrop-blur-xl flex items-center gap-2 transition-all hover:scale-105 active:scale-95 cursor-pointer"
               >
                 <span>Skip Cinema Intro</span>
-                <ChevronRight className="w-4 h-4 text-amber-700" />
+                <ChevronRight className="w-4 h-4 text-amber-400" />
               </button>
             </div>
           ) : isLocalMedia && localItem?.url ? (
@@ -1060,20 +1187,13 @@ export function CineMorphTheater() {
               playsInline
               preload="auto"
               className={`absolute inset-0 w-full h-full ${isOriginalMode ? 'object-contain' : 'object-cover'}`}
+              onPause={() => {}}
               onTimeUpdate={() => {
                 if (localVideoRef.current && !seeking) {
                   const cur = localVideoRef.current.currentTime;
                   const dur = localVideoRef.current.duration || 0;
                   setPlayed(dur > 0 ? cur / dur : 0);
                   setDuration(dur);
-                  if (localItem && dur > 0 && Math.round(cur) % 10 === 0) {
-                    addLocalMediaToHistory({
-                      ...localItem,
-                      progress: Math.floor(cur),
-                      duration: Math.floor(dur),
-                      lastWatchedAt: Date.now(),
-                    });
-                  }
                 }
               }}
               onLoadedMetadata={() => {
@@ -1083,14 +1203,37 @@ export function CineMorphTheater() {
                   if (vw > 0 && vh > 0) {
                     setNativeAspectRatio(vw / vh);
                   }
-                  setDuration(localVideoRef.current.duration || 0);
+                  const dur = localVideoRef.current.duration || 0;
+                  setDuration(dur);
                   setTheaterState('playing');
                   setPlaying(true);
+
+                  // Restore saved position or carried OMS timestamp
+                  const savedTime = carriedStartTime !== undefined && carriedStartTime > 0
+                    ? carriedStartTime
+                    : (targetTicket?.timestampSeconds || localItem?.progress || 0);
+                  if (savedTime > 0 && dur > 0) {
+                    const seekTarget = Math.min(savedTime, Math.max(0, dur - 1));
+                    localVideoRef.current.currentTime = seekTarget;
+                    setPlayed(seekTarget / dur);
+                  }
+
                   try {
                     audioEngine.init(localVideoRef.current);
                     audioEngine.applyConfig(audioEQ);
                   } catch (e) {}
+
+                  // Pre-flight check: If primary stream is unplayable (e.g. DTS/AC-3), notify user honestly
+                  const primaryAudio = audioTrackOptions[0];
+                  if (primaryAudio && !primaryAudio.isPlayable) {
+                    showToast(`⚠️ Primary audio (${primaryAudio.codec}) is unsupported by browser decoders.`);
+                  }
                 }
+              }}
+              onError={(e) => {
+                console.warn('[CineMorphTheater] Local video error:', e);
+                setShowIntroBumper(false);
+                setTheaterState('error');
               }}
               onEnded={() => {
                 setTheaterState('ended');
@@ -1102,7 +1245,7 @@ export function CineMorphTheater() {
             <iframe
               ref={iframeRef}
               id="cinemorph-theater-iframe"
-              src={`https://www.youtube-nocookie.com/embed/${id}?autoplay=1&enablejsapi=1&origin=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : '')}&rel=0&playsinline=1`}
+              src={`https://www.youtube-nocookie.com/embed/${id}?autoplay=1&enablejsapi=1&origin=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : '')}&rel=0&playsinline=1${carriedStartTime && carriedStartTime > 0 ? `&start=${Math.floor(carriedStartTime)}` : ''}`}
               title={video?.title || 'OmniStream CineMorph Cinema'}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               allowFullScreen
@@ -1510,222 +1653,271 @@ export function CineMorphTheater() {
           </div>
 
           {/* ── Audio Tracks (Language / Stream Selection) ── */}
-          <div className="space-y-2.5 pb-4 border-b border-amber-900/30">
-            <div className="text-[10px] font-bold text-amber-400 uppercase tracking-widest flex items-center justify-between">
-              <span className="flex items-center gap-1.5">
-                <Volume2 className="w-3.5 h-3.5 text-amber-400" />
-                Audio Streams ({audioTrackOptions.length})
-              </span>
-              <span className="text-[9px] font-mono text-amber-500/80 bg-amber-950/40 px-1.5 py-0.5 rounded border border-amber-900/30">
-                {audioTrackOptions.filter(t => t.isPlayable).length} Active
-              </span>
-            </div>
-            <div className="space-y-1.5">
-              {audioTrackOptions.map((trk) => {
-                const isSelected = selectedAudioTrackId === trk.id;
-                return (
-                  <button
-                    key={trk.id}
-                    disabled={!trk.isPlayable}
-                    onClick={() => handleSelectAudioTrack(trk)}
-                    className={`w-full p-2.5 rounded-xl border text-left transition-all flex items-center justify-between cursor-pointer ${
-                      !trk.isPlayable
-                        ? 'bg-red-950/20 text-red-300/60 border-red-900/30 opacity-60 cursor-not-allowed'
-                        : isSelected 
-                        ? 'bg-amber-500/20 text-amber-100 border-amber-500/50 shadow-sm' 
-                        : 'bg-amber-950/20 text-amber-300/70 border-amber-900/20 hover:bg-amber-900/30'
-                    }`}
-                  >
-                    <div>
-                      <div className="text-xs font-bold text-amber-100 flex items-center gap-2">
-                        <span className="truncate max-w-[200px]">{trk.label}</span>
-                        {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />}
-                        {!trk.isPlayable && (
-                          <span className="text-[8px] font-mono uppercase bg-red-950/80 text-red-300 px-1.5 py-0.5 rounded border border-red-800/40">
-                            Unsupported Codec
-                          </span>
+          {audioTrackOptions.length > 1 && (
+            <div className="space-y-2.5 pb-4 border-b border-amber-900/30">
+              <div className="text-[10px] font-bold text-amber-400 uppercase tracking-widest flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <Volume2 className="w-3.5 h-3.5 text-amber-400" />
+                  Audio Streams ({audioTrackOptions.length})
+                </span>
+                <span className="text-[9px] font-mono text-amber-500/80 bg-amber-950/40 px-1.5 py-0.5 rounded border border-amber-900/30">
+                  {audioTrackOptions.filter(t => t.isPlayable).length} Active
+                </span>
+              </div>
+              <div className="space-y-1.5">
+                {audioTrackOptions.map((trk) => {
+                  const isSelected = selectedAudioTrackId === trk.id;
+                  const canSwitchTracks = Boolean(isLocalMedia && localVideoRef.current && audioEngine.canSwitchAudioTracks(localVideoRef.current));
+                  const isSecondaryWithoutBrowserSupport = trk.streamIndex > 0 && !canSwitchTracks;
+                  return (
+                    <button
+                      key={trk.id}
+                      disabled={!trk.isPlayable}
+                      onClick={() => handleSelectAudioTrack(trk)}
+                      className={`w-full p-2.5 rounded-xl border text-left transition-all flex items-center justify-between cursor-pointer ${
+                        !trk.isPlayable
+                          ? 'bg-red-950/20 text-red-300/60 border-red-900/30 opacity-60 cursor-not-allowed'
+                          : isSelected 
+                          ? 'bg-amber-500/20 text-amber-100 border-amber-500/50 shadow-sm' 
+                          : 'bg-amber-950/20 text-amber-300/70 border-amber-900/20 hover:bg-amber-900/30'
+                      }`}
+                    >
+                      <div>
+                        <div className="text-xs font-bold text-amber-100 flex items-center gap-2">
+                          <span className="truncate max-w-[180px]">{trk.label}</span>
+                          {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />}
+                          {!trk.isPlayable && (
+                            <span className="text-[8px] font-mono uppercase bg-red-950/80 text-red-300 px-1.5 py-0.5 rounded border border-red-800/40">
+                              Unsupported Codec
+                            </span>
+                          )}
+                          {isSecondaryWithoutBrowserSupport && (
+                            <span className="text-[8px] font-mono uppercase bg-amber-950/60 text-amber-400/80 px-1.5 py-0.5 rounded border border-amber-900/40" title="Primary stream active in standard browser">
+                              Secondary
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-[10px] text-amber-300/60 font-mono mt-0.5">
+                          {trk.language} • {trk.codec} • {trk.channelLayout}
+                          {trk.sampleRate ? ` • ${(trk.sampleRate / 1000).toFixed(1)} kHz` : ''}
+                        </div>
+                        {!trk.isPlayable && trk.unsupportedReason && (
+                          <div className="text-[9px] text-red-400/80 font-sans mt-0.5">
+                            {trk.unsupportedReason}
+                          </div>
                         )}
                       </div>
-                      <div className="text-[10px] text-amber-300/60 font-mono mt-0.5">
-                        {trk.language} • {trk.codec} • {trk.channelLayout}
-                        {trk.sampleRate ? ` • ${(trk.sampleRate / 1000).toFixed(1)} kHz` : ''}
-                      </div>
-                      {!trk.isPlayable && trk.unsupportedReason && (
-                        <div className="text-[9px] text-red-400/80 font-sans mt-0.5">
-                          {trk.unsupportedReason}
-                        </div>
-                      )}
-                    </div>
-                    {isSelected && <Check className="w-4 h-4 text-amber-400 shrink-0" />}
-                  </button>
-                );
-              })}
+                      {isSelected && <Check className="w-4 h-4 text-amber-400 shrink-0" />}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* ── Video Tracks (Quality & Stream Selection) ── */}
-          <div className="space-y-2.5 pb-4 border-b border-amber-900/30">
-            <div className="text-[10px] font-bold text-amber-400 uppercase tracking-widest flex items-center justify-between">
-              <span className="flex items-center gap-1.5">
-                <Film className="w-3.5 h-3.5 text-amber-400" />
-                Video Streams ({videoTrackOptions.length})
-              </span>
-              <span className="text-[9px] font-mono text-amber-500/80 bg-amber-950/40 px-1.5 py-0.5 rounded border border-amber-900/30">
-                {videoTrackOptions.filter(v => v.isPlayable).length} Active
-              </span>
-            </div>
-            <div className="space-y-1.5">
-              {videoTrackOptions.map((vtrk) => {
-                const isSelected = selectedVideoTrackId === vtrk.id;
-                return (
-                  <button
-                    key={vtrk.id}
-                    disabled={!vtrk.isPlayable}
-                    onClick={() => {
-                      if (!vtrk.isPlayable) {
-                        showToast(`⚠️ ${vtrk.unsupportedReason || 'Unsupported video stream'}`);
-                        return;
-                      }
-                      setSelectedVideoTrackId(vtrk.id);
-                      showToast(`🎥 Video Stream: ${vtrk.label} (${vtrk.resolution})`);
-                    }}
-                    className={`w-full p-2.5 rounded-xl border text-left transition-all flex items-center justify-between cursor-pointer ${
-                      !vtrk.isPlayable
-                        ? 'bg-red-950/20 text-red-300/60 border-red-900/30 opacity-60 cursor-not-allowed'
-                        : isSelected 
-                        ? 'bg-amber-500/20 text-amber-100 border-amber-500/50 shadow-sm' 
-                        : 'bg-amber-950/20 text-amber-300/70 border-amber-900/20 hover:bg-amber-900/30'
-                    }`}
-                  >
-                    <div>
-                      <div className="text-xs font-bold text-amber-100 flex items-center gap-2">
-                        <span className="truncate max-w-[200px]">{vtrk.label}</span>
-                        {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />}
-                        {!vtrk.isPlayable && (
-                          <span className="text-[8px] font-mono uppercase bg-red-950/80 text-red-300 px-1.5 py-0.5 rounded border border-red-800/40">
-                            Unsupported
-                          </span>
-                        )}
+          {videoTrackOptions.length > 1 && (
+            <div className="space-y-2.5 pb-4 border-b border-amber-900/30">
+              <div className="text-[10px] font-bold text-amber-400 uppercase tracking-widest flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <Film className="w-3.5 h-3.5 text-amber-400" />
+                  Video Streams ({videoTrackOptions.length})
+                </span>
+                <span className="text-[9px] font-mono text-amber-500/80 bg-amber-950/40 px-1.5 py-0.5 rounded border border-amber-900/30">
+                  {videoTrackOptions.filter(v => v.isPlayable).length} Active
+                </span>
+              </div>
+              <div className="space-y-1.5">
+                {videoTrackOptions.map((vtrk) => {
+                  const isSelected = selectedVideoTrackId === vtrk.id;
+                  return (
+                    <button
+                      key={vtrk.id}
+                      disabled={!vtrk.isPlayable}
+                      onClick={() => {
+                        if (!vtrk.isPlayable) {
+                          showToast(`⚠️ ${vtrk.unsupportedReason || 'Unsupported video stream'}`);
+                          return;
+                        }
+                        setSelectedVideoTrackId(vtrk.id);
+                        showToast(`🎥 Video Stream: ${vtrk.label} (${vtrk.resolution})`);
+                      }}
+                      className={`w-full p-2.5 rounded-xl border text-left transition-all flex items-center justify-between cursor-pointer ${
+                        !vtrk.isPlayable
+                          ? 'bg-red-950/20 text-red-300/60 border-red-900/30 opacity-60 cursor-not-allowed'
+                          : isSelected 
+                          ? 'bg-amber-500/20 text-amber-100 border-amber-500/50 shadow-sm' 
+                          : 'bg-amber-950/20 text-amber-300/70 border-amber-900/20 hover:bg-amber-900/30'
+                      }`}
+                    >
+                      <div>
+                        <div className="text-xs font-bold text-amber-100 flex items-center gap-2">
+                          <span className="truncate max-w-[200px]">{vtrk.label}</span>
+                          {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />}
+                          {!vtrk.isPlayable && (
+                            <span className="text-[8px] font-mono uppercase bg-red-950/80 text-red-300 px-1.5 py-0.5 rounded border border-red-800/40">
+                              Unsupported
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-[10px] text-amber-300/60 font-mono mt-0.5">
+                          {vtrk.resolution} • {vtrk.codec} • {vtrk.aspectRatio}
+                        </div>
                       </div>
-                      <div className="text-[10px] text-amber-300/60 font-mono mt-0.5">
-                        {vtrk.resolution} • {vtrk.codec} • {vtrk.aspectRatio}
-                      </div>
-                    </div>
-                    {isSelected && <Check className="w-4 h-4 text-amber-400 shrink-0" />}
-                  </button>
-                );
-              })}
+                      {isSelected && <Check className="w-4 h-4 text-amber-400 shrink-0" />}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* ── Subtitles & Closed Captions ── */}
-          <div className="space-y-2.5 pb-4 border-b border-amber-900/30">
-            <div className="text-[10px] font-bold text-amber-400 uppercase tracking-widest flex items-center justify-between">
-              <span className="flex items-center gap-1.5">
-                <Captions className="w-3.5 h-3.5 text-amber-400" />
-                Subtitles & Closed Captions
-              </span>
-              {subtitleTrackOptions.length > 0 && (
+          {/* ── Subtitles & Closed Captions (Displayed ONLY if media contains captions) ── */}
+          {subtitleTrackOptions.length > 0 && (
+            <div className="space-y-2.5 pb-4 border-b border-amber-900/30">
+              <div className="text-[10px] font-bold text-amber-400 uppercase tracking-widest flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <Captions className="w-3.5 h-3.5 text-amber-400" />
+                  Subtitles & Closed Captions
+                </span>
                 <span className="text-[9px] font-mono text-amber-400/70">
                   {subtitleTrackOptions.length} Track{subtitleTrackOptions.length > 1 ? 's' : ''}
                 </span>
-              )}
-            </div>
-
-            <button
-              onClick={() => {
-                const nextCc = !subtitlesOn;
-                setSubtitlesOn(nextCc);
-                sendIframeCommand(nextCc ? 'loadModule' : 'unloadModule', ['captions']);
-                captionControllerRef.current.setEnabled(nextCc);
-                showToast(nextCc ? '💬 Subtitles / CC Enabled' : '💬 Subtitles / CC Disabled');
-              }}
-              className={`w-full p-2.5 rounded-xl border text-xs font-semibold flex items-center justify-between transition-all cursor-pointer ${
-                subtitlesOn ? 'bg-amber-500/20 text-amber-100 border-amber-500/40' : 'bg-amber-950/20 text-amber-300/70 border-amber-900/20 hover:bg-amber-900/30'
-              }`}
-            >
-              <span className="flex items-center gap-2">
-                <Captions className="w-4 h-4 text-amber-400" />
-                <span>Closed Captions & Subtitles</span>
-              </span>
-              <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-black/40 border border-amber-500/20">
-                {subtitlesOn ? 'ON' : 'OFF'}
-              </span>
-            </button>
-
-            {/* Detected Subtitle Tracks List */}
-            {subtitleTrackOptions.length > 0 && subtitlesOn && (
-              <div className="space-y-1.5 pt-1">
-                <div className="text-[10px] font-mono text-amber-300/60 uppercase tracking-wider">
-                  Available Streams
-                </div>
-                <div className="space-y-1 max-h-36 overflow-y-auto pr-1">
-                  {subtitleTrackOptions.map((strk: any) => {
-                    const isSelected = selectedSubtitleTrack === strk.id || (selectedSubtitleTrack === 'off' && strk.isDefault);
-                    return (
-                      <button
-                        key={strk.id}
-                        onClick={() => {
-                          setSelectedSubtitleTrack(strk.id);
-                          if (isLocalMedia && localVideoRef.current && localVideoRef.current.textTracks) {
-                            for (let i = 0; i < localVideoRef.current.textTracks.length; i++) {
-                              localVideoRef.current.textTracks[i].mode = i === strk.streamIndex ? 'hidden' : 'disabled';
-                            }
-                          }
-                          showToast(`💬 Subtitles: ${strk.label}`);
-                        }}
-                        className={`w-full p-2 rounded-lg border text-left flex items-center justify-between transition-colors cursor-pointer ${
-                          isSelected
-                            ? 'bg-amber-500/20 border-amber-500/40 text-amber-100'
-                            : 'bg-amber-950/20 border-amber-900/20 text-amber-300/70 hover:bg-amber-900/30'
-                        }`}
-                      >
-                        <div className="min-w-0 pr-2">
-                          <div className="text-xs font-semibold truncate">{strk.label}</div>
-                          <div className="text-[10px] text-amber-300/60 font-mono mt-0.5">
-                            {strk.language} • {strk.format || 'Timed Text'}
-                          </div>
-                        </div>
-                        {isSelected && <Check className="w-3.5 h-3.5 text-amber-400 shrink-0" />}
-                      </button>
-                    );
-                  })}
-                </div>
               </div>
-            )}
 
-            {/* Load External Subtitle File (.srt, .vtt) */}
-            <div className="pt-1">
-              <input
-                type="file"
-                ref={subtitleFileInputRef}
-                accept=".vtt,.srt,text/vtt,application/x-subrip"
-                className="hidden"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                      const content = event.target?.result as string;
-                      if (content) {
-                        captionControllerRef.current.loadSubtitleFile(content);
-                        setSubtitlesOn(true);
-                        showToast(`💬 Subtitles Loaded: ${file.name}`);
-                      }
-                    };
-                    reader.readAsText(file);
-                  }
-                }}
-              />
               <button
-                onClick={() => subtitleFileInputRef.current?.click()}
-                className="w-full py-1.5 px-3 rounded-lg border border-amber-900/30 bg-amber-950/30 hover:bg-amber-900/40 text-[11px] text-amber-300/80 hover:text-amber-100 flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                onClick={() => {
+                  const nextCc = !subtitlesOn;
+                  setSubtitlesOn(nextCc);
+                  sendIframeCommand(nextCc ? 'loadModule' : 'unloadModule', ['captions']);
+                  captionControllerRef.current.setEnabled(nextCc);
+                  if (nextCc) {
+                    const targetSub = subtitleTrackOptions.find((s: any) => s.id === selectedSubtitleTrack) || subtitleTrackOptions[0];
+                    if (targetSub) {
+                      setSelectedSubtitleTrack(targetSub.id);
+                      captionControllerRef.current.setActiveTrackIndex(targetSub.streamIndex);
+                      if (targetSub.cues && targetSub.cues.length > 0) {
+                        captionControllerRef.current.loadParsedCues(targetSub.cues);
+                      }
+                    }
+                  } else {
+                    captionControllerRef.current.setActiveTrackIndex(-1);
+                  }
+                  showToast(nextCc ? '💬 Subtitles / CC Enabled' : '💬 Subtitles / CC Disabled');
+                }}
+                className={`w-full p-2.5 rounded-xl border text-xs font-semibold flex items-center justify-between transition-all cursor-pointer ${
+                  subtitlesOn ? 'bg-amber-500/20 text-amber-100 border-amber-500/40' : 'bg-amber-950/20 text-amber-300/70 border-amber-900/20 hover:bg-amber-900/30'
+                }`}
               >
-                <FileText className="w-3.5 h-3.5 text-amber-400" />
-                <span>Load External Subtitle (.srt, .vtt)</span>
+                <span className="flex items-center gap-2">
+                  <Captions className="w-4 h-4 text-amber-400" />
+                  <span>Closed Captions & Subtitles</span>
+                </span>
+                <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-black/40 border border-amber-500/20">
+                  {subtitlesOn ? 'ON' : 'OFF'}
+                </span>
               </button>
+
+              {/* Detected Subtitle Tracks List */}
+              {subtitlesOn && (
+                <div className="space-y-1.5 pt-1">
+                  <div className="text-[10px] font-mono text-amber-300/60 uppercase tracking-wider">
+                    Available Streams
+                  </div>
+                  <div className="space-y-1 max-h-36 overflow-y-auto pr-1">
+                    {subtitleTrackOptions.map((strk: any) => {
+                      const isSelected = selectedSubtitleTrack === strk.id || (selectedSubtitleTrack === 'off' && strk.isDefault);
+                      return (
+                        <button
+                          key={strk.id}
+                          onClick={() => {
+                            setSelectedSubtitleTrack(strk.id);
+                            captionControllerRef.current.setActiveTrackIndex(strk.streamIndex);
+                            if (strk.cues && strk.cues.length > 0) {
+                              captionControllerRef.current.loadParsedCues(strk.cues);
+                              showToast(`💬 Subtitles: ${strk.label}`);
+                              return;
+                            }
+                            if (strk.id.startsWith('ext-sub-')) {
+                              showToast(`💬 Subtitles: ${strk.label}`);
+                              return;
+                            }
+                            const hasNativeTracks = Boolean(isLocalMedia && localVideoRef.current && localVideoRef.current.textTracks && localVideoRef.current.textTracks.length > 0);
+                            if (hasNativeTracks) {
+                              for (let i = 0; i < localVideoRef.current!.textTracks.length; i++) {
+                                localVideoRef.current!.textTracks[i].mode = i === strk.streamIndex ? 'hidden' : 'disabled';
+                              }
+                              showToast(`💬 Subtitles: ${strk.label}`);
+                            } else {
+                              showToast(`💬 Subtitles: ${strk.label}`);
+                            }
+                          }}
+                          className={`w-full p-2 rounded-lg border text-left flex items-center justify-between transition-colors cursor-pointer ${
+                            isSelected
+                              ? 'bg-amber-500/20 border-amber-500/40 text-amber-100'
+                              : 'bg-amber-950/20 border-amber-900/20 text-amber-300/70 hover:bg-amber-900/30'
+                          }`}
+                        >
+                          <div className="min-w-0 pr-2">
+                            <div className="text-xs font-semibold truncate">{strk.label}</div>
+                            <div className="text-[10px] text-amber-300/60 font-mono mt-0.5">
+                              {strk.language} • {strk.format || 'Timed Text'}
+                            </div>
+                          </div>
+                          {isSelected && <Check className="w-3.5 h-3.5 text-amber-400 shrink-0" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Load External Subtitle File (.srt, .vtt) */}
+              <div className="pt-1">
+                <input
+                  type="file"
+                  ref={subtitleFileInputRef}
+                  accept=".vtt,.srt,text/vtt,application/x-subrip"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onload = (event) => {
+                        const content = event.target?.result as string;
+                        if (content) {
+                          const extId = `ext-sub-${Date.now()}`;
+                          const extTrack: MediaSubtitleTrack = {
+                            id: extId,
+                            streamIndex: 999,
+                            label: `${file.name.replace(/\.[^/.]+$/, '')} (External)`,
+                            language: 'External File',
+                            languageCode: 'ext',
+                            format: file.name.endsWith('.srt') ? 'SubRip (SRT)' : 'WebVTT',
+                            isDefault: true,
+                            isForced: false,
+                          };
+                          setExternalSubtitleTracks((prev) => [extTrack, ...prev.filter(t => t.label !== extTrack.label)]);
+                          setSelectedSubtitleTrack(extId);
+                          captionControllerRef.current.loadSubtitleFile(content);
+                          setSubtitlesOn(true);
+                          showToast(`💬 Subtitles Active: ${file.name}`);
+                        }
+                      };
+                      reader.readAsText(file);
+                    }
+                  }}
+                />
+                <button
+                  onClick={() => subtitleFileInputRef.current?.click()}
+                  className="w-full py-1.5 px-3 rounded-lg border border-amber-900/30 bg-amber-950/30 hover:bg-amber-900/40 text-[11px] text-amber-300/80 hover:text-amber-100 flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                >
+                  <FileText className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Load External Subtitle (.srt, .vtt)</span>
+                </button>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* ── Environment & Playback Tools ── */}
           <div className="space-y-3 pb-4 border-b border-amber-900/30">

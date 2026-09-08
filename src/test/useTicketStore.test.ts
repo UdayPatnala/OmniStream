@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { useTicketStore } from '../state/useTicketStore';
 import { useCineMorphStore } from '../state/useCineMorphStore';
 
-describe('useTicketStore Admission Stubs & 1-Click Resume', () => {
+describe('useTicketStore — In-Memory Session Ticket', () => {
   beforeEach(() => {
     localStorage.clear();
     useTicketStore.setState({
@@ -23,86 +23,111 @@ describe('useTicketStore Admission Stubs & 1-Click Resume', () => {
     });
   });
 
-  it('saves ticket progress and retrieves unique ticket ID', () => {
-    const ticketId = useTicketStore.getState().saveTicketProgress({
+  it('starts with no active ticket and empty tickets array', () => {
+    expect(useTicketStore.getState().activeTicket).toBeNull();
+    expect(useTicketStore.getState().tickets).toHaveLength(0);
+    expect(useTicketStore.getState().isPrintingAnimationActive).toBe(false);
+  });
+
+  it('setActiveTicket stores ticket and populates tickets array', () => {
+    const ticket = {
+      ticketId: 'ticket_test_001',
       movieTitle: 'Dune Part Two',
-      sourceUrl: 'https://example.com/dune.mp4',
+      sourceUrl: 'blob:http://localhost/mock-dune',
       isLocal: true,
-      aspectRatio: '1.43:1',
-      framingRule: 'rule_of_thirds',
-      timestampSeconds: 3420,
+      aspectRatio: '1.43:1' as const,
+      framingRule: 'rule_of_thirds' as const,
+      timestampSeconds: 0,
       durationSeconds: 9960,
-    });
+      printedAt: Date.now(),
+      seatAssignment: 'ROW A • SEAT 3',
+    };
 
-    expect(ticketId).toBeDefined();
+    useTicketStore.getState().setActiveTicket(ticket);
+
+    expect(useTicketStore.getState().activeTicket).toEqual(ticket);
     expect(useTicketStore.getState().tickets).toHaveLength(1);
-    expect(useTicketStore.getState().tickets[0].movieTitle).toBe('Dune Part Two');
-    expect(useTicketStore.getState().tickets[0].timestampSeconds).toBe(3420);
+    expect(useTicketStore.getState().tickets[0]).toEqual(ticket);
   });
 
-  it('updates existing ticket progress if sourceUrl matches', () => {
-    const ticketId1 = useTicketStore.getState().saveTicketProgress({
+  it('clearActiveTicket resets all ticket state', () => {
+    useTicketStore.getState().setActiveTicket({
+      ticketId: 'ticket_test_002',
       movieTitle: 'Oppenheimer',
-      sourceUrl: 'https://example.com/oppenheimer.mp4',
+      sourceUrl: 'blob:http://localhost/mock-oppenheimer',
       isLocal: true,
-      aspectRatio: '1.90:1',
-      framingRule: 'auto',
-      timestampSeconds: 120,
+      aspectRatio: '1.90:1' as const,
+      framingRule: 'auto' as const,
+      timestampSeconds: 0,
       durationSeconds: 10800,
+      printedAt: Date.now(),
     });
 
-    const ticketId2 = useTicketStore.getState().saveTicketProgress({
-      movieTitle: 'Oppenheimer',
-      sourceUrl: 'https://example.com/oppenheimer.mp4',
-      isLocal: true,
-      aspectRatio: '1.90:1',
-      framingRule: 'auto',
-      timestampSeconds: 4500,
-      durationSeconds: 10800,
-    });
+    expect(useTicketStore.getState().activeTicket).not.toBeNull();
 
-    expect(ticketId1).toBe(ticketId2);
-    expect(useTicketStore.getState().tickets).toHaveLength(1);
-    expect(useTicketStore.getState().tickets[0].timestampSeconds).toBe(4500);
+    useTicketStore.getState().clearActiveTicket();
+
+    expect(useTicketStore.getState().activeTicket).toBeNull();
+    expect(useTicketStore.getState().tickets).toHaveLength(0);
+    expect(useTicketStore.getState().isPrintingAnimationActive).toBe(false);
   });
 
-  it('resumes from ticket and syncs CineMorph state', () => {
-    const ticketId = useTicketStore.getState().saveTicketProgress({
-      movieTitle: 'Blade Runner 2049',
-      sourceUrl: 'https://example.com/bladerunner.mp4',
-      isLocal: true,
-      aspectRatio: '1.43:1',
-      framingRule: 'leading_lines',
-      timestampSeconds: 1540,
-      durationSeconds: 9800,
+  it('cancelPrintAnimation stops the animation flag without clearing the ticket', () => {
+    useTicketStore.setState({
+      isPrintingAnimationActive: true,
+      animationCountdownSeconds: 5,
     });
 
-    const resumed = useTicketStore.getState().resumeFromTicket(ticketId);
-    expect(resumed).not.toBeNull();
-    expect(resumed?.movieTitle).toBe('Blade Runner 2049');
+    useTicketStore.getState().cancelPrintAnimation();
 
-    // CineMorph store should receive the exact configuration and timestamp
-    const cineMorphState = useCineMorphStore.getState();
-    expect(cineMorphState.aspectRatio).toBe('1.43:1');
-    expect(cineMorphState.framingRule).toBe('leading_lines');
-    expect(cineMorphState.playbackTimestamp).toBe(1540);
-    expect(cineMorphState.videoSource?.name).toBe('Blade Runner 2049');
-    expect(cineMorphState.isPlaying).toBe(true);
+    expect(useTicketStore.getState().isPrintingAnimationActive).toBe(false);
+    expect(useTicketStore.getState().animationCountdownSeconds).toBe(0);
   });
 
-  it('removes ticket properly', () => {
-    const ticketId = useTicketStore.getState().saveTicketProgress({
-      movieTitle: '2001: A Space Odyssey',
-      sourceUrl: 'https://example.com/space.mp4',
+  it('trigger10sPrintAnimation creates a session ticket for local media', async () => {
+    vi.useFakeTimers();
+
+    const printPromise = useTicketStore.getState().trigger10sPrintAnimation({
+      title: 'Blade Runner 2049',
+      source: 'blob:http://localhost/mock-bladerunner',
       isLocal: true,
-      aspectRatio: '1.43:1',
-      framingRule: 'auto',
-      timestampSeconds: 500,
-      durationSeconds: 8400,
     });
 
-    expect(useTicketStore.getState().tickets).toHaveLength(1);
-    useTicketStore.getState().removeTicket(ticketId);
+    // Should immediately set printing active
+    expect(useTicketStore.getState().isPrintingAnimationActive).toBe(true);
+
+    await printPromise;
+
+    const ticket = useTicketStore.getState().activeTicket;
+    expect(ticket).not.toBeNull();
+    expect(ticket?.movieTitle).toBe('Blade Runner 2049');
+    expect(ticket?.isLocal).toBe(true);
+    expect(ticket?.sourceUrl).toBe('blob:http://localhost/mock-bladerunner');
+    expect(ticket?.ticketId).toMatch(/^ticket_session_/);
+
+    // CineMorph store should have video source set
+    expect(useCineMorphStore.getState().isPlaying).toBe(true);
+    expect(useCineMorphStore.getState().videoSource?.name).toBe('Blade Runner 2049');
+
+    vi.useRealTimers();
+  });
+
+  it('setActiveTicket(null) clears active ticket and empties tickets array', () => {
+    useTicketStore.getState().setActiveTicket({
+      ticketId: 'ticket_test_003',
+      movieTitle: 'Test Movie',
+      sourceUrl: 'blob:test',
+      isLocal: true,
+      aspectRatio: 'original' as const,
+      framingRule: 'auto' as const,
+      timestampSeconds: 100,
+      durationSeconds: 600,
+      printedAt: Date.now(),
+    });
+
+    useTicketStore.getState().setActiveTicket(null);
+
+    expect(useTicketStore.getState().activeTicket).toBeNull();
     expect(useTicketStore.getState().tickets).toHaveLength(0);
   });
 });

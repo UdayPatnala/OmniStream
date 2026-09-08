@@ -14,7 +14,6 @@ const DB_VERSION = 1;
 export const IDB_STORES = {
   TICKETS: 'tickets',
   OFFLINE_VIDEOS: 'offline_videos',
-  MEDIA_BLOBS: 'media_blobs',
   METADATA: 'metadata',
 } as const;
 
@@ -193,9 +192,6 @@ class StorageService {
           if (!db.objectStoreNames.contains(IDB_STORES.OFFLINE_VIDEOS)) {
             db.createObjectStore(IDB_STORES.OFFLINE_VIDEOS, { keyPath: 'id' });
           }
-          if (!db.objectStoreNames.contains(IDB_STORES.MEDIA_BLOBS)) {
-            db.createObjectStore(IDB_STORES.MEDIA_BLOBS, { keyPath: 'key' });
-          }
           if (!db.objectStoreNames.contains(IDB_STORES.METADATA)) {
             db.createObjectStore(IDB_STORES.METADATA, { keyPath: 'key' });
           }
@@ -333,6 +329,54 @@ class StorageService {
         resolve([]);
       }
     });
+  }
+
+  // ==========================================
+  // Legacy Screening Data Purge Utility
+  // ==========================================
+
+  public purgeLegacyScreeningData(): void {
+    const ls = this.localStorage;
+    if (ls && typeof ls.key === 'function' && typeof ls.removeItem === 'function') {
+      try {
+        const keysToRemove: string[] = [];
+        const len = typeof ls.length === 'number' ? ls.length : 0;
+        for (let i = 0; i < len; i++) {
+          const key = ls.key(i);
+          if (key) {
+            if (
+              key === 'omnistream-tickets-store' ||
+              key.startsWith('cinemorph-tickets') ||
+              key.startsWith('cinemorph_theater_progress_') ||
+              key.startsWith('cinemorph-media-vault') ||
+              key.includes('screening-ticket')
+            ) {
+              keysToRemove.push(key);
+            }
+          }
+        }
+        for (const k of keysToRemove) {
+          ls.removeItem(k);
+        }
+      } catch (err) {
+        console.warn('[StorageService] Error purging legacy screening keys from localStorage:', err);
+      }
+    }
+
+    // Clean memory fallback
+    const memKeysToRemove: string[] = [];
+    this.memoryFallback.forEach((_, k) => {
+      if (
+        k.startsWith('idb_media_blobs_') ||
+        k.startsWith('idb_tickets_') ||
+        k.includes('tickets-store')
+      ) {
+        memKeysToRemove.push(k);
+      }
+    });
+    for (const mk of memKeysToRemove) {
+      this.memoryFallback.delete(mk);
+    }
   }
 }
 

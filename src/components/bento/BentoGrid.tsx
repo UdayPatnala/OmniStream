@@ -23,13 +23,11 @@ import { OMSLogo } from '../common/OMSLogo';
 import { useCineMorphStore } from '../../state/useCineMorphStore';
 import { useUTubeStore } from '../../state/useUTubeStore';
 import { useAppStore } from '../../store';
-import { useTicketStore } from '../../state/useTicketStore';
 
 export const BentoGrid: React.FC = () => {
   const navigate = useNavigate();
   const { isOffline, setOfflineStatus } = useCineMorphStore();
   const { refreshFeedIfNeeded } = useUTubeStore();
-  const { tickets } = useTicketStore();
   const { 
     theme, 
     setTheme, 

@@ -1,7 +1,9 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ChevronRight, Film, Sparkles, Check, Clapperboard } from 'lucide-react';
 import { useTicketStore } from '../../state/useTicketStore';
 import { useCineMorphStore, AspectRatioMode } from '../../state/useCineMorphStore';
+import { useAppStore } from '../../store';
 
 interface TicketPrinterAnimationProps {
   onComplete?: () => void;
@@ -30,7 +32,11 @@ export const TicketPrinterAnimation: React.FC<TicketPrinterAnimationProps> = ({
     cancelPrintAnimation,
   } = useTicketStore();
 
+  const activeLocalMedia = useAppStore((state) => state.activeLocalMedia);
+
   const { aspectRatio } = useCineMorphStore();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   // Animation Stage State
   const [stage, setStage] = useState<PrintStage>('idle');
@@ -153,58 +159,58 @@ export const TicketPrinterAnimation: React.FC<TicketPrinterAnimationProps> = ({
     const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
     const runAnimationSequence = async () => {
-      // Stage 1: Stepper Calibration & Heatup (600ms)
+      // Stage 1: Stepper Calibration & Heatup (400ms)
       setStage('starting');
       setPrintProgress(8);
       setIsVibrating(true);
       playPrinterClick(680);
-      await wait(600);
-      if (isCancelled) return;
-
-      // Stage 2: Top Header & Movie Title Emergence (900ms)
-      setStage('header_ink');
-      setPrintProgress(22);
-      playPrinterClick(780);
-      await wait(450);
-      if (isCancelled) return;
-      playPrinterClick(820);
-      setPrintProgress(38);
-      await wait(450);
-      if (isCancelled) return;
-
-      // Stage 3: Square Cinematic Poster Artwork Reveal (1100ms)
-      setStage('poster_reveal');
-      playPrinterClick(860);
-      setPrintProgress(55);
-      await wait(550);
-      if (isCancelled) return;
-      playPrinterClick(900);
-      setPrintProgress(72);
-      await wait(550);
-      if (isCancelled) return;
-
-      // Stage 4: Seat Assignment & Screen Aperture Stamp (850ms)
-      setStage('seat_stamp');
-      setPrintProgress(85);
-      playPrinterClick(950);
-      await wait(450);
-      if (isCancelled) return;
-      playPrinterClick(1020);
-      setPrintProgress(94);
       await wait(400);
       if (isCancelled) return;
 
-      // Stage 5: Studio Micro-Marks & Barcode Inking (750ms)
+      // Stage 2: Top Header & Movie Title Emergence (600ms)
+      setStage('header_ink');
+      setPrintProgress(22);
+      playPrinterClick(780);
+      await wait(300);
+      if (isCancelled) return;
+      playPrinterClick(820);
+      setPrintProgress(38);
+      await wait(300);
+      if (isCancelled) return;
+
+      // Stage 3: Square Cinematic Poster Artwork Reveal (800ms)
+      setStage('poster_reveal');
+      playPrinterClick(860);
+      setPrintProgress(55);
+      await wait(400);
+      if (isCancelled) return;
+      playPrinterClick(900);
+      setPrintProgress(72);
+      await wait(400);
+      if (isCancelled) return;
+
+      // Stage 4: Seat Assignment & Screen Aperture Stamp (600ms)
+      setStage('seat_stamp');
+      setPrintProgress(85);
+      playPrinterClick(950);
+      await wait(300);
+      if (isCancelled) return;
+      playPrinterClick(1020);
+      setPrintProgress(94);
+      await wait(300);
+      if (isCancelled) return;
+
+      // Stage 5: Studio Micro-Marks & Barcode Inking (450ms)
       setStage('micro_marks');
       setPrintProgress(100);
       setIsVibrating(false);
       playPrinterClick(1150);
-      await wait(750);
+      await wait(450);
       if (isCancelled) return;
 
-      // Stage 6: Physical Bounce Settle & Overshoot
+      // Stage 6: Physical Bounce Settle & Overshoot (250ms)
       setStage('bounce_settle');
-      await wait(400);
+      await wait(250);
       if (isCancelled) return;
       setStage('ready');
     };
@@ -223,6 +229,10 @@ export const TicketPrinterAnimation: React.FC<TicketPrinterAnimationProps> = ({
     cancelPrintAnimation();
     onSkip?.();
     onComplete?.();
+    const targetId = activeLocalMedia?.id || activeTicket?.ticketId || activeTicket?.sourceUrl;
+    if (targetId && !location.pathname.startsWith('/theater/')) {
+      navigate(`/theater/${targetId}`);
+    }
   };
 
   // Keyboard Escape shortcut to skip intro instantly
@@ -316,7 +326,7 @@ export const TicketPrinterAnimation: React.FC<TicketPrinterAnimationProps> = ({
         <div 
           className="relative z-20 w-64 sm:w-72 overflow-hidden -mt-1 flex flex-col items-center pointer-events-auto cursor-pointer"
           onClick={handleSkipOrTakeTicket}
-          title="Click to take ticket and enter theater"
+          title="Theater Admission Pass"
         >
           {/* ── 3. Physical Paper Ticket ── */}
           <div
@@ -346,10 +356,20 @@ export const TicketPrinterAnimation: React.FC<TicketPrinterAnimationProps> = ({
               </div>
             </div>
 
-
+            {/* Cropped Near-Square Feature Poster Preview (P4 Physical Artifact Standard) */}
+            <div className="relative z-10 pt-2 pb-1 flex justify-center">
+              <div className="w-16 h-16 rounded-xl bg-stone-900 border border-[#d8cfb9] overflow-hidden shadow-sm flex items-center justify-center">
+                <img
+                  src={activeTicket?.thumbnailDataUrl || '/cinemorph.png'}
+                  alt="Feature Preview"
+                  className="w-full h-full object-cover"
+                  onLoad={() => setImageLoaded(true)}
+                />
+              </div>
+            </div>
 
             {/* Movie Title & Runtime Section */}
-            <div className="relative z-10 py-2 px-4 text-center space-y-0.5">
+            <div className="relative z-10 py-1.5 px-4 text-center space-y-0.5">
               <h2 className="text-sm sm:text-base font-black text-black tracking-tight uppercase leading-tight line-clamp-2 font-sans">
                 {activeTicket?.movieTitle || 'CINEMORPH FEATURE'}
               </h2>
@@ -419,7 +439,7 @@ export const TicketPrinterAnimation: React.FC<TicketPrinterAnimationProps> = ({
           {stage === 'ready' ? (
             <button
               onClick={handleSkipOrTakeTicket}
-              className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-black text-xs uppercase tracking-wider shadow-[0_0_25px_rgba(245,158,11,0.5)] transition-all transform hover:scale-105 active:scale-95 cursor-pointer animate-bounce"
+              className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-black text-xs uppercase tracking-wider shadow-[0_0_25px_rgba(245,158,11,0.5)] hover:shadow-[0_0_35px_rgba(245,158,11,0.75)] transition-all transform hover:scale-[1.02] active:scale-95 cursor-pointer"
             >
               <Check className="w-4 h-4 stroke-[3]" />
               <span>Take Ticket & Enter Theater</span>

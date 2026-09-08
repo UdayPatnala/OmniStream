@@ -212,3 +212,36 @@ All specialized tools and ML runtimes must sit behind clean capability contracts
 $$\text{Model / Specialized Tech} \longrightarrow \text{Adapter Boundary} \longrightarrow \text{Normalized Evidence} \longrightarrow \text{OmniStream Logic} \longrightarrow \text{Rendering}$$
 The rest of OmniStream must never become tightly coupled to a specific runtime, framework, or language.
 
+## CineMorph Spatial Environmental Architecture & Interaction Invariants
+
+### 1. The CineMorph Lobby & Spatial Identity
+- The spatial lobby environment belongs specifically and exclusively to **CineMorph**. It is the atmospheric arrival hall into the CineMorph ecosystem, not an OmniStream gateway lobby.
+- Avoid generic SaaS landing page patterns: no floating circles, spheres, cubes, gradient blobs, or repetitive Bento grids.
+- Implement a **Hybrid Spatial Rendering Foundation**: High-quality coherent architectural environment renders (curved alabaster walls, vertical fluted walnut wood, recessed cove downlights, polished terrazzo reflections) combined with layered GPU spatial compositions and embedded interactive UI.
+
+### 2. Interaction Philosophy — Never Explain With UI Instructions
+- CineMorph must **not behave like a conventional application that constantly tells the user what to click or what each feature does**.
+- Eliminate didactic UI copy: no "Click here to choose a file", "Click to enable seats", "Press button to...", or "Enable/Disable".
+- **Design Interactions as Physical Affordances**: Make an element's purpose self-evident through spatial placement, visual hierarchy, atmospheric illumination, hover/focus elevation, and tactile state feedback.
+- Prefer: $$\text{Experience} \longrightarrow \text{Discovery} \longrightarrow \text{Interaction} \longrightarrow \text{Feedback}$$
+- CineMorph should feel **discovered, not explained**.
+
+### 3. Studio Domain Integration
+- Studio is the tactile in-theater mastering and engineering console of CineMorph. It represents live parametric EQ, multi-track stream discovery, and viewport aspect controls inside active playback. Never present Studio as an independent, unrelated product.
+
+### 4. Continuous Spatial Narrative
+- CineMorph experiences must feel like movement through connected architectural spaces rather than vertically stacked website sections:
+  $$\text{Arrival} \longrightarrow \text{CineMorph Lobby} \longrightarrow \text{Exhibition Gallery} \longrightarrow \text{Auditorium} \longrightarrow \text{Studio Suite} \longrightarrow \text{Final Invitation}$$
+
+### 5. CineMorph Architectural Space Blueprint & Dual Environment Invariant (v1.8.5)
+- **Viewport Scene State Machine**: CineMorph (`/cinemorph`) operates within a single dynamic viewport (`100dvh`, zero document scroll) transitioning through a 6-space state machine:
+  $$\text{Arrival Lobby} \to \text{Booking Office} \to \text{Media Ingest} \to \text{Ticket Printing} \to \text{Admission Decision} \to \text{Personal Screening Room} \to \text{Theater Entry}$$
+- **One Building, Two Environmental States**:
+  - **Morning / Day Mode**: Soft natural daylight, warm alabaster (`#E8E2D7`), light limestone (`#C9C1B4`), natural oak (`#9A7655`), brushed brass (`#B58A52`), subtle long shadows.
+  - **Night Mode**: Deep architectural charcoal (`#101215`), ambient black (`#070809`), warm amber practical lighting (`#E8A353`), deep amber (`#9B6029`), sapphire accents (`#3B6E9A`).
+  - **Environmental Time Transition**: Changes occur through a tactile celestial dial integrated near the CineMorph mark over 800ms–1600ms; never abruptly invert CSS background colors.
+- **Physical Affordance Invariant**: Never use didactic text ("Click here", "Upload movie", "Select file", "Step 1", "Configure..."). Interactivity is conveyed through lighting pools, material contrast, hover lift, and mechanical emergence.
+- **Authoritative Apertures**: Only `Original`, `1.90:1`, and `1.43:1`. Never offer or display `2.39:1`.
+
+
+

@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useAppStore } from '../store';
-import { useTicketStore } from '../state/useTicketStore';
 import { Info, ShieldCheck, Heart, Sparkles, Sliders, Film } from 'lucide-react';
 import { RankingProfile } from '../types';
 
@@ -306,7 +305,6 @@ export function SettingsPage() {
                   collections: useAppStore.getState().collections,
                   rankingProfile: useAppStore.getState().rankingProfile,
                   cinemorphTheme: useAppStore.getState().cinemorphTheme,
-                  tickets: useTicketStore.getState().tickets,
                 };
                 const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
@@ -339,9 +337,6 @@ export function SettingsPage() {
                           subscriptions: imported.subscriptions || [],
                           collections: imported.collections || [],
                         });
-                        if (imported.tickets && Array.isArray(imported.tickets)) {
-                          useTicketStore.setState({ tickets: imported.tickets });
-                        }
                         showToast('✅ Data restored successfully from backup!');
                       } else {
                         showToast('⚠️ Invalid backup file format.');

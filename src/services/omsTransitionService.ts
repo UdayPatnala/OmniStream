@@ -24,6 +24,7 @@ export interface OMSTransitionContext {
   currentTimestampSeconds: number;
   playbackState: 'playing' | 'paused';
   aspectRatioPreference?: 'original' | '1.90:1' | '1.43:1';
+  transferredAt?: number;
 }
 
 class OMSTransitionService {
@@ -56,29 +57,17 @@ class OMSTransitionService {
       sourceUrl: video.id,
       title: video.title,
       thumbnailUrl: thumbnail,
-      posterUrl: thumbnail,
-      durationSeconds: duration > 0 ? duration : 600,
-      currentTimestampSeconds: Math.max(0, Math.floor(currentTime)),
+      durationSeconds: Number.isFinite(duration) && duration > 0 ? duration : 600,
+      currentTimestampSeconds: Number.isFinite(currentTime) ? Math.max(0, Math.floor(currentTime)) : 0,
       playbackState: isPlaying ? 'playing' : 'paused',
       aspectRatioPreference: '1.90:1',
+      transferredAt: Date.now(),
     };
 
     this.activeContext = context;
 
     // Save watch position in App Store
     useAppStore.getState().saveWatchPosition(video.id, context.currentTimestampSeconds, context.durationSeconds);
-
-    // Save ticket progress for later resumption
-    useTicketStore.getState().saveTicketProgress({
-      movieTitle: context.title,
-      sourceUrl: context.contentId,
-      isLocal: false,
-      timestampSeconds: context.currentTimestampSeconds,
-      durationSeconds: context.durationSeconds,
-      aspectRatio: '1.90:1',
-      framingRule: 'auto',
-      thumbnailDataUrl: context.thumbnailUrl,
-    });
 
     // Update CineMorph Store
     useCineMorphStore.setState({
@@ -104,11 +93,25 @@ class OMSTransitionService {
     context: OMSTransitionContext,
     navigate: (path: string, options?: { state?: any }) => void
   ): Promise<void> {
-    // Trigger progressive ticket animation
-    await useTicketStore.getState().trigger10sPrintAnimation({
-      title: context.title,
-      source: context.sourceUrl,
-      isLocal: false,
+    // Clear any stale local media to prevent media identity collision
+    useAppStore.getState().setActiveLocalMedia(null);
+
+    // Populate active session ticket immediately with carried context metadata
+    useTicketStore.setState({
+      activeTicket: {
+        ticketId: `ticket-${context.contentId}`,
+        movieTitle: context.title,
+        aspectRatio: context.aspectRatioPreference || '1.90:1',
+        framingRule: 'auto',
+        seatAssignment: 'ROW A • SWEETSPOT',
+        sourceUrl: context.sourceUrl,
+        timestampSeconds: context.currentTimestampSeconds,
+        durationSeconds: context.durationSeconds,
+        thumbnailDataUrl: context.thumbnailUrl,
+        isLocal: false,
+        printedAt: Date.now(),
+      },
+      isPrintingAnimationActive: false,
     });
 
     navigate(`/theater/${context.contentId}`, {
@@ -149,23 +152,12 @@ class OMSTransitionService {
     },
     navigate: (path: string, options?: { state?: any }) => void
   ): void {
-    const { videoId, title, currentTime, duration, isPlaying } = params;
-
-    // Update ticket progress for later resumption
-    useTicketStore.getState().saveTicketProgress({
-      movieTitle: title,
-      sourceUrl: videoId,
-      isLocal: false,
-      timestampSeconds: Math.max(0, Math.floor(currentTime)),
-      durationSeconds: duration,
-      aspectRatio: '1.90:1',
-      framingRule: 'auto',
-    });
+    const { videoId, currentTime, isPlaying } = params;
 
     // Return safely to standard U-Tube watch player
     navigate(`/watch/${videoId}`, {
       state: {
-        startTime: Math.max(0, Math.floor(currentTime)),
+        startTime: Number.isFinite(currentTime) ? Math.max(0, Math.floor(currentTime)) : 0,
         autoPlay: isPlaying,
         omsReturn: true,
       },

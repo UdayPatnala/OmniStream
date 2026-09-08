@@ -30,11 +30,18 @@ export const CaptionOverlay: React.FC<CaptionOverlayProps> = ({
 
   return (
     <div
-      className={`absolute bottom-10 sm:bottom-12 md:bottom-14 inset-x-0 z-30 flex justify-center pointer-events-none px-4 sm:px-6 transition-opacity duration-150 select-none ${className}`}
+      className={`absolute bottom-12 sm:bottom-14 md:bottom-16 inset-x-0 z-30 flex justify-center pointer-events-none px-4 sm:px-6 transition-opacity duration-150 select-none ${className}`}
       aria-live="polite"
       aria-atomic="true"
     >
-      <p className="text-white text-xs sm:text-sm md:text-base lg:text-lg font-sans font-medium text-center max-w-2xl sm:max-w-3xl leading-relaxed tracking-normal whitespace-pre-line drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)]">
+      <p
+        className="text-white text-xs sm:text-sm md:text-base font-sans font-medium text-center max-w-2xl sm:max-w-3xl leading-relaxed tracking-normal whitespace-pre-line"
+        style={{
+          background: 'transparent',
+          opacity: 0.8,
+          textShadow: '0 2px 6px rgba(0, 0, 0, 0.75)',
+        }}
+      >
         {text}
       </p>
     </div>

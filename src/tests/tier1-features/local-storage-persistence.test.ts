@@ -37,14 +37,18 @@ describe('Tier 1: Local Storage Persistence (F11)', () => {
     expect(historyItem.progress).toBe(450);
   });
 
-  it('T1-STOR-04: local media history items persist across storage serialization', () => {
+  it('T1-STOR-04: local media history items are intentionally excluded from localStorage serialization (Blob URL safety)', () => {
+    // BUG-P1-01 fix: localMediaHistory is deliberately omitted from the zustand partialize
+    // function to prevent session-scoped Blob URLs from persisting across browser restarts.
+    // Local media blobs are persisted separately via IndexedDB (v1.8.2+).
     useAppStore.getState().addLocalMediaToHistory(MOCK_LOCAL_MEDIA);
 
     const stored = localStorage.getItem('cinemorph-utube-storage');
     const parsed = JSON.parse(stored || '{}');
-    const localItem = parsed.state.localMediaHistory?.[MOCK_LOCAL_MEDIA.id];
-    expect(localItem).toBeDefined();
-    expect(localItem.name).toBe(MOCK_LOCAL_MEDIA.name);
+    // localMediaHistory must NOT appear in localStorage — this is intentional security behavior
+    expect(parsed.state?.localMediaHistory).toBeUndefined();
+    // the in-memory store still holds it
+    expect(useAppStore.getState().localMediaHistory[MOCK_LOCAL_MEDIA.id]).toBeDefined();
   });
 
   it('T1-STOR-05: audio EQ configuration persists across storage serialization', () => {

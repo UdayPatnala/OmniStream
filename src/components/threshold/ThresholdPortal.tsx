@@ -183,7 +183,7 @@ export const ThresholdPortal: React.FC = () => {
       ref={rootRef}
       role="main"
       aria-label="OmniStream entrance"
-      className="relative w-screen h-screen overflow-hidden select-none flex flex-col justify-between"
+      className="relative w-screen h-dvh overflow-hidden select-none flex flex-col justify-between"
       style={{
         background: isDark
           ? cmActive
@@ -432,6 +432,16 @@ export const ThresholdPortal: React.FC = () => {
                   'linear-gradient(90deg, transparent 0%, rgba(229,9,20,0.6) 30%, rgba(0,168,255,0.8) 70%, transparent 100%)',
               }}
             />
+
+            {/* Shared Subtle Tagline Uniting Both Engines */}
+            <p
+              className="mt-3 text-[11px] sm:text-xs font-sans tracking-[0.2em] sm:tracking-[0.25em] text-center font-normal transition-colors duration-500 select-none"
+              style={{
+                color: isDark ? 'rgba(237,239,245,0.55)' : 'rgba(11,27,61,0.55)',
+              }}
+            >
+              Different ways to watch. One better viewing experience.
+            </p>
           </motion.div>
         </div>
 
@@ -791,6 +801,11 @@ export const ThresholdPortal: React.FC = () => {
                   <div className="flex items-center gap-1.5 text-[10px] uppercase font-bold tracking-wider text-amber-500 font-mono">
                     <Sparkles className="w-3 h-3" />
                     <span>Carried Media Context</span>
+                    {carriedContext.currentTimestampSeconds > 0 && (
+                      <span className="text-neutral-400 font-mono text-[9px]">
+                        • {Math.floor(carriedContext.currentTimestampSeconds / 60)}:{(carriedContext.currentTimestampSeconds % 60).toString().padStart(2, '0')}
+                      </span>
+                    )}
                   </div>
                   <p className="text-xs font-bold truncate max-w-[180px] sm:max-w-[260px]">
                     {carriedContext.title}

@@ -1,30 +1,63 @@
-import React, { useState, useRef } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { 
-  Sparkles, RefreshCw, X, 
-  Disc, Clapperboard, Layers
-} from 'lucide-react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAppStore } from '../store';
-import { LocalMediaItem } from '../types';
 import { useTicketStore } from '../state/useTicketStore';
+import { LocalMediaItem } from '../types';
 import { mediaParser } from '../lib/cinemorph/mediaParser';
+import { posterService } from '../lib/cinemorph/posterService';
+
+import { CineMorphNav } from '../components/cinemorph/landing/CineMorphNav';
+import { CinemaLounge } from '../components/cinemorph/landing/CinemaLounge';
 
 export function CineMorphLanding() {
-  const [loading, setLoading] = useState(false);
-  const [dragOver, setDragOver] = useState(false);
-  const [localFileError, setLocalFileError] = useState<string | null>(null);
+  const [fileError, setFileError] = useState<string | null>(null);
+  const [isIngesting, setIsIngesting] = useState(false);
+
+  // Time-of-day adaptive environmental state: Morning (8 AM - 6 PM) vs Night (6 PM - 8 AM)
+  const [environmentalTime, setEnvironmentalTime] = useState<'morning' | 'night'>(() => {
+    const currentHour = new Date().getHours();
+    return currentHour >= 8 && currentHour < 18 ? 'morning' : 'night';
+  });
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const activeBlobUrlsRef = useRef<Set<string>>(new Set());
+  const activeSessionIdRef = useRef<number>(0);
   const navigate = useNavigate();
-  const { 
-    localMediaHistory, 
-    addLocalMediaToHistory, 
-    setActiveLocalMedia 
+
+  const {
+    activeLocalMedia,
+    setActiveLocalMedia,
+    addLocalMediaToHistory,
   } = useAppStore();
 
+  const activeTicket = useTicketStore((state) => state?.activeTicket);
+
+  // Revoke all created session Blob URLs on unmount to prevent memory leaks
+  useEffect(() => {
+    const blobUrls = activeBlobUrlsRef.current;
+    return () => {
+      blobUrls.forEach((url) => {
+        try {
+          URL.revokeObjectURL(url);
+        } catch (_) {}
+      });
+      blobUrls.clear();
+    };
+  }, []);
+
+  // Toggle environmental time manually via celestial dial
+  const handleToggleEnvironmentalTime = useCallback(() => {
+    setEnvironmentalTime((prev) => (prev === 'morning' ? 'night' : 'morning'));
+  }, []);
+
   const handleLocalFileSelect = async (file: File) => {
-    setLocalFileError(null);
-    if (!file) return;
+    if (isIngesting) return;
+    setIsIngesting(true);
+    setFileError(null);
+    if (!file) {
+      setIsIngesting(false);
+      return;
+    }
 
     const validExtensions = [
       'mp4', 'webm', 'mkv', 'mov', 'm4v', 'avi', 'flv', 'wmv', '3gp', 'ts', 'ogv', 'm3u8', 'mpd',
@@ -34,18 +67,84 @@ export function CineMorphLanding() {
     const isMediaMime = file.type.startsWith('video/') || file.type.startsWith('audio/');
 
     if (!isMediaMime && !validExtensions.includes(ext)) {
-      setLocalFileError(`Unsupported format (.${ext}). Please select a valid video or audio file.`);
+      setFileError(`Unsupported format (.${ext}). Please select a valid video or audio feature.`);
+      setIsIngesting(false);
       return;
     }
 
+    const sessionId = ++activeSessionIdRef.current;
+
     try {
-      setLoading(true);
+      // Revoke any previous active session blob URL safely
+      if (activeLocalMedia?.url && activeBlobUrlsRef.current.has(activeLocalMedia.url)) {
+        try {
+          URL.revokeObjectURL(activeLocalMedia.url);
+          activeBlobUrlsRef.current.delete(activeLocalMedia.url);
+        } catch (_) {}
+      }
+
       const blobUrl = URL.createObjectURL(file);
+      activeBlobUrlsRef.current.add(blobUrl);
       const fileId = `local-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
       const title = file.name.replace(/\.[^/.]+$/, '');
 
-      // Demux media container streams (audio tracks, video streams, codecs)
-      const containerAnalysis = await mediaParser.parseMediaFile(file, file.name);
+      // Resilient demux with 1.2s timeout fallback
+      const demuxPromise = mediaParser.parseMediaFile(file, file.name);
+      const timeoutPromise = new Promise<any>((resolve) => setTimeout(() => resolve(null), 1200));
+
+      const containerAnalysis = (await Promise.race([demuxPromise, timeoutPromise])) || {
+        containerFormat: ext.toUpperCase(),
+        mimeType: file.type || `video/${ext}`,
+        durationSeconds: 0,
+        fileSizeBytes: file.size,
+        audioTracks: [
+          {
+            id: 'audio-0',
+            streamIndex: 0,
+            label: 'Direct Master Audio',
+            language: 'Undetermined',
+            codec: 'Direct Audio',
+            channels: 2,
+            channelLayout: 'Stereo 2.0',
+            isDefault: true,
+            isPlayable: true,
+          },
+        ],
+        videoStreams: [
+          {
+            id: 'video-0',
+            streamIndex: 0,
+            label: 'Primary Video Stream',
+            codec: 'Direct Video',
+            aspectRatio: '16:9',
+            isDefault: true,
+            isPlayable: true,
+          },
+        ],
+        subtitleTracks: [],
+        defaultAudioTrackId: 'audio-0',
+        defaultVideoStreamId: 'video-0',
+        isContainerSupported: true,
+        isPlaybackSupported: true,
+        compatibilitySummary: 'Direct Container Source',
+      };
+
+      if (activeSessionIdRef.current !== sessionId) {
+        try {
+          URL.revokeObjectURL(blobUrl);
+          activeBlobUrlsRef.current.delete(blobUrl);
+        } catch (_) {}
+        return;
+      }
+
+      // Pre-resolve movie poster preview before printer starts
+      const posterRes = await posterService.resolvePoster({
+        id: fileId,
+        sourceUrl: blobUrl,
+        isLocal: true,
+        file: file,
+        title: title,
+      });
 
       const mediaItem: LocalMediaItem = {
         id: fileId,
@@ -56,172 +155,83 @@ export function CineMorphLanding() {
         duration: 0,
         progress: 0,
         lastWatchedAt: Date.now(),
-        aspectRatio: containerAnalysis.videoStreams[0]?.aspectRatio,
+        aspectRatio: containerAnalysis.videoStreams[0]?.aspectRatio || '16:9',
         containerAnalysis,
+        thumbnail: posterRes.url,
       };
 
       addLocalMediaToHistory(mediaItem);
       setActiveLocalMedia(mediaItem);
 
+      // Trigger the v1.5.0 physical ticket printing ritual (SYS-SYS Invariant)
       await useTicketStore.getState().trigger10sPrintAnimation({
         title: title,
         source: blobUrl,
         isLocal: true,
         file: file,
+        posterUrl: posterRes.url,
+        thumbnailUrl: posterRes.url,
       });
 
-      navigate(`/theater/${fileId}`);
+      // Crucial BUG-01 Fix: Do NOT navigate to the theater prematurely.
+      // The flow is strictly sequential: ticket printing runs on the landing page,
+      // and theater navigation occurs only when the user confirms admission on the ticket.
     } catch (err) {
-      setLocalFileError('Failed to read local file. Please try again.');
+      if (activeSessionIdRef.current === sessionId) {
+        console.error('[CineMorphLanding] Ingestion error:', err);
+        setFileError('The feature container could not be calibrated. Please select another file.');
+      }
     } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setDragOver(false);
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      handleLocalFileSelect(e.dataTransfer.files[0]);
+      if (activeSessionIdRef.current === sessionId) {
+        setIsIngesting(false);
+      }
     }
   };
 
   return (
-    <div className="min-h-screen w-full bg-cinemorph-bg text-cinemorph-text flex flex-col items-center justify-between p-4 sm:p-8 relative overflow-hidden select-none font-cinematic">
-      {/* Top Bar: Ecosystem Escape */}
-      <div className="w-full max-w-5xl flex items-center justify-between z-20">
-        <Link
-          to="/"
-          title="Return to OmniStream Gateway"
-          className="flex items-center gap-2 px-4 py-2 rounded-full bg-cinemorph-card/60 hover:bg-cinemorph-surface border border-cinemorph-border text-xs font-semibold text-cinemorph-text-secondary hover:text-cinemorph-text transition-all backdrop-blur-md"
-        >
-          <Layers className="w-4 h-4 text-cinemorph-primary" />
-          <span>OmniStream Gateway</span>
-        </Link>
+    <div
+      data-cinemorph-time={environmentalTime}
+      className="cinemorph-spatial-root w-full h-[100dvh] relative flex flex-col justify-between overflow-hidden select-none bg-stone-950 cinemorph-env-transition"
+      style={{
+        backgroundColor: environmentalTime === 'morning' ? '#E8E2D7' : '#070809',
+        color: environmentalTime === 'morning' ? '#25272A' : '#F4F0E8',
+      }}
+    >
+      {/* Top Architectural Navigation & Celestial Time Dial */}
+      <CineMorphNav
+        environmentalTime={environmentalTime}
+        onToggleTime={handleToggleEnvironmentalTime}
+        activeSpace="lobby"
+        hasTicketOrMedia={!!activeLocalMedia || !!activeTicket}
+      />
 
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] font-mono tracking-widest text-cinemorph-text-muted uppercase">
-            IMMERSION ENGINE • V2.1
-          </span>
-        </div>
-      </div>
+      {/* Shared Native Hidden File Input (Single Entry Point) */}
+      <input
+        ref={fileInputRef}
+        id="cinemorph-media-input"
+        type="file"
+        tabIndex={-1}
+        className="sr-only"
+        aria-hidden="true"
+        accept="video/*,audio/*,.mkv,.ts,.m3u8,.avi,.mp4,.mov,.webm,.flv,.mp3,.wav,.m4a,.flac"
+        onChange={(e) => {
+          if (e.target.files && e.target.files.length > 0) {
+            const file = e.target.files[0];
+            e.target.value = ''; // Reset so same file can be re-selected if cancelled/retried
+            handleLocalFileSelect(file);
+          }
+        }}
+      />
 
-      {/* Dynamic Ambient Spotlights */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-gradient-to-tr from-cinemorph-primary/10 via-cinemorph-secondary/5 to-cinemorph-primary/8 rounded-full blur-[160px] pointer-events-none" />
-      <div className="absolute bottom-10 left-10 w-[400px] h-[300px] bg-cinemorph-primary/5 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute top-10 right-10 w-[400px] h-[300px] bg-cinemorph-secondary/5 rounded-full blur-[120px] pointer-events-none" />
-
-      {/* Floating Cinematic Atmosphere Props */}
-      <div className="absolute top-36 right-8 sm:right-24 pointer-events-none z-0 opacity-40">
-        <div className="flex items-center gap-2 bg-cinemorph-surface border border-cinemorph-border px-3 py-1.5 rounded-2xl backdrop-blur-md shadow-sm">
-          <Disc className="w-6 h-6 text-cinemorph-primary animate-[spin_12s_linear_infinite]" />
-          <span className="text-[10px] font-bold text-cinemorph-text-secondary tracking-widest uppercase">35mm Film Reel</span>
-        </div>
-      </div>
-
-      <div className="absolute bottom-28 right-16 pointer-events-none z-0 opacity-50 hidden md:block">
-        <div className="flex items-center gap-2 bg-cinemorph-surface border border-cinemorph-border px-3 py-1.5 rounded-2xl backdrop-blur-md shadow-sm">
-          <Clapperboard className="w-5 h-5 text-cinemorph-primary" />
-          <span className="text-[10px] font-bold text-cinemorph-text-secondary tracking-widest uppercase font-mono">SCENE #01</span>
-        </div>
-      </div>
-
-      {/* Main Ingestion & Admission Gateway Panel */}
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-center w-full max-w-2xl my-8">
-        
-        {/* Subtle Mode Badge */}
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cinemorph-primary/15 text-cinemorph-primary text-[10px] font-bold tracking-[0.2em] uppercase border border-cinemorph-primary/30 shadow-sm mb-6">
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>Virtual Theater Ingestion Hall</span>
-        </div>
-
-        {/* ── The CineMorph Artwork Portal (Interactive Image Button) ── */}
-        <div className="w-full flex flex-col items-center text-center">
-          <button
-            type="button"
-            disabled={loading}
-            aria-label="Import local video or audio file into CineMorph theater"
-            onClick={() => fileInputRef.current?.click()}
-            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-            onDragLeave={() => setDragOver(false)}
-            onDrop={handleDrop}
-            className={`group relative w-full max-w-[360px] sm:max-w-[440px] p-2 sm:p-4 rounded-3xl transition-all duration-500 cursor-pointer flex flex-col items-center justify-center outline-none focus-visible:ring-2 focus-visible:ring-cinemorph-primary focus-visible:ring-offset-4 focus-visible:ring-offset-cinemorph-bg ${
-              dragOver
-                ? 'scale-105 shadow-[0_0_60px_rgba(82,108,158,0.45)]'
-                : 'hover:scale-[1.03] active:scale-[0.98]'
-            }`}
-          >
-            {/* Real Accessible File Input (Visually Hidden) */}
-            <input
-              ref={fileInputRef}
-              type="file"
-              tabIndex={-1}
-              className="sr-only"
-              aria-hidden="true"
-              accept="video/*,audio/*,.mkv,.ts,.m3u8,.avi,.mp4,.mov,.webm,.flv"
-              onChange={(e) => {
-                if (e.target.files && e.target.files.length > 0) {
-                  handleLocalFileSelect(e.target.files[0]);
-                }
-              }}
-            />
-
-            {/* Ambient Volumetric Backlight Behind Artwork */}
-            <div 
-              className={`absolute inset-0 rounded-full blur-3xl transition-all duration-700 pointer-events-none ${
-                dragOver
-                  ? 'bg-cinemorph-primary/35 scale-110'
-                  : 'bg-cinemorph-primary/15 group-hover:bg-cinemorph-primary/25 group-hover:scale-105'
-              }`}
-            />
-
-            {/* The CineMorph Artwork Itself (The Interactive Object) */}
-            <div className="relative z-10 w-full aspect-square flex items-center justify-center">
-              <img
-                src="/cinemorph_artwork.png"
-                alt="CineMorph AI — Every Frame. Intelligently Reimagined."
-                draggable={false}
-                className={`w-full h-full object-contain filter transition-all duration-500 drop-shadow-[0_15px_35px_rgba(0,0,0,0.15)] ${
-                  dragOver
-                    ? 'brightness-110 drop-shadow-[0_0_45px_rgba(82,108,158,0.65)]'
-                    : 'group-hover:brightness-105 group-hover:drop-shadow-[0_0_35px_rgba(82,108,158,0.35)]'
-                }`}
-              />
-
-              {/* Ingestion Loading / Processing Overlay */}
-              {loading && (
-                <div className="absolute inset-0 rounded-3xl bg-black/40 backdrop-blur-sm flex flex-col items-center justify-center gap-3 animate-in fade-in duration-200">
-                  <RefreshCw className="w-8 h-8 text-white animate-spin" />
-                  <span className="text-xs font-mono font-bold tracking-widest text-white uppercase bg-black/60 px-4 py-1.5 rounded-full border border-white/20">
-                    Preparing Admission...
-                  </span>
-                </div>
-              )}
-            </div>
-
-            {/* Minimal Secondary Supporting Cue */}
-            <div className="relative z-10 mt-1 flex items-center gap-2 text-cinemorph-text-muted group-hover:text-cinemorph-primary transition-colors font-mono text-[11px] uppercase tracking-[0.25em] font-semibold">
-              <Sparkles className="w-3.5 h-3.5 text-cinemorph-primary group-hover:rotate-12 transition-transform duration-300" />
-              <span>{dragOver ? 'Drop Media to Enter' : 'Click or Drop Media to Enter'}</span>
-            </div>
-          </button>
-
-          {/* Graceful Error Feedback */}
-          {localFileError && (
-            <div className="mt-4 px-4 py-2 bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-semibold rounded-xl flex items-center gap-2 animate-in fade-in duration-200">
-              <X className="w-4 h-4 shrink-0" />
-              <span>{localFileError}</span>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Footer */}
-      <div className="font-mono text-[10px] text-cinemorph-text-muted tracking-[0.3em] uppercase flex items-center gap-3 font-bold z-10">
-        <span>OmniStream V2.1</span>
-        <span className="w-1 h-1 rounded-full bg-cinemorph-text-muted" />
-        <span>Intelligence Architecture</span>
-      </div>
+      {/* Main Viewport Scene Container: Sole Scene is CinemaLounge */}
+      <main className="flex-1 w-full h-full relative overflow-hidden flex flex-col justify-center">
+        <CinemaLounge
+          environmentalTime={environmentalTime}
+          onTriggerFileInput={() => fileInputRef.current?.click()}
+          fileError={fileError}
+          activeMedia={activeLocalMedia || null}
+        />
+      </main>
     </div>
   );
 }

@@ -3,11 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import {
   Ticket,
   Play,
-  Trash2,
   Clock,
   Clapperboard,
-  Sparkles,
-  ArrowUpRight,
 } from 'lucide-react';
 import { useTicketStore, MovieTicket } from '../../state/useTicketStore';
 
@@ -44,22 +41,16 @@ function formatRuntimeDisplay(durationSecs: number, timestampSecs: number): stri
 
 export const TicketDrawer: React.FC<TicketDrawerProps> = ({ className = '' }) => {
   const navigate = useNavigate();
-  const { tickets, resumeFromTicket, removeTicket } = useTicketStore();
+  const activeTicket = useTicketStore((state) => state?.activeTicket);
 
   const handleResumeTicket = (ticket: MovieTicket) => {
-    resumeFromTicket(ticket.ticketId);
     if (ticket.isLocal) {
-      navigate('/theater/local-playback');
+      navigate('/cinemorph');
     } else {
       const match = ticket.sourceUrl.match(/(?:v=|youtu\.be\/|\/watch\?v=)([^&?/]+)/);
       const videoId = match ? match[1] : 'stream';
       navigate(`/theater/${videoId}`);
     }
-  };
-
-  const handleRemove = (e: React.MouseEvent, ticketId: string) => {
-    e.stopPropagation();
-    removeTicket(ticketId);
   };
 
   return (
@@ -76,116 +67,105 @@ export const TicketDrawer: React.FC<TicketDrawerProps> = ({ className = '' }) =>
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-base font-black tracking-wide text-cinemorph-text font-cinematic-title uppercase">
-                  Admission Tickets Shelf
+                  Admission Ticket
                 </h3>
-                <span className="rounded-full bg-cinemorph-surface px-2.5 py-0.5 text-[10px] font-mono font-bold text-cinemorph-primary border border-cinemorph-border">
-                  {tickets.length} SAVED
-                </span>
+                {activeTicket && (
+                  <span className="rounded-full bg-cinemorph-surface px-2.5 py-0.5 text-[10px] font-mono font-bold text-cinemorph-primary border border-cinemorph-border">
+                    ACTIVE
+                  </span>
+                )}
               </div>
               <p className="text-[11px] text-cinemorph-text-muted font-medium font-cinematic">
-                Click any torn ticket stub to resume theater playback instantly
+                Click the ticket stub to return to theater playback
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
             <span className="hidden sm:inline text-[10px] font-mono font-bold uppercase text-cinemorph-primary bg-cinemorph-surface px-2.5 py-1 rounded-lg border border-cinemorph-border shadow-sm">
-              1-Click State Recovery
+              1-Click Resume
             </span>
           </div>
         </div>
 
-        {/* Tickets Grid / List */}
-        {tickets.length === 0 ? (
+        {/* Ticket / Empty State */}
+        {!activeTicket ? (
           <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-cinemorph-border bg-cinemorph-surface/50 py-8 px-4 text-center">
             <Clapperboard className="h-10 w-10 text-cinemorph-primary/60 mb-2" />
-            <div className="text-sm font-bold text-cinemorph-text font-cinematic">Admission Shelf Empty</div>
+            <div className="text-sm font-bold text-cinemorph-text font-cinematic">No Active Session</div>
             <p className="text-xs text-cinemorph-text-muted max-w-sm mt-1 leading-relaxed font-cinematic">
-              Start playing a movie in CineMorph to print an admission ticket. Your exact playback timestamp will be preserved here.
+              Load a movie in CineMorph to print an admission ticket. Your session will appear here.
             </p>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 pt-1">
-            {tickets.map((ticket) => {
-              const progressPct =
-                ticket.durationSeconds > 0
-                  ? Math.min(100, Math.round((ticket.timestampSeconds / ticket.durationSeconds) * 100))
-                  : 0;
+        ) : (() => {
+          const ticket = activeTicket;
+          const progressPct =
+            ticket.durationSeconds > 0
+              ? Math.min(100, Math.round((ticket.timestampSeconds / ticket.durationSeconds) * 100))
+              : 0;
+          const runtimeDisplay = formatRuntimeDisplay(ticket.durationSeconds, ticket.timestampSeconds);
 
-              const runtimeDisplay = formatRuntimeDisplay(ticket.durationSeconds, ticket.timestampSeconds);
+          return (
+            <div
+              onClick={() => handleResumeTicket(ticket)}
+              className="group relative cursor-pointer rounded-2xl border border-cinemorph-border bg-cinemorph-surface hover:bg-cinemorph-surface/80 p-4 transition-all duration-200 hover:border-cinemorph-primary hover:shadow-md flex flex-col justify-between"
+            >
+              {/* Diegetic Perforated Edge Notches */}
+              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-2.5 h-5 bg-cinemorph-card rounded-r-full border-r border-cinemorph-border" />
+              <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2.5 h-5 bg-cinemorph-card rounded-l-full border-l border-cinemorph-border" />
 
-              return (
-                <div
-                  key={ticket.ticketId}
-                  onClick={() => handleResumeTicket(ticket)}
-                  className="group relative cursor-pointer rounded-2xl border border-cinemorph-border bg-cinemorph-surface hover:bg-cinemorph-surface/80 p-4 transition-all duration-200 hover:border-cinemorph-primary hover:shadow-md flex flex-col justify-between"
-                >
-                  {/* Diegetic Perforated Edge Notches */}
-                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-2.5 h-5 bg-cinemorph-card rounded-r-full border-r border-cinemorph-border" />
-                  <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2.5 h-5 bg-cinemorph-card rounded-l-full border-l border-cinemorph-border" />
-
-                  <div>
-                    {/* Top Row: Title & Remove */}
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-cinemorph-surface text-cinemorph-primary font-bold border border-cinemorph-border">
-                            {ticket.aspectRatio}
-                          </span>
-                          <span className="text-[10px] font-mono font-medium text-cinemorph-text-muted">
-                            {ticket.seatAssignment || 'ORCHESTRA ROW A'}
-                          </span>
-                        </div>
-                        <h4 className="text-sm font-bold text-cinemorph-text truncate mt-1.5 group-hover:text-cinemorph-primary transition-colors font-cinematic tracking-wide">
-                          {ticket.movieTitle}
-                        </h4>
-                      </div>
-
-                      <button
-                        onClick={(e) => handleRemove(e, ticket.ticketId)}
-                        className="rounded-lg p-1.5 text-cinemorph-text-muted hover:text-red-600 hover:bg-red-500/10 transition-colors cursor-pointer"
-                        title="Tear & Discard Ticket"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
+              <div>
+                {/* Top Row: Title */}
+                <div className="flex items-start gap-2">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-cinemorph-surface text-cinemorph-primary font-bold border border-cinemorph-border">
+                        {ticket.aspectRatio}
+                      </span>
+                      <span className="text-[10px] font-mono font-medium text-cinemorph-text-muted">
+                        {ticket.seatAssignment || 'ORCHESTRA ROW A'}
+                      </span>
                     </div>
-
-                    {/* Progress details */}
-                    <div className="mt-3 flex items-center justify-between text-[11px] font-mono text-cinemorph-text-secondary">
-                      <div className="flex items-center gap-1.5 font-medium">
-                        <Clock className="h-3 w-3 text-cinemorph-primary" />
-                        <span>{formatTime(ticket.timestampSeconds)}</span>
-                        {ticket.durationSeconds > 0 && (
-                          <span className="text-cinemorph-text-muted">/ {runtimeDisplay}</span>
-                        )}
-                      </div>
-                      <span className="text-cinemorph-primary font-bold">{progressPct}% saved</span>
-                    </div>
-
-                    {/* Progress Bar */}
-                    <div className="mt-2 h-1.5 w-full rounded-full bg-cinemorph-card overflow-hidden border border-cinemorph-border">
-                      <div
-                        className="h-full bg-cinemorph-primary rounded-full transition-all duration-300"
-                        style={{ width: `${Math.max(5, progressPct)}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Resume CTA */}
-                  <div className="mt-3 pt-2.5 border-t border-cinemorph-border flex items-center justify-between text-[10px] font-mono">
-                    <span className="text-cinemorph-text-muted font-medium uppercase">
-                      {ticket.isLocal ? 'LOCAL MP4 FILE' : 'YOUTUBE STREAM'}
-                    </span>
-                    <div className="flex items-center gap-1 text-cinemorph-primary font-bold group-hover:translate-x-0.5 transition-transform">
-                      <span>RESUME</span>
-                      <Play className="h-2.5 w-2.5 fill-cinemorph-primary" />
-                    </div>
+                    <h4 className="text-sm font-bold text-cinemorph-text truncate mt-1.5 group-hover:text-cinemorph-primary transition-colors font-cinematic tracking-wide">
+                      {ticket.movieTitle}
+                    </h4>
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        )}
+
+                {/* Progress details */}
+                <div className="mt-3 flex items-center justify-between text-[11px] font-mono text-cinemorph-text-secondary">
+                  <div className="flex items-center gap-1.5 font-medium">
+                    <Clock className="h-3 w-3 text-cinemorph-primary" />
+                    <span>{formatTime(ticket.timestampSeconds)}</span>
+                    {ticket.durationSeconds > 0 && (
+                      <span className="text-cinemorph-text-muted">/ {runtimeDisplay}</span>
+                    )}
+                  </div>
+                  <span className="text-cinemorph-primary font-bold">{progressPct}% watched</span>
+                </div>
+
+                {/* Progress Bar */}
+                <div className="mt-2 h-1.5 w-full rounded-full bg-cinemorph-card overflow-hidden border border-cinemorph-border">
+                  <div
+                    className="h-full bg-cinemorph-primary rounded-full transition-all duration-300"
+                    style={{ width: `${Math.max(5, progressPct)}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Resume CTA */}
+              <div className="mt-3 pt-2.5 border-t border-cinemorph-border flex items-center justify-between text-[10px] font-mono">
+                <span className="text-cinemorph-text-muted font-medium uppercase">
+                  {ticket.isLocal ? 'LOCAL MP4 FILE' : 'YOUTUBE STREAM'}
+                </span>
+                <div className="flex items-center gap-1 text-cinemorph-primary font-bold group-hover:translate-x-0.5 transition-transform">
+                  <span>RESUME</span>
+                  <Play className="h-2.5 w-2.5 fill-cinemorph-primary" />
+                </div>
+              </div>
+            </div>
+          );
+        })()}
       </div>
     </div>
   );

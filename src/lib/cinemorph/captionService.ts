@@ -24,6 +24,11 @@ export function sanitizeCueText(rawText: string): string {
   if (!rawText) return '';
 
   return rawText
+    // Replace ASS line breaks \N or \n
+    .replace(/\\N/gi, '\n')
+    .replace(/\\n/g, '\n')
+    // Remove ASS override tags like {\an8}, {\pos(100,100)}, {\c&HFFFFFF&}
+    .replace(/\{[^\}]*\}/g, '')
     // Remove WebVTT voice tags like <v Speaker> or </v>
     .replace(/<\/?[vV][^>]*>/g, '')
     // Remove standard inline formatting tags: <b>, <i>, <u>, <c.class>, <ruby>, <rt>, <lang>
@@ -158,6 +163,7 @@ export class CineMorphCaptionController {
   private videoEl: HTMLVideoElement | null = null;
   private changeCallback: ((text: string | null) => void) | null = null;
   private isEnabled: boolean = true;
+  private activeTrackIndex: number = -1; // -1 means default/all
   private boundOnTimeUpdate: () => void;
   private boundOnCueChange: () => void;
 
@@ -179,6 +185,20 @@ export class CineMorphCaptionController {
     }
   }
 
+  public setActiveTrackIndex(index: number): void {
+    this.activeTrackIndex = index;
+    if (this.videoEl && this.videoEl.textTracks) {
+      for (let i = 0; i < this.videoEl.textTracks.length; i++) {
+        if (index === -1) {
+          this.videoEl.textTracks[i].mode = (i === 0 && this.isEnabled) ? 'hidden' : 'disabled';
+        } else {
+          this.videoEl.textTracks[i].mode = (i === index && this.isEnabled) ? 'hidden' : 'disabled';
+        }
+      }
+    }
+    this.syncCurrentTime();
+  }
+
   public attachVideo(video: HTMLVideoElement | null): void {
     this.detachVideo();
     this.videoEl = video;
@@ -194,15 +214,22 @@ export class CineMorphCaptionController {
         for (let i = 0; i < video.textTracks.length; i++) {
           const track = video.textTracks[i];
           track.addEventListener('cuechange', this.boundOnCueChange);
-          // Set track mode to hidden so native unstyled browser cues do not overlap
-          if (this.isEnabled && (track.mode === 'showing' || track.mode === 'disabled')) {
-            track.mode = 'hidden';
+          // Set active track mode to hidden so native unstyled browser cues do not overlap
+          if (this.activeTrackIndex === -1) {
+            track.mode = (i === 0 && this.isEnabled) ? 'hidden' : 'disabled';
+          } else {
+            track.mode = (i === this.activeTrackIndex && this.isEnabled) ? 'hidden' : 'disabled';
           }
         }
         video.textTracks.onaddtrack = (e) => {
           if (e.track) {
             e.track.addEventListener('cuechange', this.boundOnCueChange);
-            if (this.isEnabled) e.track.mode = 'hidden';
+            const idx = Array.from(video.textTracks).indexOf(e.track);
+            if (this.activeTrackIndex === -1) {
+              e.track.mode = (idx === 0 && this.isEnabled) ? 'hidden' : 'disabled';
+            } else {
+              e.track.mode = (idx === this.activeTrackIndex && this.isEnabled) ? 'hidden' : 'disabled';
+            }
           }
         };
       }
@@ -232,6 +259,11 @@ export class CineMorphCaptionController {
     this.syncCurrentTime();
   }
 
+  public loadParsedCues(cues: NormalizedCaptionCue[]): void {
+    this.parsedCues = cues || [];
+    this.syncCurrentTime();
+  }
+
   public clearSubtitles(): void {
     this.parsedCues = [];
     this.updateActiveText(null);
@@ -246,9 +278,13 @@ export class CineMorphCaptionController {
 
     // 1. Check native textTracks first
     if (this.videoEl && this.videoEl.textTracks && this.videoEl.textTracks.length > 0) {
-      for (let i = 0; i < this.videoEl.textTracks.length; i++) {
+      const targetIndices = (this.activeTrackIndex >= 0 && this.activeTrackIndex < this.videoEl.textTracks.length)
+        ? [this.activeTrackIndex]
+        : Array.from({ length: this.videoEl.textTracks.length }, (_, idx) => idx);
+
+      for (const i of targetIndices) {
         const track = this.videoEl.textTracks[i];
-        if (track.mode !== 'disabled') {
+        if (track && track.mode !== 'disabled') {
           const activeCues = track.activeCues;
           if (activeCues && activeCues.length > 0) {
             const cueTexts: string[] = [];

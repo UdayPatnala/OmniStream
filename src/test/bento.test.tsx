@@ -59,18 +59,19 @@ describe('Threshold & Landing Portal Components', () => {
     expect(screen.getAllByText(/CINEMORPH/i).length).toBeGreaterThan(0);
   });
 
-  it('renders empty admission drawer state when no tickets exist', () => {
+  it('renders empty ticket drawer when no active session ticket exists', () => {
     render(
       <MemoryRouter>
         <TicketDrawer />
       </MemoryRouter>
     );
 
-    expect(screen.getByText(/Admission Shelf Empty/i)).toBeInTheDocument();
+    expect(screen.getByText(/No Active Session/i)).toBeInTheDocument();
   });
 
-  it('renders saved tickets and triggers resume upon click', () => {
-    useTicketStore.getState().saveTicketProgress({
+  it('renders active session ticket in drawer', () => {
+    useTicketStore.getState().setActiveTicket({
+      ticketId: 'ticket_bento_test_001',
       movieTitle: 'The Matrix',
       sourceUrl: 'https://example.com/matrix.mp4',
       isLocal: true,
@@ -78,6 +79,7 @@ describe('Threshold & Landing Portal Components', () => {
       framingRule: 'auto',
       timestampSeconds: 1800,
       durationSeconds: 7200,
+      printedAt: Date.now(),
     });
 
     render(
@@ -87,14 +89,7 @@ describe('Threshold & Landing Portal Components', () => {
     );
 
     expect(screen.getByText('The Matrix')).toBeInTheDocument();
-    expect(screen.getByText(/25% saved/i)).toBeInTheDocument();
-
-    const ticketElement = screen.getByText('The Matrix').closest('div[class*="cursor-pointer"]');
-    if (ticketElement) {
-      fireEvent.click(ticketElement);
-      expect(useCineMorphStore.getState().playbackTimestamp).toBe(1800);
-      expect(useCineMorphStore.getState().aspectRatio).toBe('1.43:1');
-    }
+    expect(screen.getByText(/25% watched/i)).toBeInTheDocument();
   });
 
   it('renders CineMorph ModeCard and handles navigation click', () => {

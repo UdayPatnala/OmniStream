@@ -259,6 +259,13 @@ export interface MediaVideoStream {
   unsupportedReason?: string;
 }
 
+export interface NormalizedCaptionCue {
+  id?: string;
+  startTime: number; // in seconds
+  endTime: number;   // in seconds
+  text: string;
+}
+
 export interface MediaSubtitleTrack {
   id: string;
   streamIndex: number;
@@ -268,6 +275,7 @@ export interface MediaSubtitleTrack {
   format: string;
   isDefault: boolean;
   isForced: boolean;
+  cues?: NormalizedCaptionCue[];
 }
 
 export interface MediaContainerAnalysis {

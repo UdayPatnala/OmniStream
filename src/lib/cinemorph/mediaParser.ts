@@ -369,8 +369,20 @@ export class CineMorphMediaParser {
       });
     }
 
-    const defaultAudio = audioTracks.find((t) => t.isDefault && t.isPlayable)?.id || audioTracks[0].id;
-    const defaultVideo = videoStreams.find((v) => v.isDefault && v.isPlayable)?.id || videoStreams[0].id;
+    if (!audioTracks.some((t) => t.isDefault) && audioTracks.length > 0) {
+      const firstPlayable = audioTracks.find((t) => t.isPlayable) || audioTracks[0];
+      if (firstPlayable) firstPlayable.isDefault = true;
+    }
+    if (!videoStreams.some((v) => v.isDefault) && videoStreams.length > 0) {
+      const firstPlayable = videoStreams.find((v) => v.isPlayable) || videoStreams[0];
+      if (firstPlayable) firstPlayable.isDefault = true;
+    }
+    if (!subtitleTracks.some((s) => s.isDefault) && subtitleTracks.length > 0) {
+      subtitleTracks[0].isDefault = true;
+    }
+
+    const defaultAudio = audioTracks.find((t) => t.isDefault && t.isPlayable)?.id || audioTracks[0]?.id || '';
+    const defaultVideo = videoStreams.find((v) => v.isDefault && v.isPlayable)?.id || videoStreams[0]?.id || '';
 
     return {
       containerFormat: 'MP4 / QuickTime (ISOBMFF)',
@@ -383,7 +395,7 @@ export class CineMorphMediaParser {
       defaultAudioTrackId: defaultAudio,
       defaultVideoStreamId: defaultVideo,
       isContainerSupported: true,
-      isPlaybackSupported: audioTracks.some((t) => t.isPlayable) && videoStreams.some((v) => v.isPlayable),
+      isPlaybackSupported: (audioTracks.length === 0 || audioTracks.some((t) => t.isPlayable)) && (videoStreams.length === 0 || videoStreams.some((v) => v.isPlayable)),
       compatibilitySummary: `${audioTracks.length} Audio Track${audioTracks.length > 1 ? 's' : ''}, ${videoStreams.length} Video Stream`,
     };
   }
@@ -464,6 +476,19 @@ export class CineMorphMediaParser {
           if (mType === 'hdlr') {
             // Handler type at offset 16
             handlerType = this.readFourCC(trakView, mOffset + 16);
+            if (!trackTitle && mOffset + 32 < mOffset + mSize && mOffset + 32 < trakView.byteLength) {
+              const nameLen = Math.min(mSize - 32, trakView.byteLength - (mOffset + 32));
+              if (nameLen > 0) {
+                const nameBytes = new Uint8Array(trakView.buffer, trakView.byteOffset + mOffset + 32, nameLen);
+                let rawStr = new TextDecoder('utf-8').decode(nameBytes).replace(/\0+$/, '').trim();
+                if (rawStr.charCodeAt(0) === rawStr.length - 1) {
+                  rawStr = rawStr.slice(1).trim();
+                }
+                if (rawStr && !/^(sound|video|subtitle|meta|hint|core media)\s*(handler)?$/i.test(rawStr)) {
+                  trackTitle = rawStr;
+                }
+              }
+            }
           }
 
           if (mType === 'minf') {
@@ -509,7 +534,7 @@ export class CineMorphMediaParser {
         channels,
         channelLayout,
         sampleRate,
-        isDefault: isDefault || streamIdx === 0,
+        isDefault,
         isPlayable: probe.isPlayable,
         unsupportedReason: probe.unsupportedReason,
       });
@@ -536,7 +561,7 @@ export class CineMorphMediaParser {
         isPlayable: probe.isPlayable,
         unsupportedReason: probe.unsupportedReason,
       });
-    } else if (handlerType === 'sbtl' || handlerType === 'text') {
+    } else if (handlerType === 'sbtl' || handlerType === 'text' || handlerType === 'subt') {
       const streamIdx = subtitleTracks.length;
       const label = trackTitle
         ? trackTitle
@@ -572,9 +597,21 @@ export class CineMorphMediaParser {
       const bType = this.readFourCC(view, cur + 4);
       if (bSize <= 0) break;
       if (bType === 'name' || bType === 'titl' || bType === '\u00A9nam') {
-        const textLen = bSize - 8;
-        const textBytes = new Uint8Array(view.buffer, view.byteOffset + cur + 8, textLen);
-        return new TextDecoder('utf-8').decode(textBytes).trim();
+        let textStart = cur + 8;
+        let textLen = bSize - 8;
+        // Check for nested 'data' atom (common in iTunes/Apple metadata: size(4), 'data'(4), flags(4), locale(4))
+        if (textLen >= 16 && this.readFourCC(view, textStart + 4) === 'data') {
+          textStart += 16;
+          textLen -= 16;
+        }
+        if (textLen > 0 && textStart + textLen <= view.byteLength) {
+          const textBytes = new Uint8Array(view.buffer, view.byteOffset + textStart, textLen);
+          const rawText = new TextDecoder('utf-8').decode(textBytes);
+          const cleanText = rawText.replace(/[\x00-\x1F\x7F-\x9F]/g, '').trim();
+          if (cleanText.length > 0) {
+            return cleanText;
+          }
+        }
       }
       cur += bSize;
     }
@@ -603,22 +640,30 @@ export class CineMorphMediaParser {
           const sType = this.readFourCC(view, sCur + 4);
           if (sSize <= 0) break;
 
-          if (sType === 'stsd' && sCur + 16 <= view.byteLength) {
-            const entryCodec = this.readFourCC(view, sCur + 16);
+          // stsd box: size(4), 'stsd'(4), version+flags(4), entry_count(4) -> 16 bytes
+          // Sample Entry 1 begins at sCur + 16:
+          // entry_size (4 bytes) at sCur + 16
+          // entry_format / FourCC (4 bytes) at sCur + 20
+          if (sType === 'stsd' && sCur + 24 <= view.byteLength) {
+            const entryCodec = this.readFourCC(view, sCur + 20);
             result.codec = this.formatCodecFourCC(entryCodec);
 
-            // Audio entry
-            if (sCur + 36 <= view.byteLength) {
-              const ch = view.getUint16(sCur + 32);
-              const sr = view.getUint16(sCur + 40);
+            // Audio sample entry:
+            // channels is at sCur + 16 + 24 = sCur + 40 (Uint16)
+            // samplerate is at sCur + 16 + 32 = sCur + 48 (Uint16 integer part of 16.16)
+            if (sCur + 50 <= view.byteLength) {
+              const ch = view.getUint16(sCur + 40);
+              const sr = view.getUint16(sCur + 48);
               if (ch > 0 && ch <= 8) result.channels = ch;
               if (sr > 0) result.sampleRate = sr;
             }
 
-            // Video entry
-            if (sCur + 44 <= view.byteLength) {
-              const w = view.getUint16(sCur + 36);
-              const h = view.getUint16(sCur + 38);
+            // Video sample entry:
+            // width is at sCur + 16 + 32 = sCur + 48 (Uint16)
+            // height is at sCur + 16 + 34 = sCur + 50 (Uint16)
+            if (sCur + 52 <= view.byteLength) {
+              const w = view.getUint16(sCur + 48);
+              const h = view.getUint16(sCur + 50);
               if (w > 0) result.width = w;
               if (h > 0) result.height = h;
             }
@@ -678,18 +723,40 @@ export class CineMorphMediaParser {
     const subtitleTracks: MediaSubtitleTrack[] = [];
 
     let uint8 = new Uint8Array(initialChunk);
-    let pos = 0;
-
     let tracksPos = this.findEbmlId(uint8, [0x16, 0x54, 0xae, 0x6b]);
+
+    // If Tracks element not found in first 4MB, check SeekHead (0x114D9B74)
     if (tracksPos === -1 && fileSizeBytes > initialChunk.byteLength) {
-      const expandedSize = Math.min(8 * 1024 * 1024, fileSizeBytes);
-      const expandedChunk = await this.readChunk(file, 0, expandedSize);
-      uint8 = new Uint8Array(expandedChunk);
-      tracksPos = this.findEbmlId(uint8, [0x16, 0x54, 0xae, 0x6b]);
+      const seekHeadPos = this.findEbmlId(uint8, [0x11, 0x4d, 0x9b, 0x74]);
+      if (seekHeadPos !== -1) {
+        const segPos = this.findEbmlId(uint8, [0x18, 0x53, 0x80, 0x67]);
+        const segVint = segPos !== -1 ? this.readEbmlVint(uint8, segPos + 4) : { length: 0, bytesRead: 0 };
+        const segDataStart = segPos !== -1 ? segPos + 4 + segVint.bytesRead : 0;
+
+        const tracksSeekOffset = this.findTracksOffsetFromSeekHead(uint8, seekHeadPos);
+        if (tracksSeekOffset > 0) {
+          const targetPos = segDataStart + tracksSeekOffset;
+          if (targetPos < fileSizeBytes) {
+            const tracksChunk = await this.readChunk(file, targetPos, Math.min(4 * 1024 * 1024, fileSizeBytes - targetPos));
+            uint8 = new Uint8Array(tracksChunk);
+            tracksPos = this.findEbmlId(uint8, [0x16, 0x54, 0xae, 0x6b]);
+          }
+        }
+      }
+
+      // Fallback expanded chunk scan up to 8MB
+      if (tracksPos === -1) {
+        const expandedSize = Math.min(8 * 1024 * 1024, fileSizeBytes);
+        const expandedChunk = await this.readChunk(file, 0, expandedSize);
+        uint8 = new Uint8Array(expandedChunk);
+        tracksPos = this.findEbmlId(uint8, [0x16, 0x54, 0xae, 0x6b]);
+      }
     }
 
+    const subtitleTrackMap = new Map<number, MediaSubtitleTrack>();
+
     if (tracksPos !== -1) {
-      pos = tracksPos + 4;
+      let pos = tracksPos + 4;
       const { length: tracksLength, bytesRead } = this.readEbmlVint(uint8, pos);
       pos += bytesRead;
 
@@ -698,16 +765,27 @@ export class CineMorphMediaParser {
         : uint8.length;
 
       while (pos < tracksEnd) {
-        if (uint8[pos] === 0xae) {
-          pos++;
-          const { length: entryLength, bytesRead: entryBytes } = this.readEbmlVint(uint8, pos);
-          pos += entryBytes;
+        const { id, bytesRead: idBytes } = this.readEbmlElementId(uint8, pos);
+        if (idBytes === 0) break;
+        pos += idBytes;
 
-          const entryEnd = Math.min(pos + entryLength, uint8.length);
-          this.parseMatroskaTrackEntry(uint8, pos, entryEnd, audioTracks, videoStreams, subtitleTracks);
-          pos = entryEnd;
-        } else {
-          pos++;
+        const { length: entryLength, bytesRead: entryBytes } = this.readEbmlVint(uint8, pos);
+        if (entryBytes === 0) break;
+        pos += entryBytes;
+
+        const entryEnd = Math.min(pos + entryLength, uint8.length);
+        if (id === 0xae) { // TrackEntry (0xAE)
+          this.parseMatroskaTrackEntry(uint8, pos, entryEnd, audioTracks, videoStreams, subtitleTracks, subtitleTrackMap);
+        }
+        pos = entryEnd;
+      }
+    }
+
+    if (subtitleTracks.length > 0) {
+      this.scanMatroskaSubtitleCues(uint8, subtitleTrackMap);
+      for (const sub of subtitleTracks) {
+        if (sub.cues && sub.cues.length > 0) {
+          sub.cues.sort((a, b) => a.startTime - b.startTime);
         }
       }
     }
@@ -744,8 +822,20 @@ export class CineMorphMediaParser {
       });
     }
 
-    const defaultAudio = audioTracks.find((t) => t.isDefault && t.isPlayable)?.id || audioTracks[0].id;
-    const defaultVideo = videoStreams.find((v) => v.isDefault && v.isPlayable)?.id || videoStreams[0].id;
+    if (!audioTracks.some((t) => t.isDefault) && audioTracks.length > 0) {
+      const firstPlayable = audioTracks.find((t) => t.isPlayable) || audioTracks[0];
+      if (firstPlayable) firstPlayable.isDefault = true;
+    }
+    if (!videoStreams.some((v) => v.isDefault) && videoStreams.length > 0) {
+      const firstPlayable = videoStreams.find((v) => v.isPlayable) || videoStreams[0];
+      if (firstPlayable) firstPlayable.isDefault = true;
+    }
+    if (!subtitleTracks.some((s) => s.isDefault) && subtitleTracks.length > 0) {
+      subtitleTracks[0].isDefault = true;
+    }
+
+    const defaultAudio = audioTracks.find((t) => t.isDefault && t.isPlayable)?.id || audioTracks[0]?.id || '';
+    const defaultVideo = videoStreams.find((v) => v.isDefault && v.isPlayable)?.id || videoStreams[0]?.id || '';
 
     return {
       containerFormat: 'Matroska / WebM (EBML)',
@@ -758,9 +848,63 @@ export class CineMorphMediaParser {
       defaultAudioTrackId: defaultAudio,
       defaultVideoStreamId: defaultVideo,
       isContainerSupported: true,
-      isPlaybackSupported: audioTracks.some((t) => t.isPlayable) && videoStreams.some((v) => v.isPlayable),
+      isPlaybackSupported: (audioTracks.length === 0 || audioTracks.some((t) => t.isPlayable)) && (videoStreams.length === 0 || videoStreams.some((v) => v.isPlayable)),
       compatibilitySummary: `${audioTracks.length} Audio Track${audioTracks.length > 1 ? 's' : ''}, ${videoStreams.length} Video Stream`,
     };
+  }
+
+  private findTracksOffsetFromSeekHead(bytes: Uint8Array, seekHeadOffset: number): number {
+    let p = seekHeadOffset + 4;
+    const { length: shLen, bytesRead: shBr } = this.readEbmlVint(bytes, p);
+    if (shBr === 0) return 0;
+    p += shBr;
+    const shEnd = Math.min(p + shLen, bytes.length);
+
+    while (p < shEnd) {
+      const { id, bytesRead: idBytes } = this.readEbmlElementId(bytes, p);
+      if (idBytes === 0) break;
+      p += idBytes;
+      const { length: len, bytesRead: lenBytes } = this.readEbmlVint(bytes, p);
+      if (lenBytes === 0) break;
+      p += lenBytes;
+      const entryEnd = Math.min(p + len, shEnd);
+
+      if (id === 0x4dbb) { // Seek element (0x4DBB)
+        let sPos = p;
+        let isTracks = false;
+        let seekPosition = 0;
+
+        while (sPos < entryEnd) {
+          const { id: sId, bytesRead: sIdBytes } = this.readEbmlElementId(bytes, sPos);
+          if (sIdBytes === 0) break;
+          sPos += sIdBytes;
+          const { length: sLen, bytesRead: sLenBytes } = this.readEbmlVint(bytes, sPos);
+          if (sLenBytes === 0) break;
+          sPos += sLenBytes;
+          const sDataEnd = Math.min(sPos + sLen, entryEnd);
+
+          if (sId === 0x53ab) { // SeekID (0x53AB)
+            // Look for 0x1654AE6B (Tracks)
+            if (sLen === 4 &&
+                bytes[sPos] === 0x16 &&
+                bytes[sPos + 1] === 0x54 &&
+                bytes[sPos + 2] === 0xae &&
+                bytes[sPos + 3] === 0x6b) {
+              isTracks = true;
+            }
+          } else if (sId === 0x53ac) { // SeekPosition (0x53AC)
+            seekPosition = this.readEbmlUint(bytes, sPos, sLen);
+          }
+          sPos = sDataEnd;
+        }
+
+        if (isTracks && seekPosition > 0) {
+          return seekPosition;
+        }
+      }
+      p = entryEnd;
+    }
+    return 0;
   }
 
   private parseMatroskaTrackEntry(
@@ -769,9 +913,11 @@ export class CineMorphMediaParser {
     end: number,
     audioTracks: MediaAudioTrack[],
     videoStreams: MediaVideoStream[],
-    subtitleTracks: MediaSubtitleTrack[]
+    subtitleTracks: MediaSubtitleTrack[],
+    subtitleTrackMap?: Map<number, MediaSubtitleTrack>
   ) {
     let trackType = 0; // 1 = video, 2 = audio, 17 = subtitle
+    let trackNumber = 1;
     let trackName = '';
     let languageCode = 'und';
     let codecId = '';
@@ -783,78 +929,68 @@ export class CineMorphMediaParser {
 
     let p = start;
     while (p < end) {
-      const idByte = bytes[p++];
-      if (idByte === 0x83) { // TrackType (0x83)
-        const { length: len, bytesRead: br } = this.readEbmlVint(bytes, p);
-        p += br;
+      const { id, bytesRead: idBytes } = this.readEbmlElementId(bytes, p);
+      if (idBytes === 0) break;
+      p += idBytes;
+
+      const { length: len, bytesRead: lenBytes } = this.readEbmlVint(bytes, p);
+      if (lenBytes === 0) break;
+      p += lenBytes;
+
+      const dataEnd = Math.min(p + len, end);
+
+      if (id === 0xd7) { // TrackNumber (0xD7)
+        trackNumber = this.readEbmlUint(bytes, p, len) || 1;
+      } else if (id === 0x83) { // TrackType (0x83)
         trackType = bytes[p];
-        p += len;
-      } else if (idByte === 0x86) { // CodecID (0x86)
-        const { length: len, bytesRead: br } = this.readEbmlVint(bytes, p);
-        p += br;
-        codecId = new TextDecoder('utf-8').decode(bytes.subarray(p, p + len));
-        p += len;
-      } else if (idByte === 0x53 && bytes[p] === 0x6e) { // Name (0x536E)
-        p++;
-        const { length: len, bytesRead: br } = this.readEbmlVint(bytes, p);
-        p += br;
-        trackName = new TextDecoder('utf-8').decode(bytes.subarray(p, p + len));
-        p += len;
-      } else if (idByte === 0x22 && bytes[p] === 0xb5 && (bytes[p + 1] === 0x9c || bytes[p + 1] === 0x9d)) { // Language (0x22B59C) or LanguageBCP47 (0x22B59D)
-        p += 2;
-        const { length: len, bytesRead: br } = this.readEbmlVint(bytes, p);
-        p += br;
-        languageCode = new TextDecoder('utf-8').decode(bytes.subarray(p, p + len)).trim();
-        p += len;
-      } else if (idByte === 0x88) { // FlagDefault (0x88)
-        const { length: len, bytesRead: br } = this.readEbmlVint(bytes, p);
-        p += br;
+      } else if (id === 0x86) { // CodecID (0x86)
+        codecId = new TextDecoder('utf-8').decode(bytes.subarray(p, dataEnd));
+      } else if (id === 0x536e) { // Name (0x536E)
+        trackName = new TextDecoder('utf-8').decode(bytes.subarray(p, dataEnd)).trim();
+      } else if (id === 0x22b59c || id === 0x22b59d) { // Language (0x22B59C) or LanguageBCP47 (0x22B59D)
+        languageCode = new TextDecoder('utf-8').decode(bytes.subarray(p, dataEnd)).trim();
+      } else if (id === 0x88) { // FlagDefault (0x88)
         isDefault = bytes[p] === 1;
-        p += len;
-      } else if (idByte === 0xe1) { // Audio settings (0xE1)
-        const { length: len, bytesRead: br } = this.readEbmlVint(bytes, p);
-        p += br;
-        const aEnd = p + len;
-        while (p < aEnd) {
-          if (bytes[p] === 0x9f) { // Channels (0x9F)
-            p++;
-            const { length: cLen, bytesRead: cBr } = this.readEbmlVint(bytes, p);
-            p += cBr;
-            channels = bytes[p];
-            p += cLen;
-          } else {
-            p++;
+      } else if (id === 0xe1) { // Audio settings (0xE1)
+        let aPos = p;
+        while (aPos < dataEnd) {
+          const { id: aId, bytesRead: aIdBytes } = this.readEbmlElementId(bytes, aPos);
+          if (aIdBytes === 0) break;
+          aPos += aIdBytes;
+          const { length: aLen, bytesRead: aLenBytes } = this.readEbmlVint(bytes, aPos);
+          if (aLenBytes === 0) break;
+          aPos += aLenBytes;
+          const aDataEnd = Math.min(aPos + aLen, dataEnd);
+
+          if (aId === 0x9f) { // Channels (0x9F)
+            channels = this.readEbmlUint(bytes, aPos, aLen) || 2;
+          } else if (aId === 0xb5) { // SamplingFrequency (0xB5)
+            const freq = this.readEbmlFloat(bytes, aPos, aLen);
+            if (freq > 0) sampleRate = Math.round(freq);
           }
+          aPos = aDataEnd;
         }
-      } else if (idByte === 0xe0) { // Video settings (0xE0)
-        const { length: len, bytesRead: br } = this.readEbmlVint(bytes, p);
-        p += br;
-        const vEnd = p + len;
-        while (p < vEnd) {
-          if (bytes[p] === 0xb0) { // PixelWidth (0xB0)
-            p++;
-            const { length: wLen, bytesRead: wBr } = this.readEbmlVint(bytes, p);
-            p += wBr;
-            width = this.readEbmlUint(bytes, p, wLen);
-            p += wLen;
-          } else if (bytes[p] === 0xba) { // PixelHeight (0xBA)
-            p++;
-            const { length: hLen, bytesRead: hBr } = this.readEbmlVint(bytes, p);
-            p += hBr;
-            height = this.readEbmlUint(bytes, p, hLen);
-            p += hLen;
-          } else {
-            p++;
+      } else if (id === 0xe0) { // Video settings (0xE0)
+        let vPos = p;
+        while (vPos < dataEnd) {
+          const { id: vId, bytesRead: vIdBytes } = this.readEbmlElementId(bytes, vPos);
+          if (vIdBytes === 0) break;
+          vPos += vIdBytes;
+          const { length: vLen, bytesRead: vLenBytes } = this.readEbmlVint(bytes, vPos);
+          if (vLenBytes === 0) break;
+          vPos += vLenBytes;
+          const vDataEnd = Math.min(vPos + vLen, dataEnd);
+
+          if (vId === 0xb0) { // PixelWidth (0xB0)
+            width = this.readEbmlUint(bytes, vPos, vLen) || 1920;
+          } else if (vId === 0xba) { // PixelHeight (0xBA)
+            height = this.readEbmlUint(bytes, vPos, vLen) || 1080;
           }
-        }
-      } else {
-        const { length: len, bytesRead: br } = this.readEbmlVint(bytes, p);
-        if (br > 0 && len > 0 && p + br + len <= end) {
-          p += br + len;
-        } else {
-          p++;
+          vPos = vDataEnd;
         }
       }
+
+      p = dataEnd;
     }
 
     const languageName = resolveLanguageName(languageCode);
@@ -882,7 +1018,7 @@ export class CineMorphMediaParser {
         channels,
         channelLayout,
         sampleRate,
-        isDefault: isDefault || streamIdx === 0,
+        isDefault,
         isPlayable: probe.isPlayable,
         unsupportedReason: probe.unsupportedReason,
       });
@@ -904,7 +1040,7 @@ export class CineMorphMediaParser {
         height,
         resolution: `${width}x${height}`,
         aspectRatio,
-        isDefault: isDefault || streamIdx === 0,
+        isDefault,
         isPlayable: probe.isPlayable,
         unsupportedReason: probe.unsupportedReason,
       });
@@ -916,7 +1052,7 @@ export class CineMorphMediaParser {
         ? `${languageName} Subtitles`
         : `Subtitle Track #${streamIdx + 1}`;
 
-      subtitleTracks.push({
+      const subTrack: MediaSubtitleTrack = {
         id: `sub-${streamIdx}`,
         streamIndex: streamIdx,
         label,
@@ -925,6 +1061,128 @@ export class CineMorphMediaParser {
         format: displayCodec || 'SubRip (SRT)',
         isDefault,
         isForced: false,
+        cues: [],
+      };
+      subtitleTracks.push(subTrack);
+      if (subtitleTrackMap) {
+        subtitleTrackMap.set(trackNumber, subTrack);
+      }
+    }
+  }
+
+  private scanMatroskaSubtitleCues(
+    bytes: Uint8Array,
+    subtitleTrackMap: Map<number, MediaSubtitleTrack>,
+    timecodeScaleNs: number = 1000000
+  ) {
+    let p = 0;
+    while (p + 4 < bytes.length) {
+      // Look for Cluster element ID: 0x1F43B675
+      if (bytes[p] === 0x1f && bytes[p + 1] === 0x43 && bytes[p + 2] === 0xb6 && bytes[p + 3] === 0x75) {
+        p += 4;
+        const { length: clusterLen, bytesRead: cBr } = this.readEbmlVint(bytes, p);
+        if (cBr === 0) break;
+        p += cBr;
+        const clusterEnd = clusterLen > 0 ? Math.min(p + clusterLen, bytes.length) : bytes.length;
+
+        let clusterTimecode = 0;
+
+        while (p < clusterEnd) {
+          const { id, bytesRead: idBytes } = this.readEbmlElementId(bytes, p);
+          if (idBytes === 0) break;
+          p += idBytes;
+          const { length: elLen, bytesRead: elBr } = this.readEbmlVint(bytes, p);
+          if (elBr === 0) break;
+          p += elBr;
+          const elEnd = Math.min(p + elLen, clusterEnd);
+
+          if (id === 0xe7) { // Timestamp / Timecode (0xE7)
+            clusterTimecode = this.readEbmlUint(bytes, p, elLen);
+          } else if (id === 0xa3) { // SimpleBlock (0xA3)
+            this.parseBlockPayload(bytes, p, elEnd, clusterTimecode, timecodeScaleNs, subtitleTrackMap, 3.5);
+          } else if (id === 0xa0) { // BlockGroup (0xA0)
+            let bgPos = p;
+            let blockDurationMs: number | null = null;
+            let blockStart = 0;
+            let blockEnd = 0;
+
+            while (bgPos < elEnd) {
+              const { id: bgId, bytesRead: bgIdBytes } = this.readEbmlElementId(bytes, bgPos);
+              if (bgIdBytes === 0) break;
+              bgPos += bgIdBytes;
+              const { length: bgLen, bytesRead: bgLenBytes } = this.readEbmlVint(bytes, bgPos);
+              if (bgLenBytes === 0) break;
+              bgPos += bgLenBytes;
+              const subEnd = Math.min(bgPos + bgLen, elEnd);
+
+              if (bgId === 0x9b) { // BlockDuration (0x9B)
+                blockDurationMs = (this.readEbmlUint(bytes, bgPos, bgLen) * timecodeScaleNs) / 1e6;
+              } else if (bgId === 0xa1) { // Block (0xA1)
+                blockStart = bgPos;
+                blockEnd = subEnd;
+              }
+              bgPos = subEnd;
+            }
+
+            if (blockStart > 0 && blockEnd > blockStart) {
+              const defaultDur = blockDurationMs !== null ? blockDurationMs / 1000 : 3.5;
+              this.parseBlockPayload(bytes, blockStart, blockEnd, clusterTimecode, timecodeScaleNs, subtitleTrackMap, defaultDur);
+            }
+          }
+
+          p = elEnd;
+        }
+      } else {
+        p++;
+      }
+    }
+  }
+
+  private parseBlockPayload(
+    bytes: Uint8Array,
+    start: number,
+    end: number,
+    clusterTimecode: number,
+    timecodeScaleNs: number,
+    subtitleTrackMap: Map<number, MediaSubtitleTrack>,
+    durationSec: number
+  ) {
+    if (start >= end) return;
+    const { length: trackNum, bytesRead: trBr } = this.readEbmlVint(bytes, start);
+    if (trBr === 0) return;
+    const payloadPos = start + trBr;
+    if (payloadPos + 3 > end) return;
+
+    const subTrack = subtitleTrackMap.get(trackNum);
+    if (!subTrack) return;
+
+    // Relative timecode (int16 signed big-endian)
+    const view = new DataView(bytes.buffer, bytes.byteOffset + payloadPos, 2);
+    const relTimecode = view.getInt16(0, false);
+    const dataStart = payloadPos + 3; // skip 2 bytes timecode + 1 byte flags
+    if (dataStart >= end) return;
+
+    const startTimeSec = Math.max(0, ((clusterTimecode + relTimecode) * timecodeScaleNs) / 1e9);
+    const endTimeSec = startTimeSec + Math.max(0.5, durationSec);
+
+    const rawBytes = bytes.subarray(dataStart, end);
+    let text = new TextDecoder('utf-8').decode(rawBytes);
+
+    if (subTrack.format.includes('ASS') || subTrack.format.includes('SSA')) {
+      const parts = text.split(',');
+      if (parts.length >= 9) {
+        text = parts.slice(8).join(',');
+      }
+    }
+
+    text = text.replace(/\\N/gi, '\n').replace(/\\n/gi, '\n').replace(/\{[^}]+\}/g, '').trim();
+
+    if (text.length > 0) {
+      if (!subTrack.cues) subTrack.cues = [];
+      subTrack.cues.push({
+        startTime: startTimeSec,
+        endTime: endTimeSec,
+        text,
       });
     }
   }
@@ -935,16 +1193,53 @@ export class CineMorphMediaParser {
     if (norm.includes('AC3') && !norm.includes('EAC3')) return 'AC-3';
     if (norm.includes('EAC3')) return 'E-AC-3';
     if (norm.includes('DTS')) return 'DTS';
+    if (norm.includes('TRUEHD')) return 'TrueHD';
     if (norm.includes('FLAC')) return 'FLAC';
     if (norm.includes('OPUS')) return 'Opus';
     if (norm.includes('VORBIS')) return 'Vorbis';
     if (norm.includes('PCM')) return 'PCM';
-    if (norm.includes('AVC')) return 'H.264 / AVC';
-    if (norm.includes('HEVC')) return 'H.265 / HEVC';
+    if (norm.includes('AVC') || norm.includes('H264')) return 'H.264 / AVC';
+    if (norm.includes('HEVC') || norm.includes('H265')) return 'H.265 / HEVC';
     if (norm.includes('VP8')) return 'VP8';
     if (norm.includes('VP9')) return 'VP9';
     if (norm.includes('AV1')) return 'AV1';
-    return codecId.replace(/^[AV]_\w+\//, '').replace(/^[AV]_/, '');
+
+    // Subtitle formats
+    if (norm.includes('UTF8') || norm.includes('SRT')) return 'SubRip (SRT)';
+    if (norm.includes('ASS')) return 'Advanced SubStation (ASS)';
+    if (norm.includes('SSA')) return 'SubStation Alpha (SSA)';
+    if (norm.includes('WEBVTT')) return 'WebVTT';
+    if (norm.includes('VOBSUB')) return 'VobSub DVD';
+    if (norm.includes('HDMV') || norm.includes('PGS')) return 'Blu-ray PGS';
+
+    return codecId.replace(/^[AVS]_\w+\//, '').replace(/^[AVS]_/, '');
+  }
+
+  private readEbmlElementId(bytes: Uint8Array, offset: number): { id: number; bytesRead: number } {
+    if (offset >= bytes.length) return { id: 0, bytesRead: 0 };
+    const first = bytes[offset];
+    let numBytes = 1;
+    let mask = 0x80;
+    while (numBytes <= 4 && (first & mask) === 0) {
+      mask >>= 1;
+      numBytes++;
+    }
+    if (numBytes > 4 || offset + numBytes > bytes.length) {
+      return { id: 0, bytesRead: 1 };
+    }
+    let id = 0;
+    for (let i = 0; i < numBytes; i++) {
+      id = (id << 8) | bytes[offset + i];
+    }
+    return { id: id >>> 0, bytesRead: numBytes };
+  }
+
+  private readEbmlFloat(bytes: Uint8Array, offset: number, length: number): number {
+    if (offset + length > bytes.length) return 0;
+    const view = new DataView(bytes.buffer, bytes.byteOffset + offset, length);
+    if (length === 4) return view.getFloat32(0);
+    if (length === 8) return view.getFloat64(0);
+    return 0;
   }
 
   private findEbmlId(bytes: Uint8Array, pattern: number[]): number {
