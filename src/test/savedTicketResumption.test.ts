@@ -103,4 +103,59 @@ describe('CineMorph Session Ticket — Ingest & Session Lifecycle', () => {
     expect(ticket?.seatAssignment).toBeDefined();
     expect(ticket?.seatAssignment).toMatch(/^ROW [A-H] • SEAT \d+$/);
   });
+
+  it('T-SESSION-06: canonical sessionId is preserved across ticket and activeSession', async () => {
+    const customId = 'local-test-canonical-123';
+    await useTicketStore.getState().trigger10sPrintAnimation({
+      sessionId: customId,
+      title: 'Blade Runner 2049',
+      source: 'blob:http://localhost/br2049',
+      isLocal: true,
+      posterUrl: '/cinemorph_artwork.png',
+    });
+
+    const ticket = useTicketStore.getState().activeTicket;
+    const session = useCineMorphStore.getState().activeSession;
+
+    expect(ticket?.ticketId).toBe(customId);
+    expect(session?.sessionId).toBe(customId);
+    expect(session?.title).toBe('Blade Runner 2049');
+    expect(session?.sourceUrl).toBe('blob:http://localhost/br2049');
+    expect(session?.isLocal).toBe(true);
+    expect(session?.posterUrl).toBe('/cinemorph_artwork.png');
+  });
+
+  it('T-SESSION-07: activeSession is the single source of truth and cleared on clearActiveTicket', async () => {
+    await useTicketStore.getState().trigger10sPrintAnimation({
+      title: 'Arrival',
+      source: 'blob:http://localhost/arrival',
+      isLocal: true,
+    });
+
+    expect(useCineMorphStore.getState().activeSession).not.toBeNull();
+    expect(useTicketStore.getState().activeTicket).not.toBeNull();
+
+    useTicketStore.getState().clearActiveTicket();
+
+    expect(useCineMorphStore.getState().activeSession).toBeNull();
+    expect(useTicketStore.getState().activeTicket).toBeNull();
+  });
+
+  it('T-SESSION-08: updateActiveSession updates session attributes in-place', async () => {
+    await useTicketStore.getState().trigger10sPrintAnimation({
+      title: 'Solaris',
+      source: 'blob:http://localhost/solaris',
+      isLocal: true,
+    });
+
+    useCineMorphStore.getState().updateActiveSession({
+      posterUrl: 'data:image/jpeg;base64,updated_poster_data',
+      aspectRatio: '1.43:1',
+    });
+
+    const session = useCineMorphStore.getState().activeSession;
+    expect(session?.posterUrl).toBe('data:image/jpeg;base64,updated_poster_data');
+    expect(session?.aspectRatio).toBe('1.43:1');
+    expect(session?.title).toBe('Solaris');
+  });
 });

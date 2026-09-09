@@ -26,6 +26,7 @@ export interface TicketStoreState {
   setActiveTicket: (ticket: MovieTicket | null) => void;
   clearActiveTicket: () => void;
   trigger10sPrintAnimation: (movie: {
+    sessionId?: string;
     title: string;
     source: string;
     isLocal: boolean;
@@ -63,6 +64,25 @@ export const useTicketStore = create<TicketStoreState>((set, get) => ({
       activeTicket: ticket,
       tickets: ticket ? [ticket] : [],
     });
+    if (ticket) {
+      useCineMorphStore.getState().setActiveSession({
+        sessionId: ticket.ticketId,
+        title: ticket.movieTitle,
+        sourceUrl: ticket.sourceUrl,
+        isLocal: ticket.isLocal,
+        aspectRatio: ticket.aspectRatio,
+        framingRule: ticket.framingRule,
+        durationSeconds: ticket.durationSeconds,
+        timestampSeconds: ticket.timestampSeconds,
+        seatAssignment: ticket.seatAssignment,
+        ticketId: ticket.ticketId,
+        createdAt: ticket.printedAt,
+        posterUrl: ticket.thumbnailDataUrl,
+        thumbnailUrl: ticket.thumbnailDataUrl,
+      });
+    } else {
+      useCineMorphStore.getState().clearActiveSession();
+    }
   },
 
   clearActiveTicket: () => {
@@ -72,9 +92,11 @@ export const useTicketStore = create<TicketStoreState>((set, get) => ({
       isPrintingAnimationActive: false,
       animationCountdownSeconds: 0,
     });
+    useCineMorphStore.getState().clearActiveSession();
   },
 
   trigger10sPrintAnimation: async (movie: {
+    sessionId?: string;
     title: string;
     source: string;
     isLocal: boolean;
@@ -85,7 +107,7 @@ export const useTicketStore = create<TicketStoreState>((set, get) => ({
     const cineMorph = useCineMorphStore.getState();
     let title = movie.title;
     let durationSeconds = 0;
-    let resolvedPosterUrl = movie.posterUrl || movie.thumbnailUrl;
+    let resolvedPosterUrl = movie.posterUrl || movie.thumbnailUrl || '/cinemorph_artwork.png';
 
     // Set initial staging state
     set({
@@ -103,7 +125,7 @@ export const useTicketStore = create<TicketStoreState>((set, get) => ({
             if (videos[0].duration) {
               durationSeconds = parseISO8601ToSeconds(videos[0].duration);
             }
-            if (!resolvedPosterUrl && videos[0].thumbnails) {
+            if (!movie.posterUrl && videos[0].thumbnails) {
               resolvedPosterUrl = videos[0].thumbnails.high || videos[0].thumbnails.medium || videos[0].thumbnails.default;
             }
           }
@@ -118,9 +140,12 @@ export const useTicketStore = create<TicketStoreState>((set, get) => ({
       return;
     }
 
+    const canonicalTicketId = movie.sessionId || `ticket_session_${Date.now()}`;
+    const seatAssignment = generateSeatAssignment();
+
     // Create temporary session ticket (in-memory only)
     const sessionTicket: MovieTicket = {
-      ticketId: `ticket_session_${Date.now()}`,
+      ticketId: canonicalTicketId,
       movieTitle: title,
       sourceUrl: movie.source,
       isLocal: movie.isLocal,
@@ -129,7 +154,7 @@ export const useTicketStore = create<TicketStoreState>((set, get) => ({
       timestampSeconds: 0,
       durationSeconds: durationSeconds,
       printedAt: Date.now(),
-      seatAssignment: generateSeatAssignment(),
+      seatAssignment,
       thumbnailDataUrl: resolvedPosterUrl,
     };
 
@@ -138,6 +163,24 @@ export const useTicketStore = create<TicketStoreState>((set, get) => ({
       animationCountdownSeconds: 0,
       activeTicket: sessionTicket,
       tickets: [sessionTicket],
+    });
+
+    // Create unified CineMorphScreeningSession as single source of truth
+    useCineMorphStore.getState().setActiveSession({
+      sessionId: canonicalTicketId,
+      title,
+      sourceUrl: movie.source,
+      isLocal: movie.isLocal,
+      file: movie.file,
+      posterUrl: resolvedPosterUrl,
+      thumbnailUrl: resolvedPosterUrl,
+      aspectRatio: cineMorph.aspectRatio,
+      framingRule: cineMorph.framingRule,
+      durationSeconds,
+      timestampSeconds: 0,
+      seatAssignment,
+      ticketId: canonicalTicketId,
+      createdAt: sessionTicket.printedAt,
     });
 
     // Load media into CineMorph player (staged, but playback paused until theater entry)
@@ -151,28 +194,33 @@ export const useTicketStore = create<TicketStoreState>((set, get) => ({
     });
     cineMorph.setIsPlaying(true);
 
-    // Resolve and preload high-quality poster artwork in the background
-    posterService.resolvePoster({
-      sourceUrl: movie.source,
-      isLocal: movie.isLocal,
-      file: movie.file,
-      title: title,
-      thumbnailUrl: movie.thumbnailUrl,
-      posterUrl: movie.posterUrl || resolvedPosterUrl,
-      duration: durationSeconds,
-    }).then((res) => {
-      const currentTicket = get().activeTicket;
-      if (currentTicket && currentTicket.ticketId === sessionTicket.ticketId) {
-        const updated = {
-          ...currentTicket,
-          thumbnailDataUrl: res.url,
-        };
-        set({
-          activeTicket: updated,
-          tickets: [updated],
-        });
-      }
-    }).catch(() => {});
+    // If remote, resolve poster in the background if not already high-res
+    if (!movie.isLocal) {
+      posterService.resolvePoster({
+        sourceUrl: movie.source,
+        isLocal: movie.isLocal,
+        title: title,
+        thumbnailUrl: movie.thumbnailUrl,
+        posterUrl: movie.posterUrl || resolvedPosterUrl,
+        duration: durationSeconds,
+      }).then((res) => {
+        const currentTicket = get().activeTicket;
+        if (currentTicket && currentTicket.ticketId === sessionTicket.ticketId) {
+          const updated = {
+            ...currentTicket,
+            thumbnailDataUrl: res.url,
+          };
+          set({
+            activeTicket: updated,
+            tickets: [updated],
+          });
+          useCineMorphStore.getState().updateActiveSession({
+            posterUrl: res.url,
+            thumbnailUrl: res.url,
+          });
+        }
+      }).catch(() => {});
+    }
   },
 
   cancelPrintAnimation: () => {

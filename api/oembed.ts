@@ -23,7 +23,9 @@ export default async function handler(req: any, res: any) {
         description: `Official video produced by ${data.author_name || 'YouTube Creator'}. Streaming live in CineMorph AI.`,
         channelId: data.author_url ? data.author_url.split('/').pop() : 'UC_creator',
         channelTitle: data.author_name || 'YouTube Creator',
-        publishedAt: new Date().toISOString(),
+        channelLogo: `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150`,
+        subscriberCount: '1250000',
+        publishedAt: '3 days ago',
         thumbnails: {
           medium: `https://i.ytimg.com/vi/${id}/mqdefault.jpg`,
           high: `https://i.ytimg.com/vi/${id}/hqdefault.jpg`,

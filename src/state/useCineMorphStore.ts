@@ -14,10 +14,13 @@ export interface CineMorphVideoSource {
   duration?: number;
 }
 
+import { CineMorphScreeningSession } from '../types';
+
 export interface CineMorphStoreState {
   aspectRatio: AspectRatioMode;
   isOffline: boolean;
   videoSource: CineMorphVideoSource | null;
+  activeSession: CineMorphScreeningSession | null;
   framingRule: FramingRuleMode;
   diagnosticOverlayVisible: boolean;
   panOffset: { x: number; y: number }; // Normalized offset [-1, 1]
@@ -27,6 +30,9 @@ export interface CineMorphStoreState {
   setAspectRatio: (ratio: AspectRatioMode) => void;
   setOfflineStatus: (offline: boolean) => void;
   setVideoSource: (source: CineMorphVideoSource | null) => void;
+  setActiveSession: (session: CineMorphScreeningSession | null) => void;
+  updateActiveSession: (updates: Partial<CineMorphScreeningSession>) => void;
+  clearActiveSession: () => void;
   setFramingRule: (rule: FramingRuleMode) => void;
   setPanOffset: (x: number, y: number) => void;
   setPlaybackTimestamp: (timestamp: number) => void;
@@ -42,6 +48,7 @@ export const useCineMorphStore = create<CineMorphStoreState>()(
       aspectRatio: 'original',
       isOffline: false,
       videoSource: null,
+      activeSession: null,
       framingRule: 'auto',
       diagnosticOverlayVisible: false,
       panOffset: { x: 0, y: 0 },
@@ -61,6 +68,15 @@ export const useCineMorphStore = create<CineMorphStoreState>()(
         })),
 
       setVideoSource: (source: CineMorphVideoSource | null) => set({ videoSource: source }),
+
+      setActiveSession: (session: CineMorphScreeningSession | null) => set({ activeSession: session }),
+
+      updateActiveSession: (updates: Partial<CineMorphScreeningSession>) =>
+        set((state) => ({
+          activeSession: state.activeSession ? { ...state.activeSession, ...updates } : null,
+        })),
+
+      clearActiveSession: () => set({ activeSession: null }),
 
       setFramingRule: (rule: FramingRuleMode) => {
         const validRules: FramingRuleMode[] = ['rule_of_thirds', 'leading_lines', 'frame_in_frame', 'screen_direction', 'auto'];

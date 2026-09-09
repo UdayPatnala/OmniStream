@@ -315,12 +315,16 @@ export class CineMorphMediaParser {
         tOffset += bSize;
       }
 
-      // If box traversal didn't align, perform byte-level scan for 'moov' tag
+      // If box traversal didn't align, perform fast native scan for 'moov' tag
       if (!moovBuffer) {
         const uint8Tail = new Uint8Array(tailChunk);
-        for (let i = 0; i <= uint8Tail.length - 8; i++) {
+        let i = 0;
+        const max = uint8Tail.length - 8;
+        while (i <= max) {
+          const mIdx = uint8Tail.indexOf(0x6d, i + 4);
+          if (mIdx === -1 || mIdx - 4 > max) break;
+          i = mIdx - 4;
           if (
-            uint8Tail[i + 4] === 0x6d && // 'm'
             uint8Tail[i + 5] === 0x6f && // 'o'
             uint8Tail[i + 6] === 0x6f && // 'o'
             uint8Tail[i + 7] === 0x76    // 'v'
@@ -328,6 +332,7 @@ export class CineMorphMediaParser {
             moovBuffer = tailChunk.slice(i);
             break;
           }
+          i++;
         }
       }
     }
@@ -1076,9 +1081,17 @@ export class CineMorphMediaParser {
     timecodeScaleNs: number = 1000000
   ) {
     let p = 0;
-    while (p + 4 < bytes.length) {
-      // Look for Cluster element ID: 0x1F43B675
-      if (bytes[p] === 0x1f && bytes[p + 1] === 0x43 && bytes[p + 2] === 0xb6 && bytes[p + 3] === 0x75) {
+    // Fast vector scan for Cluster element ID: 0x1F43B675
+    // Probe up to 2MB or first 200 cues to keep UI completely non-blocking
+    const maxScan = Math.min(bytes.length - 4, 2 * 1024 * 1024);
+    let totalCuesParsed = 0;
+
+    while (p <= maxScan && totalCuesParsed < 200) {
+      p = bytes.indexOf(0x1f, p);
+      if (p === -1 || p > maxScan) break;
+
+      // Check remaining 3 bytes of 0x1F43B675
+      if (bytes[p + 1] === 0x43 && bytes[p + 2] === 0xb6 && bytes[p + 3] === 0x75) {
         p += 4;
         const { length: clusterLen, bytesRead: cBr } = this.readEbmlVint(bytes, p);
         if (cBr === 0) break;
@@ -1087,7 +1100,7 @@ export class CineMorphMediaParser {
 
         let clusterTimecode = 0;
 
-        while (p < clusterEnd) {
+        while (p < clusterEnd && totalCuesParsed < 200) {
           const { id, bytesRead: idBytes } = this.readEbmlElementId(bytes, p);
           if (idBytes === 0) break;
           p += idBytes;
@@ -1100,6 +1113,7 @@ export class CineMorphMediaParser {
             clusterTimecode = this.readEbmlUint(bytes, p, elLen);
           } else if (id === 0xa3) { // SimpleBlock (0xA3)
             this.parseBlockPayload(bytes, p, elEnd, clusterTimecode, timecodeScaleNs, subtitleTrackMap, 3.5);
+            totalCuesParsed++;
           } else if (id === 0xa0) { // BlockGroup (0xA0)
             let bgPos = p;
             let blockDurationMs: number | null = null;
@@ -1127,6 +1141,7 @@ export class CineMorphMediaParser {
             if (blockStart > 0 && blockEnd > blockStart) {
               const defaultDur = blockDurationMs !== null ? blockDurationMs / 1000 : 3.5;
               this.parseBlockPayload(bytes, blockStart, blockEnd, clusterTimecode, timecodeScaleNs, subtitleTrackMap, defaultDur);
+              totalCuesParsed++;
             }
           }
 
@@ -1243,15 +1258,25 @@ export class CineMorphMediaParser {
   }
 
   private findEbmlId(bytes: Uint8Array, pattern: number[]): number {
-    for (let i = 0; i <= bytes.length - pattern.length; i++) {
+    if (pattern.length === 0) return -1;
+    const first = pattern[0];
+    const patLen = pattern.length;
+    const max = bytes.length - patLen;
+    let i = 0;
+
+    while (i <= max) {
+      i = bytes.indexOf(first, i);
+      if (i === -1 || i > max) return -1;
+
       let match = true;
-      for (let j = 0; j < pattern.length; j++) {
+      for (let j = 1; j < patLen; j++) {
         if (bytes[i + j] !== pattern[j]) {
           match = false;
           break;
         }
       }
       if (match) return i;
+      i++;
     }
     return -1;
   }

@@ -50,6 +50,8 @@ export function Home() {
             description: '',
             channelId: r.channelId,
             channelTitle: r.channelTitle,
+            channelLogo: r.channelLogo,
+            subscriberCount: r.subscriberCount,
             publishedAt: r.publishedAt,
             thumbnails: r.thumbnails,
           }));

@@ -21,32 +21,72 @@ export function formatDuration(isoDuration?: string) {
   return result;
 }
 
-export function formatViews(views?: string) {
-  if (!views) return '';
-  const num = parseInt(views);
-  if (isNaN(num)) return '0';
-  if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
-  if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+export function formatViews(views?: string | number) {
+  if (!views && views !== 0) return '';
+  const str = String(views).trim();
+  if (/[0-9.]+\s*[KMBkmb]/i.test(str)) {
+    return str.replace(/\s*(subscribers|views)/i, '').trim();
+  }
+  const num = parseFloat(str.replace(/,/g, ''));
+  if (isNaN(num)) return str;
+  if (num >= 1000000) return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+  if (num >= 1000) return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
   return num.toString();
 }
 
-export function formatTimeAgo(dateString?: string) {
+export function formatTimeAgo(dateString?: string): string {
   if (!dateString) return '';
+  const trimmed = dateString.trim();
+
+  // If already relative format from YouTube scraping or client (e.g. "2 hrs ago", "3 days ago", "2 yrs ago", "Recently")
+  if (/ago$/i.test(trimmed) || /^(recently|yesterday|today|just now)/i.test(trimmed)) {
+    return trimmed
+      .replace(/(\d+)\s+hours?\s+ago/i, (_, n) => `${n} ${n === '1' ? 'hr' : 'hrs'} ago`)
+      .replace(/(\d+)\s+years?\s+ago/i, (_, n) => `${n} ${n === '1' ? 'yr' : 'yrs'} ago`)
+      .replace(/(\d+)\s+months?\s+ago/i, (_, n) => `${n} ${n === '1' ? 'month' : 'months'} ago`)
+      .replace(/(\d+)\s+weeks?\s+ago/i, (_, n) => `${n} ${n === '1' ? 'week' : 'weeks'} ago`)
+      .replace(/(\d+)\s+days?\s+ago/i, (_, n) => `${n} ${n === '1' ? 'day' : 'days'} ago`)
+      .replace(/(\d+)\s+minutes?\s+ago/i, (_, n) => `${n} ${n === '1' ? 'min' : 'mins'} ago`);
+  }
+
   try {
-    const date = new Date(dateString);
-    const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
+    const date = new Date(trimmed);
+    if (isNaN(date.getTime())) {
+      return trimmed;
+    }
+    const seconds = Math.max(0, Math.floor((Date.now() - date.getTime()) / 1000));
     
     let interval = seconds / 31536000;
-    if (interval > 1) return Math.floor(interval) + " years ago";
+    if (interval >= 1) {
+      const v = Math.floor(interval);
+      return `${v} ${v === 1 ? 'yr' : 'yrs'} ago`;
+    }
     interval = seconds / 2592000;
-    if (interval > 1) return Math.floor(interval) + " months ago";
+    if (interval >= 1) {
+      const v = Math.floor(interval);
+      return `${v} ${v === 1 ? 'month' : 'months'} ago`;
+    }
+    interval = seconds / 604800;
+    if (interval >= 1) {
+      const v = Math.floor(interval);
+      return `${v} ${v === 1 ? 'week' : 'weeks'} ago`;
+    }
     interval = seconds / 86400;
-    if (interval > 1) return Math.floor(interval) + " days ago";
+    if (interval >= 1) {
+      const v = Math.floor(interval);
+      return `${v} ${v === 1 ? 'day' : 'days'} ago`;
+    }
     interval = seconds / 3600;
-    if (interval > 1) return Math.floor(interval) + " hours ago";
+    if (interval >= 1) {
+      const v = Math.floor(interval);
+      return `${v} ${v === 1 ? 'hr' : 'hrs'} ago`;
+    }
     interval = seconds / 60;
-    if (interval > 1) return Math.floor(interval) + " minutes ago";
-    return Math.floor(seconds) + " seconds ago";
+    if (interval >= 1) {
+      const v = Math.floor(interval);
+      return `${v} ${v === 1 ? 'min' : 'mins'} ago`;
+    }
+    return 'Just now';
   } catch (e) {
     return dateString;
   }

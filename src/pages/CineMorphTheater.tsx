@@ -10,7 +10,7 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useAppStore } from '../store';
 import { useTicketStore } from '../state/useTicketStore';
-import { AspectRatioMode } from '../state/useCineMorphStore';
+import { useCineMorphStore, AspectRatioMode } from '../state/useCineMorphStore';
 import { omsTransitionService } from '../services/omsTransitionService';
 import { getVideosByIds } from '../lib/youtube';
 import { Video, AudioPreset, FrameAspectRatio, CineMorphTheme, GlowIntensity, LocalMediaItem, MediaSubtitleTrack } from '../types';
@@ -59,16 +59,42 @@ export function CineMorphTheater() {
     devicePerformanceProfile
   } = useAppStore();
 
+  const activeSession = useCineMorphStore((state) => state.activeSession);
   const activeTicket = useTicketStore((state) => state.activeTicket);
   const targetTicket = activeTicket?.ticketId === id || activeTicket?.sourceUrl === id ? activeTicket : activeTicket;
 
   const isLocalMedia = Boolean(
     id?.startsWith('local-') || 
+    activeSession?.isLocal ||
     (activeLocalMedia && activeLocalMedia.id === id) || 
     (targetTicket?.isLocal === true && (targetTicket?.ticketId === id || targetTicket?.sourceUrl === id))
   );
+
   const localItem: LocalMediaItem | undefined = isLocalMedia
-    ? (activeLocalMedia || undefined)
+    ? (activeLocalMedia || (activeSession ? {
+        id: activeSession.sessionId,
+        name: activeSession.title,
+        size: activeSession.file?.size || 0,
+        type: activeSession.file?.type || 'video/mp4',
+        url: activeSession.sourceUrl,
+        duration: activeSession.durationSeconds,
+        progress: activeSession.timestampSeconds,
+        lastWatchedAt: activeSession.createdAt,
+        aspectRatio: activeSession.aspectRatio,
+        thumbnail: activeSession.posterUrl,
+        containerAnalysis: activeSession.containerAnalysis,
+      } : targetTicket ? {
+        id: targetTicket.ticketId,
+        name: targetTicket.movieTitle,
+        size: 0,
+        type: 'video/mp4',
+        url: targetTicket.sourceUrl,
+        duration: targetTicket.durationSeconds,
+        progress: targetTicket.timestampSeconds,
+        lastWatchedAt: targetTicket.printedAt,
+        aspectRatio: targetTicket.aspectRatio,
+        thumbnail: targetTicket.thumbnailDataUrl,
+      } : undefined))
     : undefined;
 
   const omsContext = omsTransitionService.getActiveContext();
@@ -397,10 +423,10 @@ export function CineMorphTheater() {
     navigate(`/theater/${localId}`);
   };
 
-  // Restore saved aspect ratio and presentation settings from ticket
+  // Restore saved aspect ratio and presentation settings from session or ticket
   useEffect(() => {
-    if (targetTicket?.aspectRatio) {
-      const ratio = targetTicket.aspectRatio;
+    const ratio = activeSession?.aspectRatio || targetTicket?.aspectRatio;
+    if (ratio) {
       const validRatio: FrameAspectRatio =
         ratio === '1.43:1' ? '1.43:1' :
         ratio === '1.90:1' ? '1.90:1' : 'original';
@@ -408,7 +434,7 @@ export function CineMorphTheater() {
       setPresentationMode(validRatio === 'original' ? 'original' : 'cinema');
       setCinemaMode(validRatio !== 'original');
     }
-  }, [targetTicket?.aspectRatio, setCinemaMode, setFrameAspectRatio]);
+  }, [activeSession?.aspectRatio, targetTicket?.aspectRatio, setCinemaMode, setFrameAspectRatio]);
 
   // ── Curtain Sequence ────────────────────────────────────────────────────────
   useEffect(() => {
@@ -432,18 +458,30 @@ export function CineMorphTheater() {
       setIsValidating(true);
 
       if (isLocalMedia) {
-        const activeUrl = localItem?.url || targetTicket?.sourceUrl || '';
+        const activeUrl = localItem?.url || targetTicket?.sourceUrl || activeSession?.sourceUrl || '';
         let isUrlPlayable = false;
 
-        // Probe active blob URL
-        if (activeUrl && activeUrl.startsWith('blob:')) {
-          try {
-            const res = await fetch(activeUrl, { method: 'HEAD' });
-            if (res.ok || res.status === 200 || res.type === 'basic') {
-              isUrlPlayable = true;
+        // If we have an active in-memory session or media item, probe the blob URL safely
+        if (activeUrl) {
+          if (activeUrl.startsWith('blob:')) {
+            try {
+              // Fetch with GET (Fetch spec does not support HEAD on blob URLs)
+              const res = await fetch(activeUrl);
+              if (res.ok || res.status === 200 || res.type === 'basic') {
+                isUrlPlayable = true;
+                // Release stream immediately so we do not buffer multi-GB files into RAM
+                try { await res.body?.cancel(); } catch (_) {}
+              }
+            } catch {
+              // If fetch fails but activeSession holds the live File reference in memory
+              if (activeSession?.file) {
+                isUrlPlayable = true;
+              } else {
+                isUrlPlayable = false;
+              }
             }
-          } catch {
-            isUrlPlayable = false;
+          } else {
+            isUrlPlayable = true;
           }
         }
 
@@ -474,28 +512,46 @@ export function CineMorphTheater() {
     return () => {
       isCancelled = true;
     };
-  }, [id, isLocalMedia, localItem?.url, targetTicket?.sourceUrl, curtainAnimationEnabled]);
+  }, [id, isLocalMedia, localItem?.url, targetTicket?.sourceUrl, activeSession?.sourceUrl, curtainAnimationEnabled]);
 
   // ── Load Video / Media Metadata ─────────────────────────────────────────────
   useEffect(() => {
     if (!id) return;
 
     if (isLocalMedia && localItem) {
-      // If container analysis is missing, run demuxer on active blob URL
-      if (!localItem.containerAnalysis && localItem.url) {
-        fetch(localItem.url)
-          .then((r) => r.blob())
-          .then((blob) => mediaParser.parseMediaFile(blob, localItem.name))
-          .then((containerAnalysis) => {
-            const updatedItem: LocalMediaItem = {
-              ...localItem,
-              containerAnalysis,
-              aspectRatio: containerAnalysis.videoStreams[0]?.aspectRatio || localItem.aspectRatio,
-            };
-            useAppStore.getState().setActiveLocalMedia(updatedItem);
-            useAppStore.getState().addLocalMediaToHistory(updatedItem);
-          })
-          .catch(() => {});
+      // If container analysis is missing, run demuxer using in-memory File directly (avoiding full-file re-buffering)
+      if (!localItem.containerAnalysis) {
+        const fileSource = activeSession?.file || (localItem as any).file;
+        if (fileSource) {
+          mediaParser.parseMediaFile(fileSource, localItem.name)
+            .then((containerAnalysis) => {
+              const updatedItem: LocalMediaItem = {
+                ...localItem,
+                containerAnalysis,
+                aspectRatio: containerAnalysis.videoStreams[0]?.aspectRatio || localItem.aspectRatio,
+              };
+              useAppStore.getState().setActiveLocalMedia(updatedItem);
+              useAppStore.getState().addLocalMediaToHistory(updatedItem);
+              useCineMorphStore.getState().updateActiveSession({ containerAnalysis });
+            })
+            .catch(() => {});
+        } else if (localItem.url) {
+          // As a last-resort fallback for url-only items, slice small range or read blob
+          fetch(localItem.url)
+            .then((r) => r.blob())
+            .then((blob) => mediaParser.parseMediaFile(blob, localItem.name))
+            .then((containerAnalysis) => {
+              const updatedItem: LocalMediaItem = {
+                ...localItem,
+                containerAnalysis,
+                aspectRatio: containerAnalysis.videoStreams[0]?.aspectRatio || localItem.aspectRatio,
+              };
+              useAppStore.getState().setActiveLocalMedia(updatedItem);
+              useAppStore.getState().addLocalMediaToHistory(updatedItem);
+              useCineMorphStore.getState().updateActiveSession({ containerAnalysis });
+            })
+            .catch(() => {});
+        }
       }
 
       const localVideoObj: Video = {
@@ -513,6 +569,12 @@ export function CineMorphTheater() {
       setVideo(localVideoObj);
       setActiveVideo(localVideoObj);
       setEntryComplete(true);
+      return;
+    } else if (isLocalMedia) {
+      // Missing or unresolvable local media session — enforce error state and never mount YouTube stream
+      setTheaterState('error');
+      setIsValidating(false);
+      setShowIntroBumper(false);
       return;
     }
 
@@ -796,7 +858,7 @@ export function CineMorphTheater() {
   useEffect(() => {
     // Small delay to let the DOM mount + ticket animation settle
     const t = setTimeout(() => {
-      if (!document.fullscreenElement && containerRef.current) {
+      if (!document.fullscreenElement && containerRef.current && typeof containerRef.current.requestFullscreen === 'function') {
         containerRef.current.requestFullscreen().catch(() => {
           // Autoplay policy may block — user can still click the fullscreen button
         });
@@ -929,6 +991,7 @@ export function CineMorphTheater() {
     }
     useAppStore.getState().setActiveLocalMedia(null);
     useTicketStore.getState().clearActiveTicket();
+    useCineMorphStore.getState().clearActiveSession();
     navigate('/cinemorph');
   };
 

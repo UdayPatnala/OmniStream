@@ -229,7 +229,8 @@ export const TicketPrinterAnimation: React.FC<TicketPrinterAnimationProps> = ({
     cancelPrintAnimation();
     onSkip?.();
     onComplete?.();
-    const targetId = activeLocalMedia?.id || activeTicket?.ticketId || activeTicket?.sourceUrl;
+    const activeSession = useCineMorphStore.getState().activeSession;
+    const targetId = activeSession?.sessionId || activeLocalMedia?.id || activeTicket?.ticketId || activeTicket?.sourceUrl;
     if (targetId && !location.pathname.startsWith('/theater/')) {
       navigate(`/theater/${targetId}`);
     }

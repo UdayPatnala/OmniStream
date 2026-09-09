@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { formatTimeAgo, formatViews, formatDuration } from '../lib/utils';
 import { Video, SearchResult } from '../types';
+import { getChannelAvatarUrl } from '../lib/youtube';
 import { MoreVertical, Clock, Ban, Flag, Share2, Check } from 'lucide-react';
 import { useAppStore } from '../store';
 
@@ -98,36 +99,51 @@ export function VideoCard({ video, progress }: VideoCardProps) {
         {/* Info Container */}
         <div className="flex gap-3 items-start px-0.5 relative">
           {/* Channel Avatar -> Opens Channel Page */}
-          <Link 
-            to={`/channel/${video.channelId || video.id}`}
-            onClick={(e) => e.stopPropagation()}
-            className="w-8 h-8 rounded-full bg-utube-surface flex-shrink-0 overflow-hidden mt-0.5 border border-utube-border hover:opacity-80 transition-opacity cursor-pointer"
-            title={video.channelTitle}
-          >
-            <img src={video.thumbnails.medium} alt={video.channelTitle} className="w-full h-full object-cover" />
-          </Link>
+          {(() => {
+            const channelLogo = (video as any).channelLogo || getChannelAvatarUrl(video.channelId, video.channelTitle);
+            const subCount = (video as any).subscriberCount;
+            return (
+              <>
+                <Link 
+                  to={`/channel/${video.channelId || video.id}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="w-8 h-8 rounded-full bg-utube-surface flex-shrink-0 overflow-hidden mt-0.5 border border-utube-border hover:opacity-80 transition-opacity cursor-pointer"
+                  title={subCount ? `${video.channelTitle} (${formatViews(subCount)} subscribers)` : video.channelTitle}
+                >
+                  <img src={channelLogo} alt={video.channelTitle} className="w-full h-full object-cover" />
+                </Link>
 
-          <div className="flex flex-col min-w-0 flex-1 pr-6">
-            {/* Title -> Opens Watch Page */}
-            <Link to={isVideo ? `/watch/${video.id}` : `/channel/${video.id}`} className="cursor-pointer">
-              <h3 className="text-sm font-semibold line-clamp-2 text-utube-text leading-snug group-hover:text-utube-primary transition-colors">
-                {video.title}
-              </h3>
-            </Link>
+                <div className="flex flex-col min-w-0 flex-1 pr-6">
+                  {/* Title -> Opens Watch Page */}
+                  <Link to={isVideo ? `/watch/${video.id}` : `/channel/${video.id}`} className="cursor-pointer">
+                    <h3 className="text-sm font-semibold line-clamp-2 text-utube-text leading-snug group-hover:text-utube-primary transition-colors">
+                      {video.title}
+                    </h3>
+                  </Link>
 
-            {/* Channel Title -> Opens Channel Page */}
-            <Link 
-              to={`/channel/${video.channelId || video.id}`}
-              onClick={(e) => e.stopPropagation()}
-              className="text-xs text-utube-text-secondary hover:text-utube-primary mt-1 truncate transition-colors inline-block cursor-pointer"
-            >
-              {video.channelTitle}
-            </Link>
+                  {/* Channel Title -> Opens Channel Page */}
+                  <Link 
+                    to={`/channel/${video.channelId || video.id}`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="text-xs text-utube-text-secondary hover:text-utube-primary mt-1 truncate transition-colors inline-block cursor-pointer"
+                    title={subCount ? `${video.channelTitle} (${formatViews(subCount)} subscribers)` : video.channelTitle}
+                  >
+                    {video.channelTitle}
+                  </Link>
 
-            <span className="text-[11px] text-utube-text-muted mt-0.5">
-              {views ? `${formatViews(views)} views • ` : ''}{formatTimeAgo(video.publishedAt)}
-            </span>
-          </div>
+                  <span className="text-[11px] text-utube-text-muted mt-0.5">
+                    {!isVideo && subCount ? (
+                      `${formatViews(subCount)} subscribers`
+                    ) : (
+                      <>
+                        {views ? `${formatViews(views)} views • ` : ''}{formatTimeAgo(video.publishedAt)}
+                      </>
+                    )}
+                  </span>
+                </div>
+              </>
+            );
+          })()}
         </div>
       </div>
 

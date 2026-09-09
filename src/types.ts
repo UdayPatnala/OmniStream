@@ -13,6 +13,8 @@ export interface Video {
   duration?: string;
   viewCount?: string;
   category?: string;
+  channelLogo?: string;
+  subscriberCount?: string;
 }
 
 export interface Channel {
@@ -74,6 +76,8 @@ export interface SearchResult {
     medium: string;
     high: string;
   };
+  channelLogo?: string;
+  subscriberCount?: string;
 }
 
 export interface SearchResponse {
@@ -306,6 +310,24 @@ export interface LocalMediaItem {
   aspectRatio?: string;
   dominantColor?: string;
   containerAnalysis?: MediaContainerAnalysis;
+}
+
+export interface CineMorphScreeningSession {
+  sessionId: string;
+  title: string;
+  sourceUrl: string;
+  isLocal: boolean;
+  file?: File;
+  posterUrl?: string;
+  thumbnailUrl?: string;
+  aspectRatio: 'original' | '1.90:1' | '1.43:1' | '4:3';
+  framingRule: string;
+  durationSeconds: number;
+  timestampSeconds: number;
+  containerAnalysis?: MediaContainerAnalysis;
+  seatAssignment?: string;
+  ticketId?: string;
+  createdAt: number;
 }
 
 export interface LocalVideoAnalysis {

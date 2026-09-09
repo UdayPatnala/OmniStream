@@ -115,6 +115,8 @@ class YouTubeServiceImpl implements OMS_YouTubeService {
           title: v.title,
           channelTitle: v.channelTitle,
           channelId: v.channelId,
+          channelLogo: v.channelLogo,
+          subscriberCount: v.subscriberCount,
           publishedAt: v.publishedAt,
           thumbnails: v.thumbnails,
         })),

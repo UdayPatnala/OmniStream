@@ -204,7 +204,7 @@ class PosterService {
       if (!mediaUrl) return resolve(null);
 
       const videoEl = document.createElement('video');
-      videoEl.preload = 'auto';
+      videoEl.preload = 'metadata';
       videoEl.muted = true;
       videoEl.playsInline = true;
 
@@ -213,6 +213,9 @@ class PosterService {
         if (hasResolved) return;
         hasResolved = true;
         clearTimeout(timer);
+        videoEl.onloadedmetadata = null;
+        videoEl.onseeked = null;
+        videoEl.onerror = null;
         videoEl.removeAttribute('src');
         videoEl.load();
         if (isBlobOwner) {
@@ -220,10 +223,11 @@ class PosterService {
         }
       };
 
+      // 1.5s maximum budget for thumbnail extraction to ensure UI responsiveness
       const timer = setTimeout(() => {
         cleanup();
         resolve(null);
-      }, 3000);
+      }, 1500);
 
       const captureCanvas = (attemptSecondTimestamp = false) => {
         try {
@@ -236,8 +240,8 @@ class PosterService {
           }
 
           const canvas = document.createElement('canvas');
-          canvas.width = 480;
-          canvas.height = 480; // Crisp near-square movie poster
+          canvas.width = 240;
+          canvas.height = 240; // Crisp, lightweight square movie poster
           const ctx = canvas.getContext('2d', { willReadFrequently: true });
           if (!ctx) {
             cleanup();
@@ -247,13 +251,13 @@ class PosterService {
           // Intelligent Golden-Ratio Framing Crop:
           // Slightly offset upward (35% from top instead of 50%) to naturally preserve character faces & heads
           const minDim = Math.min(vw, vh);
-          const sx = (vw - minDim) / 2;
+          const sx = Math.max(0, (vw - minDim) / 2);
           const sy = Math.max(0, (vh - minDim) * 0.35);
 
-          ctx.drawImage(videoEl, sx, sy, minDim, minDim, 0, 0, 480, 480);
+          ctx.drawImage(videoEl, sx, sy, minDim, minDim, 0, 0, 240, 240);
 
           // Fast luminance check to verify frame is not pure black opening screen
-          const imgData = ctx.getImageData(0, 0, 32, 32);
+          const imgData = ctx.getImageData(0, 0, 24, 24);
           const data = imgData.data;
           let totalLuma = 0;
           for (let i = 0; i < data.length; i += 4) {
@@ -269,7 +273,7 @@ class PosterService {
             return;
           }
 
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.88);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
           cleanup();
           resolve(dataUrl);
         } catch (_) {
@@ -278,24 +282,19 @@ class PosterService {
         }
       };
 
-      videoEl.onloadedmetadata = async () => {
-        try {
-          const posterEngine = new PosterIntelligenceEngine();
-          const bestResult = await posterEngine.selectBestPosterFrame(videoEl, 4);
-          if (bestResult && bestResult.bestImageDataUrl) {
-            cleanup();
-            return resolve(bestResult.bestImageDataUrl);
+      videoEl.onloadedmetadata = () => {
+        // Yield to event loop before setting currentTime
+        setTimeout(() => {
+          if (hasResolved) return;
+          const dur = videoEl.duration || hintDuration || 0;
+          // Skip opening black frames: sample at 5% or 1.5s
+          const seekTarget = dur > 10 ? Math.min(10, Math.max(1.5, dur * 0.05)) : 0.5;
+          try {
+            videoEl.currentTime = seekTarget;
+          } catch (_) {
+            captureCanvas();
           }
-        } catch (_) {}
-
-        const dur = videoEl.duration || hintDuration || 0;
-        // Skip opening black frames / logos: sample at 12% or at least 2.5s in
-        const seekTarget = dur > 15 ? Math.min(15, Math.max(2.5, dur * 0.12)) : 0.8;
-        try {
-          videoEl.currentTime = seekTarget;
-        } catch (_) {
-          captureCanvas();
-        }
+        }, 0);
       };
 
       videoEl.onseeked = () => {

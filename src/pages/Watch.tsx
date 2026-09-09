@@ -192,8 +192,8 @@ export function Watch() {
                 to={video.channelId ? `/channel/${video.channelId}` : '#'}
                 className="w-9 h-9 rounded-full overflow-hidden bg-utube-surface shrink-0 border border-utube-border hover:opacity-90 transition-opacity"
               >
-                {channel?.thumbnails?.medium
-                  ? <img src={channel.thumbnails.medium} alt={video.channelTitle} className="w-full h-full object-cover" />
+                {(channel?.thumbnails?.medium || (video as any).channelLogo)
+                  ? <img src={channel?.thumbnails?.medium || (video as any).channelLogo} alt={video.channelTitle} className="w-full h-full object-cover" />
                   : <div className="w-full h-full bg-utube-surface flex items-center justify-center text-utube-text font-bold text-sm">
                       {video.channelTitle?.[0]?.toUpperCase() || 'C'}
                     </div>
@@ -207,8 +207,8 @@ export function Watch() {
                 >
                   {video.channelTitle}
                 </Link>
-                {channel?.subscriberCount && (
-                  <span className="text-xs text-utube-text-muted">{formatViews(channel.subscriberCount)} subscribers</span>
+                {(channel?.subscriberCount || (video as any).subscriberCount) && (
+                  <span className="text-xs text-utube-text-muted">{formatViews(channel?.subscriberCount || (video as any).subscriberCount)} subscribers</span>
                 )}
               </div>
 

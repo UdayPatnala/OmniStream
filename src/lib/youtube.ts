@@ -9,6 +9,112 @@ const BACKEND_URL = (import.meta as any).env?.VITE_BACKEND_URL || '';
 const isTestEnv = typeof process !== 'undefined' && (process.env.NODE_ENV === 'test' || process.env.VITEST === 'true');
 
 // High quality dataset of verified, 100% embeddable & playable YouTube videos (No VEVO/copyright restrictions)
+// Authoritative channel registry mapping each channel to its own distinct identity, logo, and subscriber count
+export const KNOWN_CHANNELS: Record<string, Channel> = {
+  chan_nature: {
+    id: 'chan_nature',
+    title: 'Nature Cinema Films',
+    description: 'Premier wildlife and high dynamic range 4K cinema.',
+    thumbnails: {
+      default: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
+      medium: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=300',
+      high: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=600',
+    },
+    subscriberCount: '1450000',
+    videoCount: '124',
+    pinned: true,
+  },
+  chan_tech: {
+    id: 'chan_tech',
+    title: 'Modern Web Academy',
+    description: 'Modern front-end, WebGL, and distributed application tutorials.',
+    thumbnails: {
+      default: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=150',
+      medium: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=300',
+      high: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=600',
+    },
+    subscriberCount: '890000',
+    videoCount: '312',
+  },
+  chan_music: {
+    id: 'chan_music',
+    title: 'ChillVibes Lofi',
+    description: 'Ambient lofi beats and relaxing chill sessions.',
+    thumbnails: {
+      default: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=150',
+      medium: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300',
+      high: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600',
+    },
+    subscriberCount: '5200000',
+    videoCount: '415',
+  },
+  chan_movies: {
+    id: 'chan_movies',
+    title: 'IMAX Studios',
+    description: 'Official IMAX 70mm trailers and behind-the-scenes engineering.',
+    thumbnails: {
+      default: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
+      medium: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300',
+      high: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600',
+    },
+    subscriberCount: '3200000',
+    videoCount: '88',
+  },
+  chan_gaming: {
+    id: 'chan_gaming',
+    title: 'CyberVision Media',
+    description: 'Ultra high-framerate gaming benchmarks and atmospheric drives.',
+    thumbnails: {
+      default: 'https://images.unsplash.com/photo-1566492031773-4f4e44671857?w=150',
+      medium: 'https://images.unsplash.com/photo-1566492031773-4f4e44671857?w=300',
+      high: 'https://images.unsplash.com/photo-1566492031773-4f4e44671857?w=600',
+    },
+    subscriberCount: '670000',
+    videoCount: '194',
+  },
+  chan_archive: {
+    id: 'chan_archive',
+    title: 'Film Preservation Vault',
+    description: 'Classic cinema archives, historical restorations, and celluloid transfer.',
+    thumbnails: {
+      default: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
+      medium: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300',
+      high: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=600',
+    },
+    subscriberCount: '210000',
+    videoCount: '52',
+  },
+};
+
+const AVATAR_PALETTE = [
+  'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
+  'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=150',
+  'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=150',
+  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
+  'https://images.unsplash.com/photo-1566492031773-4f4e44671857?w=150',
+  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
+  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
+  'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+  'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=150',
+  'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150',
+];
+
+export function getChannelAvatarUrl(channelId?: string, channelTitle?: string, explicitLogo?: string): string {
+  if (explicitLogo && explicitLogo.trim().length > 0) return explicitLogo;
+  if (channelId && KNOWN_CHANNELS[channelId]) return KNOWN_CHANNELS[channelId].thumbnails.medium;
+  const seed = (channelId || channelTitle || 'creator').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
+  return AVATAR_PALETTE[seed % AVATAR_PALETTE.length];
+}
+
+export function getChannelSubscriberCount(channelId?: string, channelTitle?: string, explicitCount?: string): string {
+  if (explicitCount && explicitCount.trim().length > 0) return explicitCount;
+  if (channelId && KNOWN_CHANNELS[channelId]) return KNOWN_CHANNELS[channelId].subscriberCount || '1000000';
+  const seed = (channelId || channelTitle || 'creator').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
+  const counts = ['450000', '820000', '1250000', '2400000', '3800000', '5600000', '670000', '1900000'];
+  return counts[seed % counts.length];
+}
+
+// High quality dataset of verified, 100% embeddable & playable YouTube videos (No VEVO/copyright restrictions)
 export const FALLBACK_VIDEOS: Video[] = [
   {
     id: 'vid_cinematic_4k',
@@ -16,7 +122,9 @@ export const FALLBACK_VIDEOS: Video[] = [
     description: 'Breathtaking 4K HDR nature and wildlife documentary showcasing wide format composition.',
     channelId: 'chan_nature',
     channelTitle: 'Nature Cinema Films',
-    publishedAt: '2026-01-15T12:00:00.000Z',
+    channelLogo: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
+    subscriberCount: '1450000',
+    publishedAt: '2 hrs ago',
     thumbnails: {
       medium: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=400',
       high: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800',
@@ -31,7 +139,9 @@ export const FALLBACK_VIDEOS: Video[] = [
     description: 'Deep dive into React 19 concurrent features, zero-latency state, and streaming architecture.',
     channelId: 'chan_tech',
     channelTitle: 'Modern Web Academy',
-    publishedAt: '2026-02-10T14:30:00.000Z',
+    channelLogo: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=150',
+    subscriberCount: '890000',
+    publishedAt: '3 days ago',
     thumbnails: {
       medium: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=400',
       high: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800',
@@ -46,7 +156,9 @@ export const FALLBACK_VIDEOS: Video[] = [
     description: 'Relaxing ambient lofi beats to study, relax, and code to with soothing visual scenery.',
     channelId: 'chan_music',
     channelTitle: 'ChillVibes Lofi',
-    publishedAt: '2026-02-01T08:00:00.000Z',
+    channelLogo: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=150',
+    subscriberCount: '5200000',
+    publishedAt: '1 week ago',
     thumbnails: {
       medium: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=400',
       high: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800',
@@ -61,7 +173,9 @@ export const FALLBACK_VIDEOS: Video[] = [
     description: 'Official IMAX 1.43:1 expanded aspect ratio trailer featuring neural sound design.',
     channelId: 'chan_movies',
     channelTitle: 'IMAX Studios',
-    publishedAt: '2026-03-01T18:00:00.000Z',
+    channelLogo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
+    subscriberCount: '3200000',
+    publishedAt: '1 month ago',
     thumbnails: {
       medium: 'https://images.unsplash.com/photo-1478760329108-5c3ed9d495a0?w=400',
       high: 'https://images.unsplash.com/photo-1478760329108-5c3ed9d495a0?w=800',
@@ -76,7 +190,9 @@ export const FALLBACK_VIDEOS: Video[] = [
     description: 'Neon-lit nighttime cinematic drive through Night City in 21:9 ultrawide format.',
     channelId: 'chan_gaming',
     channelTitle: 'CyberVision Media',
-    publishedAt: '2026-02-20T21:00:00.000Z',
+    channelLogo: 'https://images.unsplash.com/photo-1566492031773-4f4e44671857?w=150',
+    subscriberCount: '670000',
+    publishedAt: '5 months ago',
     thumbnails: {
       medium: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=400',
       high: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800',
@@ -91,7 +207,9 @@ export const FALLBACK_VIDEOS: Video[] = [
     description: '4:3 Academy ratio archival 35mm film restoration with grain reproduction.',
     channelId: 'chan_archive',
     channelTitle: 'Film Preservation Vault',
-    publishedAt: '2026-01-05T10:00:00.000Z',
+    channelLogo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
+    subscriberCount: '210000',
+    publishedAt: '2 yrs ago',
     thumbnails: {
       medium: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=400',
       high: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=800',
@@ -159,13 +277,17 @@ export async function fetchOEmbed(videoId: string): Promise<Video | null> {
     const res = await fetch(targetUrl);
     if (res.ok) {
       const data = await res.json();
+      const authorName = data.author_name || 'YouTube Creator';
+      const authorId = data.author_url ? data.author_url.split('/').pop() || 'UC_creator' : 'UC_creator';
       return {
         id: videoId,
         title: data.title || 'YouTube Video',
-        description: `Official video by ${data.author_name || 'YouTube Creator'}. streaming live in CineMorph AI.`,
-        channelId: data.author_url ? data.author_url.split('/').pop() || 'UC_creator' : 'UC_creator',
-        channelTitle: data.author_name || 'YouTube Creator',
-        publishedAt: new Date().toISOString(),
+        description: `Official video by ${authorName}. streaming live in CineMorph AI.`,
+        channelId: authorId,
+        channelTitle: authorName,
+        channelLogo: getChannelAvatarUrl(authorId, authorName),
+        subscriberCount: getChannelSubscriberCount(authorId, authorName),
+        publishedAt: '3 days ago',
         thumbnails: {
           medium: `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`,
           high: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
@@ -283,6 +405,8 @@ export async function searchVideos(
       title: v.title,
       channelTitle: v.channelTitle,
       channelId: v.channelId,
+      channelLogo: v.channelLogo || getChannelAvatarUrl(v.channelId, v.channelTitle),
+      subscriberCount: v.subscriberCount || getChannelSubscriberCount(v.channelId, v.channelTitle),
       publishedAt: v.publishedAt,
       thumbnails: v.thumbnails,
     }));
@@ -401,13 +525,19 @@ export async function getVideosByIds(ids: string[]): Promise<Video[]> {
     }
 
     // Fallback constructed video for valid YouTube video IDs
+    const seed = id.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
+    const times = ['2 hrs ago', '5 hrs ago', '1 day ago', '3 days ago', '1 week ago', '2 weeks ago', '1 month ago', '3 months ago', '1 yr ago', '2 yrs ago'];
+    const chId = `chan_${id.slice(0, 6)}`;
+    const chTitle = 'YouTube Creator';
     results.push({
       id,
       title: `YouTube Stream (${id})`,
       description: `Official video playback in CineMorph AI engine.`,
-      channelId: 'UC_channel',
-      channelTitle: 'YouTube Creator',
-      publishedAt: new Date().toISOString(),
+      channelId: chId,
+      channelTitle: chTitle,
+      channelLogo: getChannelAvatarUrl(chId, chTitle),
+      subscriberCount: getChannelSubscriberCount(chId, chTitle),
+      publishedAt: times[seed % times.length],
       thumbnails: {
         medium: `https://i.ytimg.com/vi/${id}/mqdefault.jpg`,
         high: `https://i.ytimg.com/vi/${id}/hqdefault.jpg`,
@@ -488,18 +618,26 @@ export async function getChannelDetails(channelId: string): Promise<Channel> {
     }
   }
 
-  const match = FALLBACK_VIDEOS.find(v => v.channelId === channelId);
+  if (KNOWN_CHANNELS[channelId]) {
+    return KNOWN_CHANNELS[channelId];
+  }
+
+  const match = FALLBACK_VIDEOS.find(v => v.channelId === channelId || v.id === channelId);
+  const title = match ? match.channelTitle : 'YouTube Creator';
+  const logo = match?.channelLogo || getChannelAvatarUrl(channelId, title);
+  const subs = match?.subscriberCount || getChannelSubscriberCount(channelId, title);
+
   return {
     id: channelId,
-    title: match ? match.channelTitle : 'YouTube Creator',
+    title,
     description: 'Official YouTube Channel.',
     thumbnails: {
-      default: match?.thumbnails.medium || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
-      medium: match?.thumbnails.medium || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=300',
-      high: match?.thumbnails.high || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=600',
+      default: logo,
+      medium: logo,
+      high: logo,
     },
-    subscriberCount: '1250000',
-    videoCount: '342'
+    subscriberCount: subs,
+    videoCount: '156'
   };
 }
 
@@ -521,6 +659,8 @@ export async function getChannelVideos(channelId: string): Promise<SearchResult[
         title: item.snippet.title,
         channelTitle: item.snippet.channelTitle,
         channelId: item.snippet.channelId,
+        channelLogo: getChannelAvatarUrl(item.snippet.channelId, item.snippet.channelTitle),
+        subscriberCount: getChannelSubscriberCount(item.snippet.channelId, item.snippet.channelTitle),
         publishedAt: item.snippet.publishedAt,
         thumbnails: {
           medium: item.snippet.thumbnails?.medium?.url || `https://i.ytimg.com/vi/${item.id.videoId}/mqdefault.jpg`,
@@ -544,6 +684,8 @@ export async function getChannelVideos(channelId: string): Promise<SearchResult[
     title: v.title,
     channelTitle: v.channelTitle,
     channelId: v.channelId,
+    channelLogo: v.channelLogo || getChannelAvatarUrl(v.channelId, v.channelTitle),
+    subscriberCount: v.subscriberCount || getChannelSubscriberCount(v.channelId, v.channelTitle),
     publishedAt: v.publishedAt,
     thumbnails: v.thumbnails
   }));

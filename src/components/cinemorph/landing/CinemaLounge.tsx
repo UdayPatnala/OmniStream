@@ -133,12 +133,21 @@ export const CinemaLounge: React.FC<CinemaLoungeProps> = ({
             }}
           >
             {activeMedia ? (
-              <video
-                src={activeMedia.url}
-                className="w-full h-full object-contain pointer-events-none"
-                muted
-                playsInline
-              />
+              activeMedia.thumbnail ? (
+                <img
+                  src={activeMedia.thumbnail}
+                  alt={activeMedia.title || 'Screen preview'}
+                  className="w-full h-full object-contain pointer-events-none"
+                />
+              ) : (
+                <video
+                  src={activeMedia.url}
+                  className="w-full h-full object-contain pointer-events-none"
+                  preload="none"
+                  muted
+                  playsInline
+                />
+              )
             ) : (
               /* Simple clean line on the screen below the CineMorph AI logo — zero effects, zero pills */
               <span className="font-cinematic-mono text-[8px] sm:text-[9.5px] md:text-[11px] tracking-[0.24em] text-white/70 group-hover:text-white uppercase select-none pointer-events-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)] transition-colors duration-200">

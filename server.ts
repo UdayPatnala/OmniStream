@@ -83,12 +83,15 @@ async function startServer() {
                 const videoId = vr.videoId;
                 if (videoId && !seenIds.has(videoId)) {
                   seenIds.add(videoId);
+                  const channelAvatar = vr.channelThumbnailSupportedRenderers?.channelThumbnailWithLinkRenderer?.thumbnail?.thumbnails?.[0]?.url;
+                  const channelName = vr.ownerText?.runs?.[0]?.text || vr.shortBylineText?.runs?.[0]?.text || 'Creator';
                   results.push({
                     id: videoId,
                     type: 'video',
                     title: vr.title?.runs?.[0]?.text || vr.title?.accessibility?.accessibilityData?.label || 'YouTube Video',
-                    channelTitle: vr.ownerText?.runs?.[0]?.text || vr.shortBylineText?.runs?.[0]?.text || 'Creator',
+                    channelTitle: channelName,
                     channelId: vr.ownerText?.runs?.[0]?.navigationEndpoint?.browseEndpoint?.browseId || vr.shortBylineText?.runs?.[0]?.navigationEndpoint?.browseEndpoint?.browseId || 'UC_creator',
+                    channelLogo: channelAvatar,
                     publishedAt: vr.publishedTimeText?.simpleText || 'Recently',
                     thumbnails: {
                       medium: vr.thumbnail?.thumbnails?.[0]?.url || `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`,
@@ -103,18 +106,22 @@ async function startServer() {
                 const channelId = cr.channelId;
                 if (channelId && !seenIds.has(channelId)) {
                   seenIds.add(channelId);
+                  const channelAvatar = cr.thumbnail?.thumbnails?.slice(-1)[0]?.url || cr.thumbnail?.thumbnails?.[0]?.url || '';
+                  const subText = cr.subscriberCountText?.simpleText || cr.videoCountText?.simpleText || '';
                   results.push({
                     id: channelId,
                     type: 'channel',
                     title: cr.title?.simpleText || 'YouTube Creator',
                     channelTitle: cr.title?.simpleText || 'YouTube Creator',
                     channelId: channelId,
+                    channelLogo: channelAvatar,
+                    subscriberCount: subText,
                     publishedAt: 'Active',
                     thumbnails: {
-                      medium: cr.thumbnail?.thumbnails?.[0]?.url || '',
-                      high: cr.thumbnail?.thumbnails?.slice(-1)[0]?.url || '',
+                      medium: channelAvatar,
+                      high: channelAvatar,
                     },
-                    viewCount: cr.subscriberCountText?.simpleText || 'Subscribers',
+                    viewCount: subText || 'Subscribers',
                   });
                 }
               }
@@ -154,12 +161,15 @@ async function startServer() {
             for (const item of items) {
               if (item.videoRenderer) {
                 const vr = item.videoRenderer;
+                const channelName = vr.ownerText?.runs?.[0]?.text || vr.shortBylineText?.runs?.[0]?.text || 'Creator';
+                const channelAvatar = vr.channelThumbnailSupportedRenderers?.channelThumbnailWithLinkRenderer?.thumbnail?.thumbnails?.[0]?.url;
                 results.push({
                   id: vr.videoId,
                   title: vr.title?.runs?.[0]?.text || 'YouTube Video',
                   description: vr.detailedMetadataSnippets?.[0]?.snippetText?.runs?.[0]?.text || 'Official YouTube streaming video.',
-                  channelId: vr.ownerText?.runs?.[0]?.navigationEndpoint?.browseEndpoint?.browseId || 'UC_creator',
-                  channelTitle: vr.ownerText?.runs?.[0]?.text || 'Creator',
+                  channelId: vr.ownerText?.runs?.[0]?.navigationEndpoint?.browseEndpoint?.browseId || vr.shortBylineText?.runs?.[0]?.navigationEndpoint?.browseEndpoint?.browseId || 'UC_creator',
+                  channelTitle: channelName,
+                  channelLogo: channelAvatar,
                   publishedAt: vr.publishedTimeText?.simpleText || 'Recently',
                   thumbnails: {
                     medium: vr.thumbnail?.thumbnails?.[0]?.url || `https://i.ytimg.com/vi/${vr.videoId}/mqdefault.jpg`,

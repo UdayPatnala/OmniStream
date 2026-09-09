@@ -88,11 +88,8 @@ export function CineMorphLanding() {
       const fileId = `local-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
       const title = file.name.replace(/\.[^/.]+$/, '');
 
-      // Resilient demux with 1.2s timeout fallback
-      const demuxPromise = mediaParser.parseMediaFile(file, file.name);
-      const timeoutPromise = new Promise<any>((resolve) => setTimeout(() => resolve(null), 1200));
-
-      const containerAnalysis = (await Promise.race([demuxPromise, timeoutPromise])) || {
+      // Baseline instant analysis — zero UI blocking
+      const initialContainerAnalysis = {
         containerFormat: ext.toUpperCase(),
         mimeType: file.type || `video/${ext}`,
         durationSeconds: 0,
@@ -103,6 +100,7 @@ export function CineMorphLanding() {
             streamIndex: 0,
             label: 'Direct Master Audio',
             language: 'Undetermined',
+            languageCode: 'und',
             codec: 'Direct Audio',
             channels: 2,
             channelLayout: 'Stereo 2.0',
@@ -116,6 +114,9 @@ export function CineMorphLanding() {
             streamIndex: 0,
             label: 'Primary Video Stream',
             codec: 'Direct Video',
+            width: 1920,
+            height: 1080,
+            resolution: '1080p',
             aspectRatio: '16:9',
             isDefault: true,
             isPlayable: true,
@@ -129,23 +130,6 @@ export function CineMorphLanding() {
         compatibilitySummary: 'Direct Container Source',
       };
 
-      if (activeSessionIdRef.current !== sessionId) {
-        try {
-          URL.revokeObjectURL(blobUrl);
-          activeBlobUrlsRef.current.delete(blobUrl);
-        } catch (_) {}
-        return;
-      }
-
-      // Pre-resolve movie poster preview before printer starts
-      const posterRes = await posterService.resolvePoster({
-        id: fileId,
-        sourceUrl: blobUrl,
-        isLocal: true,
-        file: file,
-        title: title,
-      });
-
       const mediaItem: LocalMediaItem = {
         id: fileId,
         name: title,
@@ -155,27 +139,65 @@ export function CineMorphLanding() {
         duration: 0,
         progress: 0,
         lastWatchedAt: Date.now(),
-        aspectRatio: containerAnalysis.videoStreams[0]?.aspectRatio || '16:9',
-        containerAnalysis,
-        thumbnail: posterRes.url,
+        aspectRatio: '16:9',
+        containerAnalysis: initialContainerAnalysis,
+        thumbnail: '/cinemorph_artwork.png',
       };
 
+      // Synchronize in-memory media immediately
       addLocalMediaToHistory(mediaItem);
       setActiveLocalMedia(mediaItem);
 
-      // Trigger the v1.5.0 physical ticket printing ritual (SYS-SYS Invariant)
+      // Trigger the v1.5.0 physical ticket printing ritual INSTANTLY (<5ms)
       await useTicketStore.getState().trigger10sPrintAnimation({
+        sessionId: fileId,
         title: title,
         source: blobUrl,
         isLocal: true,
         file: file,
-        posterUrl: posterRes.url,
-        thumbnailUrl: posterRes.url,
+        posterUrl: '/cinemorph_artwork.png',
+        thumbnailUrl: '/cinemorph_artwork.png',
       });
 
-      // Crucial BUG-01 Fix: Do NOT navigate to the theater prematurely.
-      // The flow is strictly sequential: ticket printing runs on the landing page,
-      // and theater navigation occurs only when the user confirms admission on the ticket.
+      // Background non-blocking analysis: runs smoothly while the ticket printer is animating
+      (async () => {
+        try {
+          const demux = await mediaParser.parseMediaFile(file, file.name);
+          if (demux && activeSessionIdRef.current === sessionId) {
+            const currentItem = useAppStore.getState().activeLocalMedia;
+            if (currentItem && currentItem.id === fileId) {
+              const updatedItem: LocalMediaItem = {
+                ...currentItem,
+                containerAnalysis: demux,
+                aspectRatio: demux.videoStreams[0]?.aspectRatio || '16:9',
+              };
+              setActiveLocalMedia(updatedItem);
+              addLocalMediaToHistory(updatedItem);
+            }
+          }
+        } catch (_) {}
+
+        try {
+          const posterRes = await posterService.resolvePoster({
+            id: fileId,
+            sourceUrl: blobUrl,
+            isLocal: true,
+            file: file,
+            title: title,
+          });
+          if (posterRes?.url && activeSessionIdRef.current === sessionId) {
+            const currentItem = useAppStore.getState().activeLocalMedia;
+            if (currentItem && currentItem.id === fileId) {
+              setActiveLocalMedia({ ...currentItem, thumbnail: posterRes.url });
+            }
+            useTicketStore.setState((s) => ({
+              activeTicket: s.activeTicket && s.activeTicket.ticketId === fileId
+                ? { ...s.activeTicket, thumbnailDataUrl: posterRes.url }
+                : s.activeTicket,
+            }));
+          }
+        } catch (_) {}
+      })();
     } catch (err) {
       if (activeSessionIdRef.current === sessionId) {
         console.error('[CineMorphLanding] Ingestion error:', err);

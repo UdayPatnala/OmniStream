@@ -1,7 +1,7 @@
 {
   "name": "omnistream",
   "private": true,
-  "version": "1.8.3",
+  "version": "1.8.5",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
