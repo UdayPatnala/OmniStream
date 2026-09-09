@@ -42,7 +42,7 @@ export function Layout({ children }: { children: ReactNode }) {
 
   // Standard U-Tube Media Workspace
   return (
-    <div className="flex flex-col h-screen w-full max-w-full bg-utube-bg text-utube-text font-sans overflow-hidden select-none relative">
+    <div className="flex flex-col h-[100dvh] w-full max-w-full bg-utube-bg text-utube-text font-sans overflow-hidden select-none relative">
       <Header toggleSidebar={() => setCollapsed(!collapsed)} />
       
       <div className="flex flex-1 min-h-0 overflow-hidden relative">

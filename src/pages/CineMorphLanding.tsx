@@ -1,10 +1,17 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Smartphone, X } from 'lucide-react';
 import { useAppStore } from '../store';
 import { useTicketStore } from '../state/useTicketStore';
 import { LocalMediaItem } from '../types';
 import { mediaParser } from '../lib/cinemorph/mediaParser';
 import { posterService } from '../lib/cinemorph/posterService';
+import {
+  requestLandscapeOrientation,
+  unlockOrientation,
+  isMobileTouchDevice,
+  isPortraitOrientation,
+} from '../lib/services/orientationService';
 
 import { CineMorphNav } from '../components/cinemorph/landing/CineMorphNav';
 import { CinemaLounge } from '../components/cinemorph/landing/CinemaLounge';
@@ -12,6 +19,8 @@ import { CinemaLounge } from '../components/cinemorph/landing/CinemaLounge';
 export function CineMorphLanding() {
   const [fileError, setFileError] = useState<string | null>(null);
   const [isIngesting, setIsIngesting] = useState(false);
+  const [isPortraitMobile, setIsPortraitMobile] = useState(false);
+  const [bannerDismissed, setBannerDismissed] = useState(false);
 
   // Time-of-day adaptive environmental state: Morning (8 AM - 6 PM) vs Night (6 PM - 8 AM)
   const [environmentalTime, setEnvironmentalTime] = useState<'morning' | 'night'>(() => {
@@ -48,6 +57,29 @@ export function CineMorphLanding() {
   // Toggle environmental time manually via celestial dial
   const handleToggleEnvironmentalTime = useCallback(() => {
     setEnvironmentalTime((prev) => (prev === 'morning' ? 'night' : 'morning'));
+  }, []);
+
+  // Orientation tracking and automatic landscape request for mobile touch devices
+  useEffect(() => {
+    const checkOrientation = () => {
+      const isMobile = isMobileTouchDevice();
+      const isPortrait = isPortraitOrientation();
+      setIsPortraitMobile(isMobile && isPortrait);
+    };
+
+    checkOrientation();
+
+    if (isMobileTouchDevice()) {
+      requestLandscapeOrientation().catch(() => {});
+    }
+
+    window.addEventListener('resize', checkOrientation);
+    window.addEventListener('orientationchange', checkOrientation);
+    return () => {
+      window.removeEventListener('resize', checkOrientation);
+      window.removeEventListener('orientationchange', checkOrientation);
+      unlockOrientation();
+    };
   }, []);
 
   const handleLocalFileSelect = async (file: File) => {
@@ -226,6 +258,42 @@ export function CineMorphLanding() {
         activeSpace="lobby"
         hasTicketOrMedia={!!activeLocalMedia || !!activeTicket}
       />
+
+      {/* Mobile Landscape Orientation Advisory Banner */}
+      {isPortraitMobile && !bannerDismissed && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed top-16 left-1/2 -translate-x-1/2 z-50 max-w-sm w-[92%] p-3 rounded-2xl border backdrop-blur-xl flex items-center justify-between gap-3 shadow-2xl transition-all animate-in fade-in slide-in-from-top-4"
+          style={{
+            backgroundColor: environmentalTime === 'morning' ? 'rgba(232, 226, 215, 0.92)' : 'rgba(15, 17, 21, 0.92)',
+            borderColor: environmentalTime === 'morning' ? 'rgba(181, 138, 82, 0.35)' : 'rgba(232, 163, 83, 0.3)',
+            color: environmentalTime === 'morning' ? '#25272A' : '#F4F0E8',
+          }}
+        >
+          <div className="flex items-center gap-2.5 text-xs font-mono font-medium">
+            <Smartphone className="w-4 h-4 shrink-0 text-amber-500 animate-pulse rotate-90" />
+            <span>Rotate to landscape for optimal theater lounge view</span>
+          </div>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              onClick={() => {
+                requestLandscapeOrientation().catch(() => {});
+              }}
+              className="px-2.5 py-1 text-[11px] font-mono font-semibold rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-600 dark:text-amber-400 transition-colors border border-amber-500/30"
+            >
+              Rotate
+            </button>
+            <button
+              onClick={() => setBannerDismissed(true)}
+              aria-label="Dismiss rotation prompt"
+              className="p-1 rounded-lg hover:bg-black/10 dark:hover:bg-white/10 transition-colors opacity-70 hover:opacity-100"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Shared Native Hidden File Input (Single Entry Point) */}
       <input
