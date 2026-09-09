@@ -369,17 +369,7 @@ export const TicketPrinterAnimation: React.FC<TicketPrinterAnimationProps> = ({
               </div>
             </div>
 
-            {/* Cropped Near-Square Feature Poster Preview (P4 Physical Artifact Standard) */}
-            <div className="relative z-10 pt-2 pb-1 flex justify-center">
-              <div className="w-16 h-16 rounded-xl bg-stone-900 border border-[#d8cfb9] overflow-hidden shadow-sm flex items-center justify-center">
-                <img
-                  src={activeTicket?.thumbnailDataUrl || '/cinemorph.png'}
-                  alt="Feature Preview"
-                  className="w-full h-full object-cover"
-                  onLoad={() => setImageLoaded(true)}
-                />
-              </div>
-            </div>
+
 
             {/* Movie Title & Runtime Section */}
             <div className="relative z-10 py-1.5 px-4 text-center space-y-0.5">
