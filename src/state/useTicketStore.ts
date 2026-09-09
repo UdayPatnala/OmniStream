@@ -109,37 +109,6 @@ export const useTicketStore = create<TicketStoreState>((set, get) => ({
     let durationSeconds = 0;
     let resolvedPosterUrl = movie.posterUrl || movie.thumbnailUrl || '/cinemorph_artwork.png';
 
-    // Set initial staging state
-    set({
-      isPrintingAnimationActive: true,
-      animationCountdownSeconds: 0,
-    });
-
-    if (!movie.isLocal) {
-      try {
-        const ytId = extractYouTubeId(movie.source);
-        if (ytId) {
-          const videos = await getVideosByIds([ytId]);
-          if (videos && videos.length > 0) {
-            title = videos[0].title;
-            if (videos[0].duration) {
-              durationSeconds = parseISO8601ToSeconds(videos[0].duration);
-            }
-            if (!movie.posterUrl && videos[0].thumbnails) {
-              resolvedPosterUrl = videos[0].thumbnails.high || videos[0].thumbnails.medium || videos[0].thumbnails.default;
-            }
-          }
-        }
-      } catch (e) {
-        console.warn('Failed to pre-fetch video details for ticket:', e);
-      }
-    }
-
-    // If user cancelled while async resolution was running, abort
-    if (!get().isPrintingAnimationActive) {
-      return;
-    }
-
     const canonicalTicketId = movie.sessionId || `ticket_session_${Date.now()}`;
     const seatAssignment = generateSeatAssignment();
 
@@ -158,6 +127,7 @@ export const useTicketStore = create<TicketStoreState>((set, get) => ({
       thumbnailDataUrl: resolvedPosterUrl,
     };
 
+    // Set initial staging state atomically with activeTicket already populated
     set({
       isPrintingAnimationActive: true,
       animationCountdownSeconds: 0,
@@ -165,7 +135,7 @@ export const useTicketStore = create<TicketStoreState>((set, get) => ({
       tickets: [sessionTicket],
     });
 
-    // Create unified CineMorphScreeningSession as single source of truth
+    // Create unified CineMorphScreeningSession as single source of truth immediately
     useCineMorphStore.getState().setActiveSession({
       sessionId: canonicalTicketId,
       title,
@@ -183,7 +153,7 @@ export const useTicketStore = create<TicketStoreState>((set, get) => ({
       createdAt: sessionTicket.printedAt,
     });
 
-    // Load media into CineMorph player (staged, but playback paused until theater entry)
+    // Load media into CineMorph player staged (playback prepared for theater entry)
     cineMorph.setVideoSource({
       type: movie.isLocal ? 'local' : 'youtube',
       url: movie.source,
@@ -193,6 +163,49 @@ export const useTicketStore = create<TicketStoreState>((set, get) => ({
       duration: durationSeconds,
     });
     cineMorph.setIsPlaying(true);
+
+    if (!movie.isLocal) {
+      try {
+        const ytId = extractYouTubeId(movie.source);
+        if (ytId) {
+          const videos = await getVideosByIds([ytId]);
+          if (videos && videos.length > 0) {
+            title = videos[0].title;
+            if (videos[0].duration) {
+              durationSeconds = parseISO8601ToSeconds(videos[0].duration);
+            }
+            if (!movie.posterUrl && videos[0].thumbnails) {
+              resolvedPosterUrl = videos[0].thumbnails.high || videos[0].thumbnails.medium || videos[0].thumbnails.default;
+            }
+            if (get().isPrintingAnimationActive && get().activeTicket?.ticketId === canonicalTicketId) {
+              const updatedTicket: MovieTicket = {
+                ...sessionTicket,
+                movieTitle: title,
+                durationSeconds,
+                thumbnailDataUrl: resolvedPosterUrl,
+              };
+              set({
+                activeTicket: updatedTicket,
+                tickets: [updatedTicket],
+              });
+              useCineMorphStore.getState().updateActiveSession({
+                title,
+                durationSeconds,
+                posterUrl: resolvedPosterUrl,
+                thumbnailUrl: resolvedPosterUrl,
+              });
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to pre-fetch video details for ticket:', e);
+      }
+    }
+
+    // If user cancelled while async resolution was running, abort
+    if (!get().isPrintingAnimationActive) {
+      return;
+    }
 
     // If remote, resolve poster in the background if not already high-res
     if (!movie.isLocal) {

@@ -219,11 +219,16 @@ export const TicketPrinterAnimation: React.FC<TicketPrinterAnimationProps> = ({
 
     return () => {
       isCancelled = true;
-      if (audioCtxRef.current && audioCtxRef.current.state !== 'closed') {
-        try { audioCtxRef.current.close().catch(() => {}); } catch (e) {}
+      if (audioCtxRef.current) {
+        try {
+          if (audioCtxRef.current.state !== 'closed') {
+            audioCtxRef.current.close().catch(() => {});
+          }
+        } catch (e) {}
+        audioCtxRef.current = null;
       }
     };
-  }, [isPrintingAnimationActive, activeTicket?.ticketId]);
+  }, [isPrintingAnimationActive]);
 
   const handleSkipOrTakeTicket = () => {
     cancelPrintAnimation();

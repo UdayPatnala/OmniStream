@@ -854,18 +854,6 @@ export function CineMorphTheater() {
     return () => document.removeEventListener('fullscreenchange', handleFSChange);
   }, []);
 
-  // ── Auto-fullscreen on theater entry ────────────────────────────────────────
-  useEffect(() => {
-    // Small delay to let the DOM mount + ticket animation settle
-    const t = setTimeout(() => {
-      if (!document.fullscreenElement && containerRef.current && typeof containerRef.current.requestFullscreen === 'function') {
-        containerRef.current.requestFullscreen().catch(() => {
-          // Autoplay policy may block — user can still click the fullscreen button
-        });
-      }
-    }, 800);
-    return () => clearTimeout(t);
-  }, []);
 
   // Curved screen entrance animation for original mode
   useEffect(() => {
