@@ -196,7 +196,7 @@ export class CineMorphMediaParser {
       return this.parseDirectAudioFile(file, fileName, ext);
     }
 
-    try {
+    const parsePromise = async (): Promise<MediaContainerAnalysis> => {
       // Step 1: Read the first 4MB for header analysis
       const headerChunk = await this.readChunk(file, 0, Math.min(4 * 1024 * 1024, fileSizeBytes));
       const dataView = new DataView(headerChunk);
@@ -213,6 +213,16 @@ export class CineMorphMediaParser {
 
       // Generic Fallback
       return this.generateGenericAnalysis(file, fileName, ext, fileSizeBytes);
+    };
+
+    const timeoutPromise = new Promise<MediaContainerAnalysis>((resolve) => {
+      setTimeout(() => {
+        resolve(this.generateGenericAnalysis(file, fileName, ext, fileSizeBytes));
+      }, 1500);
+    });
+
+    try {
+      return await Promise.race([parsePromise(), timeoutPromise]);
     } catch (err) {
       console.warn('[CineMorphMediaParser] Fast demux failed, using robust fallback:', err);
       return this.generateGenericAnalysis(file, fileName, ext, fileSizeBytes);
@@ -321,18 +331,18 @@ export class CineMorphMediaParser {
         let i = 0;
         const max = uint8Tail.length - 8;
         while (i <= max) {
-          const mIdx = uint8Tail.indexOf(0x6d, i + 4);
-          if (mIdx === -1 || mIdx - 4 > max) break;
-          i = mIdx - 4;
+          const mIdx = uint8Tail.indexOf(0x6d, i);
+          if (mIdx === -1 || mIdx + 4 > uint8Tail.length) break;
           if (
-            uint8Tail[i + 5] === 0x6f && // 'o'
-            uint8Tail[i + 6] === 0x6f && // 'o'
-            uint8Tail[i + 7] === 0x76    // 'v'
+            uint8Tail[mIdx + 1] === 0x6f && // 'o'
+            uint8Tail[mIdx + 2] === 0x6f && // 'o'
+            uint8Tail[mIdx + 3] === 0x76    // 'v'
           ) {
-            moovBuffer = tailChunk.slice(i);
+            const boxStart = Math.max(0, mIdx - 4);
+            moovBuffer = tailChunk.slice(boxStart);
             break;
           }
-          i++;
+          i = mIdx + 1;
         }
       }
     }
@@ -782,7 +792,11 @@ export class CineMorphMediaParser {
         if (id === 0xae) { // TrackEntry (0xAE)
           this.parseMatroskaTrackEntry(uint8, pos, entryEnd, audioTracks, videoStreams, subtitleTracks, subtitleTrackMap);
         }
-        pos = entryEnd;
+        if (entryEnd <= pos) {
+          pos++;
+        } else {
+          pos = entryEnd;
+        }
       }
     }
 
@@ -900,14 +914,22 @@ export class CineMorphMediaParser {
           } else if (sId === 0x53ac) { // SeekPosition (0x53AC)
             seekPosition = this.readEbmlUint(bytes, sPos, sLen);
           }
-          sPos = sDataEnd;
+          if (sDataEnd <= sPos) {
+            sPos++;
+          } else {
+            sPos = sDataEnd;
+          }
         }
 
         if (isTracks && seekPosition > 0) {
           return seekPosition;
         }
       }
-      p = entryEnd;
+      if (entryEnd <= p) {
+        p++;
+      } else {
+        p = entryEnd;
+      }
     }
     return 0;
   }
@@ -973,7 +995,11 @@ export class CineMorphMediaParser {
             const freq = this.readEbmlFloat(bytes, aPos, aLen);
             if (freq > 0) sampleRate = Math.round(freq);
           }
-          aPos = aDataEnd;
+          if (aDataEnd <= aPos) {
+            aPos++;
+          } else {
+            aPos = aDataEnd;
+          }
         }
       } else if (id === 0xe0) { // Video settings (0xE0)
         let vPos = p;
@@ -991,11 +1017,19 @@ export class CineMorphMediaParser {
           } else if (vId === 0xba) { // PixelHeight (0xBA)
             height = this.readEbmlUint(bytes, vPos, vLen) || 1080;
           }
-          vPos = vDataEnd;
+          if (vDataEnd <= vPos) {
+            vPos++;
+          } else {
+            vPos = vDataEnd;
+          }
         }
       }
 
-      p = dataEnd;
+      if (dataEnd <= p) {
+        p++;
+      } else {
+        p = dataEnd;
+      }
     }
 
     const languageName = resolveLanguageName(languageCode);
@@ -1135,7 +1169,11 @@ export class CineMorphMediaParser {
                 blockStart = bgPos;
                 blockEnd = subEnd;
               }
-              bgPos = subEnd;
+              if (subEnd <= bgPos) {
+                bgPos++;
+              } else {
+                bgPos = subEnd;
+              }
             }
 
             if (blockStart > 0 && blockEnd > blockStart) {
@@ -1145,7 +1183,11 @@ export class CineMorphMediaParser {
             }
           }
 
-          p = elEnd;
+          if (elEnd <= p) {
+            p++;
+          } else {
+            p = elEnd;
+          }
         }
       } else {
         p++;
@@ -1297,7 +1339,7 @@ export class CineMorphMediaParser {
     let value = first & (mask - 1);
     for (let i = 1; i < length; i++) {
       if (offset + i >= bytes.length) break;
-      value = (value << 8) | bytes[offset + i];
+      value = (value * 256) + bytes[offset + i];
     }
 
     return { length: value, bytesRead: length };
@@ -1307,7 +1349,7 @@ export class CineMorphMediaParser {
     let val = 0;
     for (let i = 0; i < length; i++) {
       if (offset + i < bytes.length) {
-        val = (val << 8) | bytes[offset + i];
+        val = (val * 256) + bytes[offset + i];
       }
     }
     return val;

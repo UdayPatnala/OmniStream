@@ -41,18 +41,7 @@ export function CineMorphLanding() {
 
   const activeTicket = useTicketStore((state) => state?.activeTicket);
 
-  // Revoke all created session Blob URLs on unmount to prevent memory leaks
-  useEffect(() => {
-    const blobUrls = activeBlobUrlsRef.current;
-    return () => {
-      blobUrls.forEach((url) => {
-        try {
-          URL.revokeObjectURL(url);
-        } catch (_) {}
-      });
-      blobUrls.clear();
-    };
-  }, []);
+  // Note: Session Blob URLs are preserved for theater playback and revoked upon exiting the theater.
 
   // Toggle environmental time manually via celestial dial
   const handleToggleEnvironmentalTime = useCallback(() => {
@@ -187,8 +176,8 @@ export function CineMorphLanding() {
         thumbnailUrl: '/cinemorph_artwork.png',
       });
 
-      // Background non-blocking analysis: runs smoothly while the ticket printer is animating
-      (async () => {
+      // Background non-blocking analysis: runs smoothly after ticket printer mounts
+      setTimeout(async () => {
         try {
           const demux = await mediaParser.parseMediaFile(file, file.name);
           if (demux && activeSessionIdRef.current === sessionId) {
@@ -225,7 +214,7 @@ export function CineMorphLanding() {
             }));
           }
         } catch (_) {}
-      })();
+      }, 100);
     } catch (err) {
       if (activeSessionIdRef.current === sessionId) {
         console.error('[CineMorphLanding] Ingestion error:', err);

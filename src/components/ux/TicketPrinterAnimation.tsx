@@ -231,6 +231,11 @@ export const TicketPrinterAnimation: React.FC<TicketPrinterAnimationProps> = ({
   }, [isPrintingAnimationActive]);
 
   const handleSkipOrTakeTicket = () => {
+    try {
+      if (!document.fullscreenElement && typeof document.documentElement.requestFullscreen === 'function') {
+        document.documentElement.requestFullscreen().catch(() => {});
+      }
+    } catch (_) {}
     cancelPrintAnimation();
     onSkip?.();
     onComplete?.();
@@ -330,9 +335,11 @@ export const TicketPrinterAnimation: React.FC<TicketPrinterAnimationProps> = ({
 
         {/* ── 2. Overflow Mask for Physical Paper Feed ── */}
         <div 
-          className="relative z-20 w-64 sm:w-72 overflow-hidden -mt-1 flex flex-col items-center pointer-events-auto cursor-pointer"
-          onClick={handleSkipOrTakeTicket}
-          title="Theater Admission Pass"
+          className={`relative z-20 w-64 sm:w-72 overflow-hidden -mt-1 flex flex-col items-center pointer-events-auto ${
+            stage === 'ready' ? 'cursor-pointer' : ''
+          }`}
+          onClick={stage === 'ready' ? handleSkipOrTakeTicket : undefined}
+          title={stage === 'ready' ? 'Take Ticket & Enter Theater' : 'Printing Admission Pass...'}
         >
           {/* ── 3. Physical Paper Ticket ── */}
           <div

@@ -458,7 +458,7 @@ export function CineMorphTheater() {
       setIsValidating(true);
 
       if (isLocalMedia) {
-        const activeUrl = localItem?.url || targetTicket?.sourceUrl || activeSession?.sourceUrl || '';
+        let activeUrl = localItem?.url || targetTicket?.sourceUrl || activeSession?.sourceUrl || '';
         let isUrlPlayable = false;
 
         // If we have an active in-memory session or media item, probe the blob URL safely
@@ -473,15 +473,40 @@ export function CineMorphTheater() {
                 try { await res.body?.cancel(); } catch (_) {}
               }
             } catch {
-              // If fetch fails but activeSession holds the live File reference in memory
-              if (activeSession?.file) {
-                isUrlPlayable = true;
+              // If fetch fails but activeSession holds the live File reference in memory, recreate blob
+              const liveFile = activeSession?.file || (localItem as any)?.file;
+              if (liveFile) {
+                try {
+                  const freshUrl = URL.createObjectURL(liveFile);
+                  activeUrl = freshUrl;
+                  isUrlPlayable = true;
+                  useCineMorphStore.getState().updateActiveSession({ sourceUrl: freshUrl });
+                  if (localItem) {
+                    const updated = { ...localItem, url: freshUrl };
+                    useAppStore.getState().setActiveLocalMedia(updated);
+                  }
+                } catch {
+                  isUrlPlayable = false;
+                }
               } else {
                 isUrlPlayable = false;
               }
             }
           } else {
             isUrlPlayable = true;
+          }
+        } else if (activeSession?.file) {
+          try {
+            const freshUrl = URL.createObjectURL(activeSession.file);
+            activeUrl = freshUrl;
+            isUrlPlayable = true;
+            useCineMorphStore.getState().updateActiveSession({ sourceUrl: freshUrl });
+            if (localItem) {
+              const updated = { ...localItem, url: freshUrl };
+              useAppStore.getState().setActiveLocalMedia(updated);
+            }
+          } catch {
+            isUrlPlayable = false;
           }
         }
 
@@ -852,6 +877,19 @@ export function CineMorphTheater() {
     const handleFSChange = () => setIsFullscreen(!!document.fullscreenElement);
     document.addEventListener('fullscreenchange', handleFSChange);
     return () => document.removeEventListener('fullscreenchange', handleFSChange);
+  }, []);
+
+  // ── Auto-fullscreen on theater entry ────────────────────────────────────────
+  useEffect(() => {
+    // Small delay to let the DOM mount + ticket animation settle
+    const t = setTimeout(() => {
+      if (!document.fullscreenElement && containerRef.current && typeof containerRef.current.requestFullscreen === 'function') {
+        containerRef.current.requestFullscreen().catch(() => {
+          // Autoplay policy may block — user can still click the fullscreen button
+        });
+      }
+    }, 400);
+    return () => clearTimeout(t);
   }, []);
 
 
