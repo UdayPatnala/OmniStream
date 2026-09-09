@@ -69,10 +69,6 @@ export function CineMorphLanding() {
 
     checkOrientation();
 
-    if (isMobileTouchDevice()) {
-      requestLandscapeOrientation().catch(() => {});
-    }
-
     window.addEventListener('resize', checkOrientation);
     window.addEventListener('orientationchange', checkOrientation);
     return () => {

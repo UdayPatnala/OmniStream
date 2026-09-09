@@ -74,9 +74,14 @@ describe('OmniStream Responsive & Visual Palette Verification', () => {
     expect(banner).toBeDefined();
     expect(banner.textContent).toContain('Rotate to landscape');
 
+    // Click Rotate button on banner triggers explicit landscape orientation request
+    const rotateBtn = screen.getByRole('button', { name: /rotate/i });
+    fireEvent.click(rotateBtn);
+    expect(requestLandscapeOrientation).toHaveBeenCalled();
+
+    // Dismiss button works
     const dismissBtn = screen.getByLabelText('Dismiss rotation prompt');
     fireEvent.click(dismissBtn);
-
     expect(screen.queryByRole('status')).toBeNull();
   });
 

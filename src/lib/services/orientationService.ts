@@ -32,15 +32,10 @@ export async function requestLandscapeOrientation(): Promise<boolean> {
       try {
         await orientation.lock('landscape');
         return true;
-      } catch (lockErr) {
-        // Some mobile browsers require document fullscreen before orientation locking
-        if (document.documentElement && typeof document.documentElement.requestFullscreen === 'function') {
-          try {
-            await document.documentElement.requestFullscreen();
-            await orientation.lock('landscape');
-            return true;
-          } catch (_) {}
-        }
+      } catch (_) {
+        // Do NOT force fullscreen as an automatic side effect.
+        // Return false to let the non-blocking rotation guide handle it gracefully.
+        return false;
       }
     }
   } catch (_) {}
