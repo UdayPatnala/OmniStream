@@ -1,10 +1,11 @@
 import { NavLink } from 'react-router-dom';
 import {
   Home, Tv, FolderHeart, History,
-  Music, Gamepad2, Film, Compass, Layers
+  Music, Gamepad2, Film, Compass
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useAppStore } from '../store';
+import { OMSLogo } from './common/OMSLogo';
 
 // ── Navigation taxonomy ────────────────────────────────────────────────────────
 //
@@ -15,7 +16,7 @@ import { useAppStore } from '../store';
 //   Feed, Subscriptions, History, Collections, Explore categories, U-Tube preferences
 
 // The single permitted cross-product escape from U-Tube
-const gatewayEscape = { to: '/', icon: Layers, label: 'OmniStream', title: 'Return to OmniStream' };
+const gatewayEscape = { to: '/', label: 'OMS', title: 'Return to OmniStream' };
 
 // U-Tube primary navigation
 const mainNavItems = [
@@ -39,6 +40,8 @@ const exploreItems = [
 
 export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
   const subscriptions = useAppStore(state => state.subscriptions);
+  const theme = useAppStore(state => state.theme);
+  const isDark = theme === 'dark' || (typeof document !== 'undefined' && document.documentElement.classList.contains('dark'));
 
   // ── Collapsed rail ────────────────────────────────────────────────────────────
   if (collapsed) {
@@ -49,6 +52,7 @@ export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
           to={gatewayEscape.to}
           end
           title={gatewayEscape.title}
+          aria-label={gatewayEscape.title}
           className={({ isActive }) => cn(
             "flex flex-col items-center gap-1 p-2 rounded-xl text-[10px] w-16 transition-colors",
             isActive
@@ -56,7 +60,7 @@ export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
               : "text-utube-text-secondary hover:bg-utube-surface hover:text-utube-text"
           )}
         >
-          <gatewayEscape.icon className="w-5 h-5" />
+          <OMSLogo size="xs" variant={isDark ? 'dark' : 'light'} animated={true} />
           <span className="truncate max-w-full font-medium">{gatewayEscape.label}</span>
         </NavLink>
 
@@ -112,17 +116,18 @@ export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
           to={gatewayEscape.to}
           end
           title={gatewayEscape.title}
+          aria-label={gatewayEscape.title}
           className={({ isActive }) => cn(
-            "flex items-center gap-5 px-3 py-2.5 rounded-xl text-sm transition-colors",
+            "flex items-center gap-4 px-3 py-2 rounded-xl text-sm transition-colors",
             isActive
               ? "bg-utube-surface text-utube-primary font-bold"
               : "text-utube-text-secondary hover:bg-utube-surface hover:text-utube-text"
           )}
         >
-          {({ isActive }) => (
+          {() => (
             <>
-              <gatewayEscape.icon className={cn("w-5 h-5 shrink-0 transition-colors", isActive ? 'text-utube-primary' : 'text-utube-text-secondary')} />
-              <span className="truncate">{gatewayEscape.label}</span>
+              <OMSLogo size="xs" variant={isDark ? 'dark' : 'light'} animated={true} />
+              <span className="truncate font-medium">{gatewayEscape.label}</span>
             </>
           )}
         </NavLink>

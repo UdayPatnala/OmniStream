@@ -1,4 +1,4 @@
-import { Search, Menu, Clock, X, Mic, Layers, Sparkles } from 'lucide-react';
+import { Search, Menu, Clock, X, Mic, Sparkles } from 'lucide-react';
 import { useState, useEffect, type FormEvent } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { fetchSearchSuggestions } from '../lib/youtube';
@@ -74,6 +74,8 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
   const searchHistory = useAppStore(state => state.searchHistory);
   const addSearchHistory = useAppStore(state => state.addSearchHistory);
   const removeSearchHistory = useAppStore(state => state.removeSearchHistory);
+  const theme = useAppStore(state => state.theme);
+  const isDark = theme === 'dark' || (typeof document !== 'undefined' && document.documentElement.classList.contains('dark'));
 
   useEffect(() => {
     let active = true;
@@ -271,10 +273,10 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
         <Link
           to="/"
           title="Return to OmniStream"
-          className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-utube-surface hover:bg-utube-border text-utube-text-secondary hover:text-utube-text border border-utube-border text-xs font-bold transition-all shadow-sm cursor-pointer active:scale-95"
+          aria-label="Return to OmniStream"
+          className="flex items-center justify-center rounded-full hover:opacity-85 transition-opacity cursor-pointer active:scale-95"
         >
-          <Layers className="w-3.5 h-3.5 text-utube-primary" />
-          <span>OmniStream</span>
+          <OMSLogo size="sm" variant={isDark ? 'dark' : 'light'} animated={true} />
         </Link>
       </div>
     </header>
