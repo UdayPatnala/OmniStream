@@ -1137,19 +1137,19 @@ export function CineMorphTheater() {
           aspectRatio: isOriginalMode && nativeAspectRatio ? `${nativeAspectRatio}` : frameStyle.aspectRatioStyle,
           width: '100%',
           maxWidth: isFullscreen
-            ? `min(98vw, calc(94vh * (${isOriginalMode && nativeAspectRatio ? nativeAspectRatio : frameStyle.aspectRatioStyle})))`
+            ? `min(98vw, calc(96vh * (${isOriginalMode && nativeAspectRatio ? nativeAspectRatio : frameStyle.aspectRatioStyle})))`
             : isOriginalMode
-            ? `min(94vw, calc(74vh * (${nativeAspectRatio || '16 / 9'})))`
+            ? `min(96vw, calc(82vh * (${nativeAspectRatio || '16 / 9'})))`
             : frameAspectRatio === '1.43:1'
-            ? `min(92vw, calc(72vh * (${frameStyle.aspectRatioStyle})))`
-            : `min(92vw, calc(70vh * (${frameStyle.aspectRatioStyle})))`,
+            ? `min(94vw, calc(82vh * (${frameStyle.aspectRatioStyle})))`
+            : `min(96vw, calc(80vh * (${frameStyle.aspectRatioStyle})))`,
           maxHeight: isFullscreen 
-            ? '95vh' 
+            ? '96vh' 
             : isOriginalMode
-            ? '74vh'
+            ? '82vh'
             : frameAspectRatio === '1.43:1' 
-            ? '72vh' 
-            : '70vh',
+            ? '82vh' 
+            : '80vh',
           clipPath: isOriginalMode
             ? 'none'
             : frameAspectRatio === '1.43:1'
