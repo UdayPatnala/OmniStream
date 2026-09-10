@@ -1075,7 +1075,7 @@ export function CineMorphTheater() {
     <div
       ref={containerRef}
       className={`relative w-full h-dvh flex flex-col items-center ${
-        isFullscreen ? 'justify-center' : 'justify-start pt-6 sm:pt-8'
+        isFullscreen ? 'justify-center' : 'justify-start pt-2 sm:pt-3'
       } overflow-hidden transition-colors duration-1000 select-none font-sans bg-[#070503] text-amber-50`}
       onMouseMove={resetControlsTimer}
       onTouchStart={resetControlsTimer}
@@ -1139,19 +1139,19 @@ export function CineMorphTheater() {
           aspectRatio: isOriginalMode && nativeAspectRatio ? `${nativeAspectRatio}` : frameStyle.aspectRatioStyle,
           width: '100%',
           maxWidth: isFullscreen
-            ? `min(98vw, calc(96vh * (${isOriginalMode && nativeAspectRatio ? nativeAspectRatio : frameStyle.aspectRatioStyle})))`
+            ? `min(99vw, calc(98vh * (${isOriginalMode && nativeAspectRatio ? nativeAspectRatio : frameStyle.aspectRatioStyle})))`
             : isOriginalMode
-            ? `min(96vw, calc(82vh * (${nativeAspectRatio || '16 / 9'})))`
+            ? `min(98vw, calc(94vh * (${nativeAspectRatio || '16 / 9'})))`
             : frameAspectRatio === '1.43:1'
-            ? `min(94vw, calc(82vh * (${frameStyle.aspectRatioStyle})))`
-            : `min(96vw, calc(80vh * (${frameStyle.aspectRatioStyle})))`,
+            ? `min(98vw, calc(94vh * (${frameStyle.aspectRatioStyle})))`
+            : `min(98vw, calc(92vh * (${frameStyle.aspectRatioStyle})))`,
           maxHeight: isFullscreen 
-            ? '96vh' 
+            ? '98vh' 
             : isOriginalMode
-            ? '82vh'
+            ? '94vh'
             : frameAspectRatio === '1.43:1' 
-            ? '82vh' 
-            : '80vh',
+            ? '94vh' 
+            : '92vh',
           clipPath: isOriginalMode
             ? 'none'
             : frameAspectRatio === '1.43:1'
@@ -1452,18 +1452,7 @@ export function CineMorphTheater() {
       {/* ── Natural Cinema Auditorium Foreground Seating ── */}
       {theaterSeatingEnabled && (
         <div 
-          className={`absolute bottom-0 inset-x-0 pointer-events-none z-10 flex flex-col justify-end items-center px-4 sm:px-12 select-none transition-all duration-500 pb-1 sm:pb-2 ${
-            isOriginalMode
-              ? ''
-              : frameAspectRatio === '1.43:1' 
-              ? 'h-8 sm:h-10' 
-              : 'h-10 sm:h-12'
-          }`}
-          style={isOriginalMode ? {
-            height: '48px',
-            transform: `scale(${Math.min(1, Math.max(0, spaceBelowScreen / 48))})`,
-            transformOrigin: 'bottom center'
-          } : undefined}
+          className="absolute bottom-0 inset-x-0 pointer-events-none z-20 flex flex-col justify-end items-center px-4 sm:px-12 select-none transition-all duration-500 pb-1 sm:pb-2 h-11 sm:h-14"
         >
           {/* Subtle Carpeted Center Aisle Runway Glow */}
           <div className="w-10 sm:w-20 h-1 bg-gradient-to-r from-transparent via-amber-600/20 to-transparent mb-1 rounded-full pointer-events-none" />
