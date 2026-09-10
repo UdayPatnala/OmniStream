@@ -9,6 +9,13 @@ export default defineConfig(() => {
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
+        // OPCA domain aliases — Product Capsule Architecture
+        '@omnistream/core':      path.resolve(__dirname, 'src/core'),
+        '@omnistream/shell':     path.resolve(__dirname, 'src/shell'),
+        '@omnistream/utube':     path.resolve(__dirname, 'src/products/u-tube'),
+        '@omnistream/cinemorph': path.resolve(__dirname, 'src/products/cinemorph'),
+        '@omnistream/shared':    path.resolve(__dirname, 'src/shared'),
+        // Legacy alias — preserved for backward compatibility during migration
         '@': path.resolve(__dirname, '.'),
       },
     },

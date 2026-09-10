@@ -16,6 +16,16 @@
     "allowJs": true,
     "jsx": "react-jsx",
     "paths": {
+      "@omnistream/core":        ["./src/core/index.ts"],
+      "@omnistream/core/*":      ["./src/core/*"],
+      "@omnistream/shell":       ["./src/shell/index.ts"],
+      "@omnistream/shell/*":     ["./src/shell/*"],
+      "@omnistream/utube":       ["./src/products/u-tube/index.ts"],
+      "@omnistream/utube/*":     ["./src/products/u-tube/*"],
+      "@omnistream/cinemorph":   ["./src/products/cinemorph/index.ts"],
+      "@omnistream/cinemorph/*": ["./src/products/cinemorph/*"],
+      "@omnistream/shared":      ["./src/shared/index.ts"],
+      "@omnistream/shared/*":    ["./src/shared/*"],
       "@/*": [
         "./*"
       ]

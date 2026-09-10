@@ -1,8 +1,8 @@
 import { create } from 'zustand';
-import { AspectRatioMode, FramingRuleMode, useCineMorphStore } from './useCineMorphStore';
-import { resolveExternalMediaMeta } from '../core/oms/mediaResolver';
-import { extractYouTubeId } from '../lib/utils';
-import { posterService } from '../lib/cinemorph/posterService';
+import { AspectRatioMode, FramingRuleMode, useCineMorphStore } from '../state/useCineMorphStore';
+import { resolveExternalMediaMeta } from '@omnistream/core/oms/mediaResolver';
+import { extractYouTubeId } from '@omnistream/shared/utils/utils';
+import { posterService } from '../media/posterService';
 
 export interface MovieTicket {
   ticketId: string;
@@ -176,25 +176,25 @@ export const useTicketStore = create<TicketStoreState>((set, get) => ({
             }
             if (!movie.posterUrl && meta.thumbnailUrl) {
               resolvedPosterUrl = meta.thumbnailUrl;
-            }
           }
           if (get().isPrintingAnimationActive && get().activeTicket?.ticketId === canonicalTicketId) {
-            const updatedTicket: MovieTicket = {
-              ...sessionTicket,
-              movieTitle: title,
-              durationSeconds,
-              thumbnailDataUrl: resolvedPosterUrl,
-            };
-            set({
-              activeTicket: updatedTicket,
-              tickets: [updatedTicket],
-            });
-            useCineMorphStore.getState().updateActiveSession({
-              title,
-              durationSeconds,
-              posterUrl: resolvedPosterUrl,
-              thumbnailUrl: resolvedPosterUrl,
-            });
+              const updatedTicket: MovieTicket = {
+                ...sessionTicket,
+                movieTitle: title,
+                durationSeconds,
+                thumbnailDataUrl: resolvedPosterUrl,
+              };
+              set({
+                activeTicket: updatedTicket,
+                tickets: [updatedTicket],
+              });
+              useCineMorphStore.getState().updateActiveSession({
+                title,
+                durationSeconds,
+                posterUrl: resolvedPosterUrl,
+                thumbnailUrl: resolvedPosterUrl,
+              });
+            }
           }
         }
       } catch (e) {

@@ -8,13 +8,13 @@
 
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { useAppStore } from '../store';
-import { useTicketStore } from '../state/useTicketStore';
+import { useAppStore } from '@/src/store';
+import { useTicketStore } from '../ticketing/useTicketStore';
 import { useCineMorphStore, AspectRatioMode } from '../state/useCineMorphStore';
-import { omsTransitionService } from '../services/omsTransitionService';
-import { resolveExternalMediaMeta } from '../core/oms/mediaResolver';
+import { omsTransitionService } from '@omnistream/core/oms/omsTransitionService';
+import { resolveExternalMediaMeta } from '@omnistream/core/oms/mediaResolver';
 import { Video, AudioPreset, FrameAspectRatio, CineMorphTheme, GlowIntensity, LocalMediaItem, MediaSubtitleTrack } from '../types';
-import { OMSLogo } from '../components/common/OMSLogo';
+import { OMSLogo } from '@omnistream/shared/ui/OMSLogo';
 import {
   Play, Pause, Volume2, VolumeX, Maximize, Minimize,
   Film, Monitor, ArrowLeft, RotateCcw, ChevronRight,
@@ -30,9 +30,9 @@ import {
   hybridMediaRouter,
   adaptiveCinemaEngine,
   mediaParser
-} from '../lib/cinemorph';
-import { CineMorphCaptionController } from '../lib/cinemorph/captionService';
-import { CaptionOverlay } from '../components/common/CaptionOverlay';
+} from '../media';
+import { CineMorphCaptionController } from '../media/captionService';
+import { CaptionOverlay } from '@omnistream/shared/ui/CaptionOverlay';
 
 type TheaterState = 'pre-show' | 'loading' | 'playing' | 'paused' | 'ended' | 'error';
 
