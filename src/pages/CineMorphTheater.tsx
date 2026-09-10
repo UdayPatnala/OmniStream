@@ -1074,7 +1074,9 @@ export function CineMorphTheater() {
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-dvh flex flex-col items-center justify-center overflow-hidden transition-colors duration-1000 select-none font-sans bg-[#070503] text-amber-50"
+      className={`relative w-full h-dvh flex flex-col items-center ${
+        isFullscreen ? 'justify-center' : 'justify-start pt-6 sm:pt-8'
+      } overflow-hidden transition-colors duration-1000 select-none font-sans bg-[#070503] text-amber-50`}
       onMouseMove={resetControlsTimer}
       onTouchStart={resetControlsTimer}
     >
