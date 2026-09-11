@@ -1452,17 +1452,25 @@ export function CineMorphTheater() {
       {/* ── Natural Cinema Auditorium Foreground Seating ── */}
       {theaterSeatingEnabled && (
         <div 
-          className="absolute bottom-0 inset-x-0 pointer-events-none z-20 flex flex-col justify-end items-center px-4 sm:px-12 select-none transition-all duration-500 pb-1 sm:pb-2 h-11 sm:h-14"
+          className={`absolute bottom-0 inset-x-0 pointer-events-none z-20 flex flex-col justify-end items-center px-4 sm:px-12 select-none transition-all duration-500 pb-1 sm:pb-2 ${
+            isOriginalMode
+              ? 'h-6 sm:h-7'
+              : frameAspectRatio === '1.43:1' 
+              ? 'h-10 sm:h-12' 
+              : 'h-11 sm:h-14'
+          }`}
         >
           {/* Subtle Carpeted Center Aisle Runway Glow */}
           <div className="w-10 sm:w-20 h-1 bg-gradient-to-r from-transparent via-amber-600/20 to-transparent mb-1 rounded-full pointer-events-none" />
 
-
-
           {/* Row A (Foreground VIP Recliner Tier) */}
           <div 
             className={`w-full max-w-6xl flex justify-between items-end gap-3 sm:gap-6 transition-all duration-500 ${
-              frameAspectRatio === '1.43:1' ? 'opacity-45 scale-100' : 'opacity-90 scale-100 sm:scale-105'
+              isOriginalMode
+                ? 'opacity-85 scale-[0.6] sm:scale-[0.65] origin-bottom'
+                : frameAspectRatio === '1.43:1' 
+                ? 'opacity-45 scale-100' 
+                : 'opacity-90 scale-100 sm:scale-105'
             }`}
           >
             {/* Left Bank Row A */}
