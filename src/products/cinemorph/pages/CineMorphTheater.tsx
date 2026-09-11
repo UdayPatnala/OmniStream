@@ -11,10 +11,10 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useAppStore } from '@/src/store';
 import { useTicketStore } from '../ticketing/useTicketStore';
 import { useCineMorphStore, AspectRatioMode } from '../state/useCineMorphStore';
-import { omsTransitionService } from '@omnistream/core/oms/omsTransitionService';
-import { resolveExternalMediaMeta } from '@omnistream/core/oms/mediaResolver';
+import { omsTransitionService } from '../../../core/oms/omsTransitionService';
+import { resolveExternalMediaMeta } from '../../../core/oms/mediaResolver';
 import { Video, AudioPreset, FrameAspectRatio, CineMorphTheme, GlowIntensity, LocalMediaItem, MediaSubtitleTrack } from '../types';
-import { OMSLogo } from '@omnistream/shared/ui/OMSLogo';
+import { OMSLogo } from '../../../shared/ui/OMSLogo';
 import {
   Play, Pause, Volume2, VolumeX, Maximize, Minimize,
   Film, Monitor, ArrowLeft, RotateCcw, ChevronRight,
@@ -35,6 +35,75 @@ import { CineMorphCaptionController } from '../media/captionService';
 import { CaptionOverlay } from '@omnistream/shared/ui/CaptionOverlay';
 
 type TheaterState = 'pre-show' | 'loading' | 'playing' | 'paused' | 'ended' | 'error';
+
+export function getIsFullscreenActive(): boolean {
+  if (typeof document === 'undefined') return false;
+  return Boolean(
+    document.fullscreenElement ||
+    (document as any).webkitFullscreenElement ||
+    (document as any).mozFullScreenElement ||
+    (document as any).msFullscreenElement
+  );
+}
+
+export interface TheaterProjectionLayout {
+  containerClassName: string;
+  screenClassName: string;
+  maxWidth: string;
+  maxHeight: string;
+  aspectRatioStyle: string;
+}
+
+export function calculateTheaterProjectionLayout({
+  isFullscreen,
+  isOriginalMode,
+  frameAspectRatio,
+  frameStyleAspectRatio,
+  nativeAspectRatio,
+}: {
+  isFullscreen: boolean;
+  isOriginalMode: boolean;
+  frameAspectRatio: string;
+  frameStyleAspectRatio: string;
+  nativeAspectRatio: number | null;
+}): TheaterProjectionLayout {
+  const effectiveRatio = isOriginalMode && nativeAspectRatio
+    ? `${nativeAspectRatio}`
+    : frameStyleAspectRatio;
+
+  const containerClassName = isFullscreen
+    ? 'justify-center'
+    : 'justify-start pt-2 sm:pt-3';
+
+  const screenClassName = isFullscreen
+    ? 'mb-0'
+    : 'mb-3 sm:mb-5';
+
+  const maxWidth = isFullscreen
+    ? `min(99vw, calc(98vh * (${effectiveRatio})))`
+    : isOriginalMode
+    ? `min(98vw, calc(94vh * (${nativeAspectRatio || '16 / 9'})))`
+    : frameAspectRatio === '1.43:1'
+    ? `min(98vw, calc(94vh * (${frameStyleAspectRatio})))`
+    : `min(98vw, calc(92vh * (${frameStyleAspectRatio})))`;
+
+  const maxHeight = isFullscreen
+    ? '98vh'
+    : isOriginalMode
+    ? '94vh'
+    : frameAspectRatio === '1.43:1'
+    ? '94vh'
+    : '92vh';
+
+  return {
+    containerClassName,
+    screenClassName,
+    maxWidth,
+    maxHeight,
+    aspectRatioStyle: effectiveRatio,
+  };
+}
+
 
 export function CineMorphTheater() {
   const { id } = useParams<{ id: string }>();
@@ -122,7 +191,7 @@ export function CineMorphTheater() {
   const [played, setPlayed] = useState(0);         // 0–1 fraction
   const [duration, setDuration] = useState(0);
   const [seeking, setSeeking] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(() => getIsFullscreenActive());
   const [controlsVisible, setControlsVisible] = useState(true);
   const [presentationMode, setPresentationMode] = useState<'cinema' | 'original'>(
     cinemaMode ? 'cinema' : 'original'
@@ -151,9 +220,33 @@ export function CineMorphTheater() {
   const [selectedAudioTrackId, setSelectedAudioTrackId] = useState<string>('audio-0');
   const [selectedVideoTrackId, setSelectedVideoTrackId] = useState<string>('video-0');
 
+  // Pre-seed native aspect ratio from container analysis or session metadata if already known
+  const initialNativeAspectRatio = React.useMemo(() => {
+    if (localItem?.containerAnalysis?.videoStreams?.[0]?.width && localItem?.containerAnalysis?.videoStreams?.[0]?.height) {
+      const { width, height } = localItem.containerAnalysis.videoStreams[0];
+      if (width > 0 && height > 0) return width / height;
+    }
+    if (localItem?.aspectRatio) {
+      const parts = localItem.aspectRatio.split(/[:/]/);
+      if (parts.length === 2) {
+        const num = parseFloat(parts[0]);
+        const den = parseFloat(parts[1]);
+        if (num > 0 && den > 0) return num / den;
+      }
+    }
+    return null;
+  }, [localItem]);
+
   // Curved screen activation for original mode
   const [curvedScreenActive, setCurvedScreenActive] = useState(false);
-  const [nativeAspectRatio, setNativeAspectRatio] = useState<number | null>(null);
+  const [nativeAspectRatio, setNativeAspectRatio] = useState<number | null>(initialNativeAspectRatio);
+
+  // Sync aspect ratio when container analysis completes post-mount
+  useEffect(() => {
+    if (initialNativeAspectRatio && !nativeAspectRatio) {
+      setNativeAspectRatio(initialNativeAspectRatio);
+    }
+  }, [initialNativeAspectRatio, nativeAspectRatio]);
 
   // Scrubber Hover Tooltip state
   const [hoverTime, setHoverTime] = useState<number | null>(null);
@@ -374,10 +467,10 @@ export function CineMorphTheater() {
   useEffect(() => {
     if (!id) return;
     setPlayed(0);
-    setNativeAspectRatio(null);
+    setNativeAspectRatio(initialNativeAspectRatio);
     setTheaterState('playing');
     setPlaying(true);
-  }, [id]);
+  }, [id, initialNativeAspectRatio]);
 
   // Back Button Trap for Drawers & Modals (YouTube Mobile Web Spec Technique 7.1)
   useEffect(() => {
@@ -880,24 +973,36 @@ export function CineMorphTheater() {
     return () => window.removeEventListener('keydown', handleKey);
   }, [duration, isFullscreen, isLocalMedia, played, resetControlsTimer, sendIframeCommand, showShortcuts, showStudioDrawer, togglePlay]);
 
-  // ── Fullscreen ──────────────────────────────────────────────────────────────
+  // ── Fullscreen Lifecycle & Synchronization ──────────────────────────────────
   useEffect(() => {
-    const handleFSChange = () => setIsFullscreen(!!document.fullscreenElement);
-    document.addEventListener('fullscreenchange', handleFSChange);
-    return () => document.removeEventListener('fullscreenchange', handleFSChange);
-  }, []);
+    const handleFSChange = () => {
+      setIsFullscreen(getIsFullscreenActive());
+    };
 
-  // ── Auto-fullscreen on theater entry ────────────────────────────────────────
-  useEffect(() => {
-    // Small delay to let the DOM mount + ticket animation settle
-    const t = setTimeout(() => {
-      if (!document.fullscreenElement && containerRef.current && typeof containerRef.current.requestFullscreen === 'function') {
-        containerRef.current.requestFullscreen().catch(() => {
-          // Autoplay policy may block — user can still click the fullscreen button
-        });
-      }
-    }, 400);
-    return () => clearTimeout(t);
+    // Immediate sync on mount
+    handleFSChange();
+
+    document.addEventListener('fullscreenchange', handleFSChange);
+    document.addEventListener('webkitfullscreenchange', handleFSChange);
+    document.addEventListener('mozfullscreenchange', handleFSChange);
+    document.addEventListener('MSFullscreenChange', handleFSChange);
+    window.addEventListener('resize', handleFSChange);
+
+    // Auto-fullscreen on theater entry if not already in fullscreen:
+    // Invoke immediately without arbitrary setTimeout delays to honor user gesture window
+    if (!getIsFullscreenActive() && containerRef.current && typeof containerRef.current.requestFullscreen === 'function') {
+      containerRef.current.requestFullscreen().catch(() => {
+        // Autoplay or transient user gesture policy may block — user can still click the fullscreen button
+      });
+    }
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFSChange);
+      document.removeEventListener('webkitfullscreenchange', handleFSChange);
+      document.removeEventListener('mozfullscreenchange', handleFSChange);
+      document.removeEventListener('MSFullscreenChange', handleFSChange);
+      window.removeEventListener('resize', handleFSChange);
+    };
   }, []);
 
 
@@ -920,10 +1025,19 @@ export function CineMorphTheater() {
   }, [frameAspectRatio, presentationMode]);
 
   const toggleFullscreen = () => {
-    if (!document.fullscreenElement && containerRef.current) {
-      containerRef.current.requestFullscreen().catch(() => {});
-    } else if (document.fullscreenElement) {
-      document.exitFullscreen().catch(() => {});
+    const isFS = getIsFullscreenActive();
+    if (!isFS) {
+      if (containerRef.current?.requestFullscreen) {
+        containerRef.current.requestFullscreen().catch(() => {});
+      } else if ((containerRef.current as any)?.webkitRequestFullscreen) {
+        (containerRef.current as any).webkitRequestFullscreen();
+      }
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
+      } else if ((document as any)?.webkitExitFullscreen) {
+        (document as any).webkitExitFullscreen();
+      }
     }
   };
 
@@ -1039,6 +1153,14 @@ export function CineMorphTheater() {
   const currentThemeConfig = THEME_CONFIGS[cinemorphTheme] || THEME_CONFIGS['cinematic-dark'];
   const frameStyle = calculateFrameStyle(frameAspectRatio, reframeMode);
 
+  const projectionLayout = calculateTheaterProjectionLayout({
+    isFullscreen,
+    isOriginalMode,
+    frameAspectRatio,
+    frameStyleAspectRatio: frameStyle.aspectRatioStyle,
+    nativeAspectRatio,
+  });
+
   const safeDevicePerformance = (devicePerformanceProfile === 'ultra-low' ? 'low' : devicePerformanceProfile) as 'low' | 'balanced' | 'high';
 
   const adaptiveDecision = adaptiveCinemaEngine.process({
@@ -1075,7 +1197,7 @@ export function CineMorphTheater() {
     <div
       ref={containerRef}
       className={`relative w-full h-dvh flex flex-col items-center ${
-        isFullscreen ? 'justify-center' : 'justify-start pt-2 sm:pt-3'
+        projectionLayout.containerClassName
       } overflow-hidden transition-colors duration-1000 select-none font-sans bg-[#070503] text-amber-50`}
       onMouseMove={resetControlsTimer}
       onTouchStart={resetControlsTimer}
@@ -1128,7 +1250,9 @@ export function CineMorphTheater() {
       <div
         ref={screenContainerRef}
         onClick={handleScreenClick}
-        className={`relative transition-all duration-500 ease-out flex items-center justify-center z-10 overflow-hidden bg-black cursor-pointer mb-3 sm:mb-5 ${
+        className={`relative transition-all duration-500 ease-out flex items-center justify-center z-10 overflow-hidden bg-black cursor-pointer ${
+          projectionLayout.screenClassName
+        } ${
           isOriginalMode
             ? 'shadow-[0_20px_50px_rgba(0,0,0,0.8)] border border-white/10 rounded-xl'
             : frameAspectRatio === '1.43:1'
@@ -1136,22 +1260,10 @@ export function CineMorphTheater() {
             : 'shadow-[0_0_90px_rgba(217,119,6,0.18),0_25px_60px_rgba(0,0,0,0.95)]'
         }`}
         style={{
-          aspectRatio: isOriginalMode && nativeAspectRatio ? `${nativeAspectRatio}` : frameStyle.aspectRatioStyle,
+          aspectRatio: projectionLayout.aspectRatioStyle,
           width: '100%',
-          maxWidth: isFullscreen
-            ? `min(99vw, calc(98vh * (${isOriginalMode && nativeAspectRatio ? nativeAspectRatio : frameStyle.aspectRatioStyle})))`
-            : isOriginalMode
-            ? `min(98vw, calc(94vh * (${nativeAspectRatio || '16 / 9'})))`
-            : frameAspectRatio === '1.43:1'
-            ? `min(98vw, calc(94vh * (${frameStyle.aspectRatioStyle})))`
-            : `min(98vw, calc(92vh * (${frameStyle.aspectRatioStyle})))`,
-          maxHeight: isFullscreen 
-            ? '98vh' 
-            : isOriginalMode
-            ? '94vh'
-            : frameAspectRatio === '1.43:1' 
-            ? '94vh' 
-            : '92vh',
+          maxWidth: projectionLayout.maxWidth,
+          maxHeight: projectionLayout.maxHeight,
           clipPath: isOriginalMode
             ? 'none'
             : frameAspectRatio === '1.43:1'

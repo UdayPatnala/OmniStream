@@ -1,3 +1,4 @@
+import { validateCineMorphMedia } from '../media/mediaValidator';
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Smartphone, X } from 'lucide-react';
@@ -76,18 +77,14 @@ export function CineMorphLanding() {
       return;
     }
 
-    const validExtensions = [
-      'mp4', 'webm', 'mkv', 'mov', 'm4v', 'avi', 'flv', 'wmv', '3gp', 'ts', 'ogv', 'm3u8', 'mpd',
-      'mp3', 'wav', 'aac', 'flac', 'm4a', 'ogg', 'opus', 'wma'
-    ];
-    const ext = file.name.split('.').pop()?.toLowerCase() || '';
-    const isMediaMime = file.type.startsWith('video/') || file.type.startsWith('audio/');
-
-    if (!isMediaMime && !validExtensions.includes(ext)) {
-      setFileError(`Unsupported format (.${ext}). Please select a valid video or audio feature.`);
+    // Pre-flight media validation: strictly reject non-video and vertical/portrait files
+    const validation = await validateCineMorphMedia(file);
+    if (!validation.isValid) {
+      setFileError(validation.error || 'Unsupported video format — CineMorph requires a landscape video.');
       setIsIngesting(false);
       return;
     }
+    const ext = file.name.split('.').pop()?.toLowerCase() || '';
 
     const sessionId = ++activeSessionIdRef.current;
 
@@ -288,7 +285,7 @@ export function CineMorphLanding() {
         tabIndex={-1}
         className="sr-only"
         aria-hidden="true"
-        accept="video/*,audio/*,.mkv,.ts,.m3u8,.avi,.mp4,.mov,.webm,.flv,.mp3,.wav,.m4a,.flac"
+        accept="video/*,.mp4,.webm,.mkv,.mov,.m4v,.avi,.wmv,.3gp,.ts,.ogv,.flv"
         onChange={(e) => {
           if (e.target.files && e.target.files.length > 0) {
             const file = e.target.files[0];

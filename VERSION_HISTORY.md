@@ -8,6 +8,7 @@ This document serves as the authoritative, permanent version timeline and Git re
 
 | Version | Date | Type | Quick Summary | Git Tag | Commit |
 |---|---|:---:|---|:---:|:---:|
+| **v1.9.0** | 2026-09-11 | `STABLE` | CineMorph Fullscreen Initial Positioning Forensic Fix, Strict Media Validation (Reject Vertical & Non-Video), and SYS-SYS Execution History Protocol. Safe release baseline. | `v1.9.0`, `O/v1.9.0` | `HEAD` |
 | **v1.8.5** | 2026-09-09 | `PATCH` | CineMorph Main-Thread Freeze Elimination & Screening-Session Synchronization: Non-blocking asynchronous file ingestion (<5ms UI handoff), native SIMD vector scanning for EBML/ISOBMFF tags, safe blob URL probing, unified screening session contract across store and theater, and eradication of false "NO ACTIVE SCREENING SESSION" overlay. | `v1.8.5` | `HEAD` |
 | **v1.8.3** | 2026-09-08 | `PATCH` | CineMorph Cinema-Lounge Stabilization: Forensic bug & flow audit, transparent screen hotspot, standby prompt placement, Blob URL persistence protection, dead-code eviction, and 100% test-suite alignment. | `v1.8.3` | `internal` |
 | **v1.8.2** | 2026-09-05 | `PATCH` | CineMorph Saved Ticket Resumption, Pre-Flight Bumper Protection & In-Theater Media Continuity: Architectural persistence fix with IndexedDB media blob lifecycle, pre-flight playability validation before intro, proscenium reconnection affordance, throttled progress saving, and subtle lobby ticket stubs tray. | `v1.8.2` | `internal` |
@@ -309,3 +310,50 @@ Established the consolidated, production-verified foundation for OmniStream 1.x.
 - **Render Isolation**: Real-time ambient light extraction and camera pan/scale transforms mutate DOM element references directly to prevent React playback re-renders.
 - **Strict Domain Boundaries**: U-Tube manages web video discovery; CineMorph manages local private media cinema.
 - **Two-Theater Separation**: U-Tube Theater A uses modern digital styling; CineMorph Theater B uses velvet/amber physical immersion with zero aesthetic bleed.
+
+
+### v1.9.0 (O/v 1.9.0) — Safe Release Baseline (2026-09-11)
+- **Status**: AUTHORITATIVE STABLE RELEASE BASELINE
+- **CineMorph Fullscreen Initial vs Re-entry Positioning**:
+  - Exported `getIsFullscreenActive()` and `calculateTheaterProjectionLayout()`.
+  - Immediate mount state synchronization via `useState(() => getIsFullscreenActive())`.
+  - Multi-engine listener matrix (`fullscreenchange`, `webkitfullscreenchange`, `mozfullscreenchange`, `MSFullscreenChange`, `resize`).
+  - Eradicated 400ms setTimeout delay hack and user-activation token expiry.
+  - Eliminated bottom margin imbalance in fullscreen mode (`mb-0`).
+  - Pre-seeded `nativeAspectRatio` directly from container analysis and session metadata.
+  - Verified 100% identical centered positioning between initial theater launch and subsequent fullscreen re-entry.
+  - Preserved reduced seating height overlay strictly in Original mode (`h-6 sm:h-7`, `scale-[0.6] sm:scale-[0.65] origin-bottom`).
+  - Preserved exact mathematical aspect ratio formulas for True IMAX (1.43:1) and IMAX (1.90:1).
+- **CineMorph Media Ingestion Validation**:
+  - Implemented `validateCineMorphMedia(file: File)` in `src/products/cinemorph/media/mediaValidator.ts`.
+  - Synchronous fast-path rejection of all non-video formats (audio files, images, documents, text, archives).
+  - Client-side offscreen metadata probe rejecting vertical/portrait videos (native aspect ratio < 1:1, height > width) with clear user feedback: `"Unsupported video format — CineMorph requires a landscape video."`.
+  - Acceptance of landscape videos (> 1:1) and square videos (1:1).
+  - Guaranteed probe cleanup and `URL.revokeObjectURL` under all execution paths.
+  - Zero side-effects: rejected files never trigger demuxing, poster generation, session creation, ticket flow, or theater playback.
+  - Existing valid media and screening sessions remain 100% untouched upon invalid file selection.
+  - File picker `<input type="file" ...>` resets `value = ''` immediately, keeping the picker accessible for instant retry.
+- **OmniStream Execution History & Audit Protocol**:
+  - Established permanent `docs/protocols/OMNISTREAM_EXECUTION_AND_VERSION_PROTOCOL.md`.
+  - Established persistent append-only ledger `docs/EXECUTION_HISTORY.md`.
+- **System Verification & Stability**:
+  - 100% passing across entire test suite: 70/70 test suites, 385/385 tests.
+  - TypeScript type check: 0 errors (`npm run lint`).
+  - Production build: 2,156 modules transformed, server bundled (`npm run build`).
+
+### v1.8.6 — Fullscreen Positioning & Media Ingestion Hardening (2026-09-11)
+- **CineMorph Fullscreen Initial vs Re-entry Positioning**:
+  - Exported `getIsFullscreenActive()` and `calculateTheaterProjectionLayout()`.
+  - Synchronized `isFullscreen` state on mount via `useState(() => getIsFullscreenActive())`.
+  - Removed 400ms setTimeout delay hack for auto-fullscreen.
+  - Eliminated bottom margin imbalance in fullscreen mode (`mb-0`).
+  - Pre-seeded `nativeAspectRatio` from container analysis and session metadata.
+  - Automated regression test: `src/tests/tier2-boundaries/fullscreen-initial-positioning.test.ts` (3/3 passed).
+- **CineMorph Media Ingestion Validation**:
+  - Strictly reject non-video files (audio, images, documents, text, archives) with `"Unsupported file type — CineMorph accepts video files only."`.
+  - Strictly reject vertical/portrait videos (aspect ratio < 1:1, height > width) with `"Unsupported video format — CineMorph requires a landscape video."`.
+  - Allow landscape and square (1:1) video formats.
+  - Zero state mutations or existing session revoking on invalid file selection.
+  - Automated regression test: `src/tests/tier2-boundaries/vertical-and-nonvideo-rejection.test.ts` (11/11 passed).
+- **Execution & Audit Protocol**:
+  - Established permanent `docs/protocols/OMNISTREAM_EXECUTION_AND_VERSION_PROTOCOL.md` and `docs/EXECUTION_HISTORY.md`.

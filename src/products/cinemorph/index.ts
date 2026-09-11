@@ -40,3 +40,7 @@ export type {
   FrameAspectRatio, DevicePerformanceProfile,
   AdaptivePerformanceDecision, MediaHybridRouteType,
 } from './types';
+
+// Media Validation
+export { validateCineMorphMedia, SUPPORTED_VIDEO_EXTENSIONS, NON_VIDEO_ERROR_MESSAGE, VERTICAL_VIDEO_ERROR_MESSAGE } from './media/mediaValidator';
+export type { MediaValidationResult } from './media/mediaValidator';
