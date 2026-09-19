@@ -1,4 +1,4 @@
-﻿import { Video, Channel, SearchResult, SearchFilterType, SearchResponse } from '../types';
+import { Video, Channel, SearchResult, SearchFilterType, SearchResponse } from '../types';
 import { extractYouTubeId } from '@omnistream/shared/utils/utils';
 
 export { extractYouTubeId };
@@ -282,7 +282,7 @@ export async function fetchOEmbed(videoId: string): Promise<Video | null> {
       return {
         id: videoId,
         title: data.title || 'YouTube Video',
-        description: `Official video by ${authorName}. streaming live in CineMorph AI.`,
+        description: `Official video by ${authorName}. streaming live in OmniStream.`,
         channelId: authorId,
         channelTitle: authorName,
         channelLogo: getChannelAvatarUrl(authorId, authorName),
@@ -532,7 +532,7 @@ export async function getVideosByIds(ids: string[]): Promise<Video[]> {
     results.push({
       id,
       title: `YouTube Stream (${id})`,
-      description: `Official video playback in CineMorph AI engine.`,
+      description: `Official video playback in OmniStream engine.`,
       channelId: chId,
       channelTitle: chTitle,
       channelLogo: getChannelAvatarUrl(chId, chTitle),

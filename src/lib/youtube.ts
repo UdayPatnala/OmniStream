@@ -532,7 +532,7 @@ export async function getVideosByIds(ids: string[]): Promise<Video[]> {
     results.push({
       id,
       title: `YouTube Stream (${id})`,
-      description: `Official video playback in CineMorph AI engine.`,
+      description: `Official video playback in OmniStream engine.`,
       channelId: chId,
       channelTitle: chTitle,
       channelLogo: getChannelAvatarUrl(chId, chTitle),
