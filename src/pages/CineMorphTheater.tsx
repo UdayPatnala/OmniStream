@@ -852,8 +852,29 @@ export function CineMorphTheater() {
     return () => { if (controlsTimerRef.current) clearTimeout(controlsTimerRef.current); };
   }, [theaterState, showShortcuts, showStudioDrawer, resetControlsTimer]);
 
+  // Auto-resume audio context upon user interaction
+  useEffect(() => {
+    const handleUserInteraction = () => {
+      try {
+        audioEngine.resume();
+      } catch {}
+    };
+    window.addEventListener('click', handleUserInteraction, { once: true });
+    window.addEventListener('keydown', handleUserInteraction, { once: true });
+    window.addEventListener('touchstart', handleUserInteraction, { once: true });
+    return () => {
+      window.removeEventListener('click', handleUserInteraction);
+      window.removeEventListener('keydown', handleUserInteraction);
+      window.removeEventListener('touchstart', handleUserInteraction);
+    };
+  }, []);
+
   // ── Controls Handlers ───────────────────────────────────────────────────────
   const togglePlay = useCallback(() => {
+    try {
+      audioEngine.resume();
+    } catch {}
+
     if (isLocalMedia && localVideoRef.current) {
       if (localVideoRef.current.paused) {
         localVideoRef.current.play();
@@ -1006,10 +1027,10 @@ export function CineMorphTheater() {
   }, []);
 
 
-  // Curved screen entrance animation for original mode
+  // Curved screen entrance animation for cinema modes (1.90:1 and 1.43:1)
   useEffect(() => {
-    const isOriginal = frameAspectRatio === 'original' || presentationMode === 'original';
-    if (isOriginal) {
+    const isCurved = (frameAspectRatio === '1.90:1' || frameAspectRatio === '1.43:1') && presentationMode !== 'original';
+    if (isCurved) {
       const prefersReducedMotion = typeof window !== 'undefined' &&
         window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       if (prefersReducedMotion) {
