@@ -1027,10 +1027,10 @@ export function CineMorphTheater() {
   }, []);
 
 
-  // Curved screen entrance animation for original mode
+  // Curved screen entrance animation for cinema modes (1.90:1 and 1.43:1)
   useEffect(() => {
-    const isOriginal = frameAspectRatio === 'original' || presentationMode === 'original';
-    if (isOriginal) {
+    const isCurved = (frameAspectRatio === '1.90:1' || frameAspectRatio === '1.43:1') && presentationMode !== 'original';
+    if (isCurved) {
       const prefersReducedMotion = typeof window !== 'undefined' &&
         window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       if (prefersReducedMotion) {
