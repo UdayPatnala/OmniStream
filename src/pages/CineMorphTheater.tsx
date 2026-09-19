@@ -1198,6 +1198,9 @@ export function CineMorphTheater() {
   // Screen click handler: hide controls/drawers if open; enter fullscreen if closed
   const handleScreenClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+    try {
+      audioEngine.resume();
+    } catch {}
     if (controlsVisible || showStudioDrawer || showShortcuts) {
       setControlsVisible(false);
       setShowStudioDrawer(false);
@@ -1277,8 +1280,8 @@ export function CineMorphTheater() {
           isOriginalMode
             ? 'shadow-[0_20px_50px_rgba(0,0,0,0.8)] border border-white/10 rounded-xl'
             : frameAspectRatio === '1.43:1'
-            ? 'shadow-[0_0_120px_rgba(217,119,6,0.22),0_25px_60px_rgba(0,0,0,0.95)]'
-            : 'shadow-[0_0_90px_rgba(217,119,6,0.18),0_25px_60px_rgba(0,0,0,0.95)]'
+            ? 'shadow-[0_0_120px_rgba(217,119,6,0.22),0_25px_60px_rgba(0,0,0,0.95)] border border-amber-500/20 rounded-2xl'
+            : 'shadow-[0_0_90px_rgba(217,119,6,0.18),0_25px_60px_rgba(0,0,0,0.95)] border border-amber-500/15 rounded-2xl'
         }`}
         style={{
           aspectRatio: projectionLayout.aspectRatioStyle,
@@ -1288,13 +1291,19 @@ export function CineMorphTheater() {
           clipPath: isOriginalMode
             ? 'none'
             : frameAspectRatio === '1.43:1'
-            ? 'polygon(0% 0.80%, 0.25% 0.30%, 0.80% 0.10%, 10% 0.50%, 25% 1.05%, 50% 1.40%, 75% 1.05%, 90% 0.50%, 99.20% 0.10%, 99.75% 0.30%, 100% 0.80%, 100% 99.20%, 99.75% 99.70%, 99.20% 99.90%, 90% 99.50%, 75% 98.95%, 50% 98.60%, 25% 98.95%, 10% 99.50%, 0.80% 99.90%, 0.25% 99.70%, 0% 99.20%)'
-            : 'polygon(0% 0.80%, 0.25% 0.30%, 0.80% 0.10%, 10% 0.32%, 25% 0.68%, 50% 0.90%, 75% 0.68%, 90% 0.32%, 99.20% 0.10%, 99.75% 0.30%, 100% 0.80%, 100% 99.20%, 99.75% 99.70%, 99.20% 99.90%, 90% 99.68%, 75% 99.32%, 50% 99.10%, 25% 99.32%, 10% 99.68%, 0.80% 99.90%, 0.25% 99.70%, 0% 99.20%)',
+            ? 'polygon(0% 1.05%, 0.4% 0.45%, 1.2% 0.15%, 10% 0.38%, 25% 0.72%, 50% 0.95%, 75% 0.72%, 90% 0.38%, 98.8% 0.15%, 99.6% 0.45%, 100% 1.05%, 100% 98.95%, 99.6% 99.55%, 98.8% 99.85%, 90% 99.62%, 75% 99.28%, 50% 99.05%, 25% 99.28%, 10% 99.62%, 1.2% 99.85%, 0.4% 99.55%, 0% 98.95%)'
+            : 'polygon(0% 0.75%, 0.4% 0.35%, 1.2% 0.12%, 10% 0.25%, 25% 0.48%, 50% 0.65%, 75% 0.48%, 90% 0.25%, 98.8% 0.12%, 99.6% 0.35%, 100% 0.75%, 100% 99.25%, 99.6% 99.65%, 98.8% 99.88%, 90% 99.75%, 75% 99.52%, 50% 99.35%, 25% 99.52%, 10% 99.75%, 1.2% 99.88%, 0.4% 99.65%, 0% 99.25%)',
           WebkitClipPath: isOriginalMode
             ? 'none'
             : frameAspectRatio === '1.43:1'
-            ? 'polygon(0% 0.80%, 0.25% 0.30%, 0.80% 0.10%, 10% 0.50%, 25% 1.05%, 50% 1.40%, 75% 1.05%, 90% 0.50%, 99.20% 0.10%, 99.75% 0.30%, 100% 0.80%, 100% 99.20%, 99.75% 99.70%, 99.20% 99.90%, 90% 99.50%, 75% 98.95%, 50% 98.60%, 25% 98.95%, 10% 99.50%, 0.80% 99.90%, 0.25% 99.70%, 0% 99.20%)'
-            : 'polygon(0% 0.80%, 0.25% 0.30%, 0.80% 0.10%, 10% 0.32%, 25% 0.68%, 50% 0.90%, 75% 0.68%, 90% 0.32%, 99.20% 0.10%, 99.75% 0.30%, 100% 0.80%, 100% 99.20%, 99.75% 99.70%, 99.20% 99.90%, 90% 99.68%, 75% 99.32%, 50% 99.10%, 25% 99.32%, 10% 99.68%, 0.80% 99.90%, 0.25% 99.70%, 0% 99.20%)',
+            ? 'polygon(0% 1.05%, 0.4% 0.45%, 1.2% 0.15%, 10% 0.38%, 25% 0.72%, 50% 0.95%, 75% 0.72%, 90% 0.38%, 98.8% 0.15%, 99.6% 0.45%, 100% 1.05%, 100% 98.95%, 99.6% 99.55%, 98.8% 99.85%, 90% 99.62%, 75% 99.28%, 50% 99.05%, 25% 99.28%, 10% 99.62%, 1.2% 99.85%, 0.4% 99.55%, 0% 98.95%)'
+            : 'polygon(0% 0.75%, 0.4% 0.35%, 1.2% 0.12%, 10% 0.25%, 25% 0.48%, 50% 0.65%, 75% 0.48%, 90% 0.25%, 98.8% 0.12%, 99.6% 0.35%, 100% 0.75%, 100% 99.25%, 99.6% 99.65%, 98.8% 99.88%, 90% 99.75%, 75% 99.52%, 50% 99.35%, 25% 99.52%, 10% 99.75%, 1.2% 99.88%, 0.4% 99.65%, 0% 99.25%)',
+          transform: isOriginalMode
+            ? 'none'
+            : frameAspectRatio === '1.43:1'
+            ? 'perspective(1100px) rotateX(1.3deg)'
+            : 'perspective(1300px) rotateX(1.0deg)',
+          transformOrigin: 'center bottom',
         }}
       >
         {/* Subtitles / Real-Time Timed Caption Overlay */}
@@ -1419,6 +1428,13 @@ export function CineMorphTheater() {
               playsInline
               preload="auto"
               className={`absolute inset-0 w-full h-full ${isOriginalMode ? 'object-contain' : 'object-cover'}`}
+              onPlay={() => {
+                try {
+                  audioEngine.resume();
+                } catch {}
+                setPlaying(true);
+                setTheaterState('playing');
+              }}
               onPause={() => {}}
               onTimeUpdate={() => {
                 if (localVideoRef.current && !seeking) {
@@ -1452,6 +1468,7 @@ export function CineMorphTheater() {
 
                   try {
                     audioEngine.init(localVideoRef.current);
+                    audioEngine.resume();
                     audioEngine.applyConfig(audioEQ);
                   } catch (e) {}
 
