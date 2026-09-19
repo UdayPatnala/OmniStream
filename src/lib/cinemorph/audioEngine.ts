@@ -124,6 +124,20 @@ export class CineMorphAudioEngine {
     return this.init(mediaElement);
   }
 
+  public async resume(): Promise<void> {
+    if (this.audioCtx && this.audioCtx.state === 'suspended') {
+      try {
+        await this.audioCtx.resume();
+      } catch (err) {
+        console.warn('[CineMorphAudioEngine] AudioContext resume warning:', err);
+      }
+    }
+  }
+
+  public isSuspended(): boolean {
+    return Boolean(this.audioCtx && this.audioCtx.state === 'suspended');
+  }
+
   private connectPipeline() {
     if (!this.audioCtx || !this.sourceNode) return;
     try {

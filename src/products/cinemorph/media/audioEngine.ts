@@ -1,4 +1,4 @@
-﻿import { AudioEQConfig, AudioPreset } from '../types';
+import { AudioEQConfig, AudioPreset } from '../types';
 import { AudioIntelligenceService } from './audioIntelligence';
 
 /**
@@ -122,6 +122,20 @@ export class CineMorphAudioEngine {
 
   public attachMediaElement(mediaElement: HTMLMediaElement | null): boolean {
     return this.init(mediaElement);
+  }
+
+  public async resume(): Promise<void> {
+    if (this.audioCtx && this.audioCtx.state === 'suspended') {
+      try {
+        await this.audioCtx.resume();
+      } catch (err) {
+        console.warn('[CineMorphAudioEngine] AudioContext resume warning:', err);
+      }
+    }
+  }
+
+  public isSuspended(): boolean {
+    return Boolean(this.audioCtx && this.audioCtx.state === 'suspended');
   }
 
   private connectPipeline() {

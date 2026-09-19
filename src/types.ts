@@ -129,7 +129,7 @@ export interface QueueItem {
   addedAt: number;
 }
 
-// CineMorphAI Engine Types
+// OMS Engine Types
 export type CineMorphTheme = 
   | 'cinematic-dark' 
   | 'cyberpunk-oled' 

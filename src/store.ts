@@ -401,7 +401,7 @@ export const useAppStore = create<AppState>()(
       miniPlayerMode: false,
       setMiniPlayerMode: (mode) => set({ miniPlayerMode: mode }),
 
-      // CineMorphAI Engine State
+      // OMS Engine State
       versionMode: 'v2',
       setVersionMode: (mode) => set({ versionMode: mode }),
 
