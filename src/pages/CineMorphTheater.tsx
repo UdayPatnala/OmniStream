@@ -1899,7 +1899,7 @@ export function CineMorphTheater() {
           </div>
 
           {/* ── Audio Tracks (Language / Stream Selection) ── */}
-          {audioTrackOptions.length > 1 && (
+          {audioTrackOptions.length > 0 && (
             <div className="space-y-2.5 pb-4 border-b border-amber-900/30">
               <div className="text-[10px] font-bold text-amber-400 uppercase tracking-widest flex items-center justify-between">
                 <span className="flex items-center gap-1.5">
@@ -1912,7 +1912,7 @@ export function CineMorphTheater() {
               </div>
               <div className="space-y-1.5">
                 {audioTrackOptions.map((trk) => {
-                  const isSelected = selectedAudioTrackId === trk.id;
+                  const isSelected = selectedAudioTrackId === trk.id || audioTrackOptions.length === 1;
                   const canSwitchTracks = Boolean(isLocalMedia && localVideoRef.current && audioEngine.canSwitchAudioTracks(localVideoRef.current));
                   const isSecondaryWithoutBrowserSupport = trk.streamIndex > 0 && !canSwitchTracks;
                   return (
@@ -1962,7 +1962,7 @@ export function CineMorphTheater() {
           )}
 
           {/* ── Video Tracks (Quality & Stream Selection) ── */}
-          {videoTrackOptions.length > 1 && (
+          {videoTrackOptions.length > 0 && (
             <div className="space-y-2.5 pb-4 border-b border-amber-900/30">
               <div className="text-[10px] font-bold text-amber-400 uppercase tracking-widest flex items-center justify-between">
                 <span className="flex items-center gap-1.5">

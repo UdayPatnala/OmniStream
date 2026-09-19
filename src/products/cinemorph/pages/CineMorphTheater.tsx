@@ -852,8 +852,29 @@ export function CineMorphTheater() {
     return () => { if (controlsTimerRef.current) clearTimeout(controlsTimerRef.current); };
   }, [theaterState, showShortcuts, showStudioDrawer, resetControlsTimer]);
 
+  // Auto-resume audio context upon user interaction
+  useEffect(() => {
+    const handleUserInteraction = () => {
+      try {
+        audioEngine.resume();
+      } catch {}
+    };
+    window.addEventListener('click', handleUserInteraction, { once: true });
+    window.addEventListener('keydown', handleUserInteraction, { once: true });
+    window.addEventListener('touchstart', handleUserInteraction, { once: true });
+    return () => {
+      window.removeEventListener('click', handleUserInteraction);
+      window.removeEventListener('keydown', handleUserInteraction);
+      window.removeEventListener('touchstart', handleUserInteraction);
+    };
+  }, []);
+
   // ── Controls Handlers ───────────────────────────────────────────────────────
   const togglePlay = useCallback(() => {
+    try {
+      audioEngine.resume();
+    } catch {}
+
     if (isLocalMedia && localVideoRef.current) {
       if (localVideoRef.current.paused) {
         localVideoRef.current.play();
