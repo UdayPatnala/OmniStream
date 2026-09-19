@@ -432,7 +432,7 @@ export function SettingsPage() {
         <div className="space-y-3 text-sm text-utube-text-secondary">
           <div className="flex justify-between items-center py-1">
             <span className="text-utube-text-muted text-xs">Application Name</span>
-            <span className="font-bold text-utube-text">OmniStream (CineMorph AI v2)</span>
+            <span className="font-bold text-utube-text">OmniStream (OMS Intelligence v2)</span>
           </div>
           <div className="flex justify-between items-center py-1 border-t border-utube-border">
             <span className="text-utube-text-muted text-xs">Version</span>

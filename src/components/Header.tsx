@@ -127,7 +127,7 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
 
   return (
     <header className="flex items-center justify-between sticky top-0 z-40 px-4 py-2 bg-utube-card/90 backdrop-blur-xl border-b border-utube-border h-14 select-none">
-      {/* Left: Hamburger, CineMorph Logo & Version Badge */}
+      {/* Left: Hamburger, U-Tube Logo & Version Badge */}
       <div className="flex items-center gap-3">
         <button 
           onClick={toggleSidebar} 
@@ -171,7 +171,7 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
             <div className="relative flex-1">
               <input
                 type="text"
-                placeholder="Ask CineMorphAI or search YouTube..."
+                placeholder="Ask OMS or search YouTube..."
                 value={query}
                 onFocus={() => setShowSuggestions(true)}
                 onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}

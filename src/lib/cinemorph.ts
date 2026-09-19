@@ -11,7 +11,7 @@ export * from './cinemorph/adaptiveCinemaEngine';
 export * from './cinemorph/mediaParser';
 
 /**
- * CineMorphAI - AI Intelligence Engine (v2 Core)
+ * OMS - OmniStream Intelligence System (v2 Core)
  */
 
 export function generateAISummary(video: Video): AISummary {
@@ -32,7 +32,7 @@ export function generateAISummary(video: Video): AISummary {
 
   const keyTakeaways: string[] = [
     `Comprehensive cinematic breakdown of "${title}" presented by ${channel}.`,
-    `Extracted high-density concepts and architectural insights processed by CineMorph AI.`,
+    `Extracted high-density concepts and architectural insights processed by OMS Intelligence.`,
     `Synchronized timestamped script chunks for frame-accurate navigation.`,
     `Practical takeaways with non-destructive audio enhancement and smart reframe suggestions.`,
   ];
@@ -41,14 +41,14 @@ export function generateAISummary(video: Video): AISummary {
     keyTakeaways.push(`Deep focus area: ${desc.slice(0, 130)}...`);
   }
 
-  const executiveSummary = `This video "${title}" produced by ${channel} delivers high-impact media content. CineMorph AI v2 has processed the media stream, established topic segments, and rendered interactive copilot metadata for an enhanced viewing experience.`;
+  const executiveSummary = `This video "${title}" produced by ${channel} delivers high-impact media content. OMS Intelligence has processed the media stream, established topic segments, and rendered interactive copilot metadata for an enhanced viewing experience.`;
 
   return {
     executiveSummary,
     keyTakeaways,
     sentiment,
     readingTimeMinutes: Math.max(1, Math.ceil((desc.length + title.length * 5) / 400)),
-    tags: [channel, 'CineMorph v2', 'AI Summary', 'Neural Breakdown', sentiment],
+    tags: [channel, 'OMS v2', 'AI Summary', 'Neural Breakdown', sentiment],
     aiScore: 99
   };
 }
@@ -101,7 +101,7 @@ export function generateAIRemixClips(video: Video): VideoClip[] {
   ];
 }
 
-export async function askCineMorphAI(
+export async function askOMS(
   userQuery: string,
   video: Video,
   chatHistory: AIChatMessage[]
@@ -109,8 +109,8 @@ export async function askCineMorphAI(
   const queryLower = userQuery.toLowerCase();
 
   if (queryLower.includes('summary') || queryLower.includes('about') || queryLower.includes('what is')) {
-    return `🤖 **CineMorph AI Executive Summary**:
-"${video.title}" by **${video.channelTitle}** delivers high-density insights into core concepts. CineMorph AI v2 analyzed the video structure and extracted key actionable takeaways with timestamped navigation markers.`;
+    return `✨ **OMS Intelligence Summary**:
+"${video.title}" by **${video.channelTitle}** delivers high-density insights into core concepts. OMS Intelligence v2 analyzed the video structure and extracted key actionable takeaways with timestamped navigation markers.`;
   }
 
   if (queryLower.includes('channel') || queryLower.includes('who created') || queryLower.includes('creator')) {
@@ -131,14 +131,17 @@ This stream was created by **${video.channelTitle}**. Published ${formatTimeAgo(
 
   if (queryLower.includes('audio') || queryLower.includes('sound') || queryLower.includes('eq') || queryLower.includes('bass')) {
     return `🎧 **Neural Audio Studio Insight**:
-You can enhance this audio stream using CineMorph Audio Studio! Try enabling **Dialogue Boost** for clearer speech or **Virtual 3D Surround** in the Audio Studio toolbar.`;
+You can enhance this audio stream using Studio! Try enabling **Dialogue Boost** for clearer speech or **Virtual 3D Surround** in the Studio toolbar.`;
   }
 
   if (queryLower.includes('frame') || queryLower.includes('aspect') || queryLower.includes('ultrawide') || queryLower.includes('cinema')) {
     return `🎬 **Smart Reframe Suggestion**:
-For an ultra-immersive viewing experience, try switching the frame aspect ratio to **21:9 UltraWide Cinema** with **Face Priority Reframe** from the CineMorph top bar!`;
+For an ultra-immersive viewing experience, try switching the frame aspect ratio to **1.43:1 True IMAX** or **1.90:1 IMAX** with **Smart Reframe** from the CineMorph top bar!`;
   }
 
-  return `✨ **CineMorph AI Analysis**:
-Regarding "${userQuery}" in *${video.title}*, the video content highlights key principles, high performance execution, and smooth user experience. You can inspect topic segments or extract a custom remix clip using the CineMorph AI Studio!`;
+  return `✨ **OMS Intelligence Analysis**:
+Regarding "${userQuery}" in *${video.title}*, the video content highlights key principles, high performance execution, and smooth user experience. You can inspect topic segments or extract a custom remix clip using the Studio!`;
 }
+
+/** Backward compatibility alias */
+export const askCineMorphAI = askOMS;

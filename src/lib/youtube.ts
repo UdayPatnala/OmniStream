@@ -282,7 +282,7 @@ export async function fetchOEmbed(videoId: string): Promise<Video | null> {
       return {
         id: videoId,
         title: data.title || 'YouTube Video',
-        description: `Official video by ${authorName}. streaming live in CineMorph AI.`,
+        description: `Official video by ${authorName}. streaming live in OmniStream.`,
         channelId: authorId,
         channelTitle: authorName,
         channelLogo: getChannelAvatarUrl(authorId, authorName),

@@ -48,7 +48,7 @@ export class ErrorBoundary extends Component<Props, State> {
             </div>
 
             <div className="space-y-2">
-              <h2 className="text-xl font-bold tracking-tight text-white">CineMorph AI Recovery</h2>
+              <h2 className="text-xl font-bold tracking-tight text-white">OmniStream Recovery</h2>
               <p className="text-xs text-gray-400 leading-relaxed">
                 An unexpected state conflict occurred. Our automated engine is ready to restore your workspace.
               </p>
