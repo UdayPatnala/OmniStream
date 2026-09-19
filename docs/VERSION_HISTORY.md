@@ -24,6 +24,47 @@ This document serves as the authoritative, permanent version timeline and Git re
 
 ## Version Entries
 
+### v1.9.0
+
+- **Date**: 2026-09-11
+- **Type**: `STABLE` (CineMorph Fullscreen Initial vs Re-entry Positioning Forensic Fix, Strict Media Validation, and SYS-SYS Execution History Protocol)
+- **Previous Version**: `v1.8.5`
+- **Git Commit**: `72999d7`
+
+#### Quick
+Comprehensive resolution of the CineMorph theater initial fullscreen mount projection defect, media ingestion hardening with strict rejection of vertical & non-video files, and OPCA product capsule architecture enforcement. Safe release baseline with 70/70 test suites passing (385/385 tests) and zero compile errors.
+
+- **CineMorph Fullscreen Initial vs Re-entry Positioning Forensic Fix**:
+  - Diagnosed root cause: `TicketPrinterAnimation` initiated fullscreen prior to route transition; `CineMorphTheater` mounted with `document.fullscreenElement` truthy while React state initialized `isFullscreen = false`. An auto-fullscreen 400ms timeout expired the user gesture token and failed to fire `fullscreenchange`.
+  - Exported `getIsFullscreenActive(): boolean` checking `document.fullscreenElement` alongside all vendor prefixes (`webkitFullscreenElement`, `mozFullScreenElement`, `msFullscreenElement`).
+  - Synchronous state initialization: `useState(() => getIsFullscreenActive())`.
+  - Registered multi-engine listeners (`fullscreenchange`, `webkitfullscreenchange`, `mozfullscreenchange`, `MSFullscreenChange`, `resize`) with immediate mount synchronization.
+  - Eliminated arbitrary 400ms delay hack.
+  - Exported `calculateTheaterProjectionLayout()` computing container alignment (`justify-center` in fullscreen vs `justify-start pt-2 sm:pt-3` windowed) and `mb-0` margin.
+  - Maintained reduced seating height in Original mode (`h-6 sm:h-7`, `scale-[0.6] sm:scale-[0.65] origin-bottom`).
+- **CineMorph Media Ingestion Validation — Strict Vertical & Non-Video Rejection**:
+  - Implemented `mediaValidator.ts` fast-path rejection for non-video files by MIME type and allowed extensions (`mp4`, `webm`, `mkv`, `mov`, `m4v`, `avi`, `wmv`, `3gp`, `ts`, `ogv`, `flv`).
+  - Decoded video dimensions via offscreen `HTMLVideoElement` probe; rejects portrait videos (`videoHeight > videoWidth`, aspect ratio < 1:1) with `"Unsupported video format — CineMorph requires a landscape video."`.
+  - Rejects non-video files with `"Unsupported format (.<ext>) — CineMorph accepts video files only."`.
+  - Guarantees immediate `URL.revokeObjectURL` cleanup across all branches.
+  - Pre-flight guard in `CineMorphLanding.tsx` and `CineMorphTheater.tsx` ensuring invalid files never trigger demuxing, poster generation, session creation, or ticket printer flow.
+- **OPCA Product Capsule Architecture v1.0 Enforcement**:
+  - Enforced strict architectural domain boundaries: `U-Tube`, `CineMorph`, `Shell`, `Core`, `Shared` with zero unauthorized cross-imports.
+- **Verified Resilience**: Full automated test verification with 70 test suites and 385 tests passing (100% pass rate in Vitest), 0 TypeScript errors (`npm run lint`).
+
+#### Module Version Hierarchy
+- **OmniStream Core (`OS`)**: `v1.9.0`
+- **CineMorph Product (`CM`)**: `v1.9.0`
+  - *Cinema-Lounge Interaction (`CM-LOUNGE`)*: `v1.9.0`
+  - *Lightweight Stream Demuxer (`CM-DEMUX`)*: `v1.8.5`
+  - *Theater & Projection Architecture (`CM-TH`)*: `v1.9.0`
+  - *Ticket & Resumption Engine (`CM-TICKET`)*: `v1.9.0`
+  - *Media Validation Engine (`CM-VAL`)*: `v1.9.0`
+  - *Universal Visual & Audio Perception System (`CM-PERCEPT`)*: `v1.8.0`
+- **U-Tube Product (`UT`)**: `v1.8.5`
+
+---
+
 ### v1.8.5
 
 - **Date**: 2026-09-09

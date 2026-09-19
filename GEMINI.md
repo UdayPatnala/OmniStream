@@ -32,15 +32,21 @@ You MUST use the `view_file` tool to read these files if you do not already have
 - **Color System V2**: Editorial light-first foundation (`#F7F5F0`), muted Vermilion (`#C7494F`) for U-Tube accents, muted Slate Blue (`#526C9E`) for CineMorph accents, Graphite (`#5E6166`) for OMS.
 - **Persistence Integrity**: Tickets are only saved on confirmed theater entry ("Take Ticket & Enter Theater"). Do not store temporary tickets if user navigates back.
 
-## SYS-SYS Master Execution Protocol & Architectural Invariants (L1 Foundation)
+## Universal Product-First Engineering System & Architectural Invariants (L1 Foundation)
 
-### 1. Absolute Rule — Recall Before Action
-Before starting ANY major task, feature, redesign, bug fix, refactor, or architectural change:
-1. Reconstruct project vision, motive, AROH philosophy, accumulated decisions, boundaries, existing implementations, and known bugs.
-2. Determine: *"What are we trying to achieve, why does this exist, and how does it affect the entire OmniStream ecosystem?"*
-3. Operate strictly in this permanent execution hierarchy:
-   $$\text{Vision} \to \text{Architecture} \to \text{Ownership} \to \text{User Flow} \to \text{Interaction} \to \text{Visual} \to \text{Implementation} \to \text{Testing} \to \text{Review}$$
-4. Never reverse this hierarchy or begin with a component/animation and invent a purpose afterward.
+### 1. Supreme Non-Negotiable Invariant — Product Intent Recovery & Reverse Engineering
+**Never let the current codebase overwrite the project's historical product intent. Reconcile the code with the intent.**
+The code is only one representation of the product vision. It may be incomplete, outdated, overbuilt, or drifted.
+**Reverse engineering the existing project must come before interpreting requested changes in detail.** Answer *"What has actually been built so far?"* before *"What should we build next?"*
+
+Operate across the three separate realities to reconcile:
+1. **WHAT WE INTENDED**: Motive $\to$ Vision $\to$ Conversations $\to$ Decisions *(Tells us what was wanted)*.
+2. **WHAT WE ACTUALLY BUILT**: Reverse engineering $\to$ Code $\to$ Files $\to$ Runtime $\to$ Git *(Tells us what exists)*.
+3. **WHAT WE SHOULD DO NEXT**: Gap analysis $\to$ Correction $\to$ Simplification $\to$ Safe Implementation *(Tells us what needs to happen)*.
+
+Permanent execution hierarchy:
+$$\text{Discussions} \to \text{Motive} \to \text{Vision} \to \text{Purpose} \to \text{Identity} \to \text{Reverse Engineering} \to \text{Reconciliation} \to \text{Decisions} \to \text{Safe Version} \to \text{Implementation} \to \text{Verification}$$
+Full standard codified in [`docs/protocols/UNIVERSAL_PROJECT_ENGINEERING_AND_EXECUTION_SYSTEM.md`](./docs/protocols/UNIVERSAL_PROJECT_ENGINEERING_AND_EXECUTION_SYSTEM.md).
 
 ### 2. Strict Product Ownership & Domain Boundaries
 - **OmniStream Core**: Gateway (`/`), cross-engine identity, global theme/preferences, routing. Connective layer, not a dumping ground.
