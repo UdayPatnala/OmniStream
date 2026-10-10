@@ -1,4 +1,4 @@
-﻿/**
+/**
  * OmniStream Core — Public API
  * ==============================
  * Cross-product infrastructure. Neither U-Tube nor CineMorph should modify this.
@@ -15,3 +15,14 @@
 export { storageService } from './storage/storageService';
 export { omsTransitionService } from './oms/omsTransitionService';
 export type { OMSTransitionContext } from './oms/omsTransitionService';
+export { errorRecoveryManager, ErrorRecoveryManager } from './oms/errorRecoveryManager';
+export {
+  SHORTCUT_DEFINITIONS,
+  DEFAULT_SHORTCUTS,
+  normalizeKey,
+  formatKeyLabel,
+  isModifierKey,
+  matchesShortcut,
+  findConflictingAction,
+} from './shortcuts/shortcutManager';
+export type { ShortcutAction, ShortcutDefinition } from './shortcuts/shortcutManager';

@@ -57,7 +57,11 @@ export const useCineMorphStore = create<CineMorphStoreState>()(
 
       setAspectRatio: (ratio: AspectRatioMode) => {
         const validRatios: AspectRatioMode[] = ['original', '1.90:1', '1.43:1', '4:3'];
-        set({ aspectRatio: validRatios.includes(ratio) ? ratio : 'original' });
+        const validated = validRatios.includes(ratio) ? ratio : 'original';
+        set((state) => ({
+          aspectRatio: validated,
+          activeSession: state.activeSession ? { ...state.activeSession, aspectRatio: validated } : null,
+        }));
       },
 
       setOfflineStatus: (offline: boolean) =>

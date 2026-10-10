@@ -17,10 +17,20 @@ export interface MediaValidationResult {
   width?: number;
   height?: number;
   aspectRatio?: number;
+  mediaType?: 'video' | 'audio';
 }
 
 export const SUPPORTED_VIDEO_EXTENSIONS = [
   'mp4', 'webm', 'mkv', 'mov', 'm4v', 'avi', 'wmv', '3gp', 'ts', 'ogv', 'flv', 'm3u8', 'mpd'
+] as const;
+
+export const SUPPORTED_AUDIO_EXTENSIONS = [
+  'mp3', 'wav', 'flac', 'aac', 'm4a', 'ogg', 'opus', 'alac', 'aiff', 'wma'
+] as const;
+
+export const SUPPORTED_MEDIA_EXTENSIONS = [
+  ...SUPPORTED_VIDEO_EXTENSIONS,
+  ...SUPPORTED_AUDIO_EXTENSIONS,
 ] as const;
 
 export function getNonVideoErrorMessage(ext?: string): string {
@@ -34,10 +44,17 @@ export const NON_VIDEO_ERROR_MESSAGE = 'Unsupported file type — CineMorph acce
 export const VERTICAL_VIDEO_ERROR_MESSAGE = 'Unsupported video format — CineMorph requires a landscape video.';
 export const UNREADABLE_VIDEO_ERROR_MESSAGE = 'Unsupported video format — CineMorph could not decode this video.';
 
+export interface MediaValidationOptions {
+  allowAudio?: boolean;
+}
+
 /**
  * Validates a candidate media file before session creation or ingestion.
  */
-export async function validateCineMorphMedia(file: File): Promise<MediaValidationResult> {
+export async function validateCineMorphMedia(
+  file: File,
+  options?: MediaValidationOptions
+): Promise<MediaValidationResult> {
   if (!file) {
     return {
       isValid: false,
@@ -45,13 +62,24 @@ export async function validateCineMorphMedia(file: File): Promise<MediaValidatio
     };
   }
 
+  const allowAudio = options?.allowAudio ?? false;
   const fileName = file.name || '';
   const ext = fileName.split('.').pop()?.toLowerCase() || '';
   const isVideoExt = (SUPPORTED_VIDEO_EXTENSIONS as readonly string[]).includes(ext);
   const isVideoMime = typeof file.type === 'string' && file.type.startsWith('video/');
+  const isAudioExt = (SUPPORTED_AUDIO_EXTENSIONS as readonly string[]).includes(ext);
+  const isAudioMime = typeof file.type === 'string' && file.type.startsWith('audio/');
 
-  // 1. Strict Non-Video Rejection:
-  // Reject audio files (audio/*), images (image/*), documents, text, archives
+  // 1. High-Fidelity Audio Support (when enabled)
+  if (allowAudio && (isAudioExt || isAudioMime)) {
+    return {
+      isValid: true,
+      mediaType: 'audio',
+    };
+  }
+
+  // 2. Strict Non-Video Rejection:
+  // Reject audio files (when audio not explicitly allowed), images (image/*), documents, text, archives
   if (file.type && !isVideoMime && file.type !== 'application/octet-stream') {
     return {
       isValid: false,
@@ -66,9 +94,9 @@ export async function validateCineMorphMedia(file: File): Promise<MediaValidatio
     };
   }
 
-  // 2. Browser Video Element Metadata Probe for Dimensions & Orientation
+  // 3. Browser Video Element Metadata Probe for Dimensions & Orientation
   if (typeof document === 'undefined' || typeof URL === 'undefined' || typeof URL.createObjectURL !== 'function') {
-    return { isValid: true };
+    return { isValid: true, mediaType: 'video' };
   }
 
   return new Promise<MediaValidationResult>((resolve) => {

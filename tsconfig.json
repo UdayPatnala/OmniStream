@@ -26,6 +26,7 @@
       "@omnistream/cinemorph/*": ["./src/products/cinemorph/*"],
       "@omnistream/shared":      ["./src/shared/index.ts"],
       "@omnistream/shared/*":    ["./src/shared/*"],
+      "@tests/*":                ["./tests/*"],
       "@/*": [
         "./*"
       ]

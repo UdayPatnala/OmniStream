@@ -1,13 +1,14 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Video, Channel, HistoryItem, Collection, QueueItem, SearchHistoryMetaData, BehaviorEvent, CineMorphTheme, VideoClip, RankingProfile, LocalMediaItem, FrameAspectRatio, DevicePerformanceProfile } from './types';
+import { DEFAULT_SHORTCUTS, ShortcutAction } from './core/shortcuts/shortcutManager';
 
-import { useUTubeStore } from './state/useUTubeStore';
+import { useUTubeStore } from './products/u-tube/state/useUTubeStore';
 
 // Re-export modular Milestone 1 state stores
-export { useUTubeStore, type UTubeVideo, type ChannelSubscription, type UTubeStoreState } from './state/useUTubeStore';
-export { useCineMorphStore, type AspectRatioMode, type FramingRuleMode, type CineMorphStoreState, type CineMorphVideoSource } from './state/useCineMorphStore';
-export { useTicketStore, type MovieTicket, type TicketStoreState } from './state/useTicketStore';
+export { useUTubeStore, type UTubeVideo, type ChannelSubscription, type UTubeStoreState } from './products/u-tube/state/useUTubeStore';
+export { useCineMorphStore, type AspectRatioMode, type FramingRuleMode, type CineMorphStoreState, type CineMorphVideoSource } from './products/cinemorph/state/useCineMorphStore';
+export { useTicketStore, type MovieTicket, type TicketStoreState } from './products/cinemorph/ticketing/useTicketStore';
 
 interface AppState {
   theme: 'dark' | 'light' | 'system';
@@ -140,6 +141,11 @@ interface AppState {
   watchPositions: Record<string, { videoId: string; timestamp: number; duration: number; updatedAt: number }>;
   saveWatchPosition: (videoId: string, timestamp: number, duration: number) => void;
   getWatchPosition: (videoId: string) => { videoId: string; timestamp: number; duration: number; updatedAt: number } | null;
+
+  customShortcuts: Record<ShortcutAction, string[]>;
+  updateShortcut: (action: ShortcutAction, keys: string[]) => void;
+  resetShortcuts: () => void;
+  getShortcuts: () => Record<ShortcutAction, string[]>;
 }
 
 export const useAppStore = create<AppState>()(
@@ -478,6 +484,18 @@ export const useAppStore = create<AppState>()(
       removeClip: (id) => set((state) => ({
         savedClips: state.savedClips.filter(c => c.id !== id)
       })),
+
+      customShortcuts: { ...DEFAULT_SHORTCUTS },
+      updateShortcut: (action, keys) => set((state) => ({
+        customShortcuts: {
+          ...state.customShortcuts,
+          [action]: keys.map(k => k.trim().toLowerCase()).filter(Boolean)
+        }
+      })),
+      resetShortcuts: () => set({
+        customShortcuts: { ...DEFAULT_SHORTCUTS }
+      }),
+      getShortcuts: () => get().customShortcuts || { ...DEFAULT_SHORTCUTS },
     }),
     {
       name: 'cinemorph-utube-storage',
@@ -525,6 +543,10 @@ export const useAppStore = create<AppState>()(
           surround3D: true,
           drcLoudness: true,
           ...(persistedState?.audioEQ || {}),
+        },
+        customShortcuts: {
+          ...DEFAULT_SHORTCUTS,
+          ...(persistedState?.customShortcuts || {}),
         },
       }),
     }

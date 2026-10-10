@@ -1,4 +1,4 @@
-﻿export * from './audioEngine';
+export * from './audioEngine';
 export * from './frameEngine';
 export * from './visualEngine';
 export * from './telemetryEngine';
@@ -9,4 +9,11 @@ export * from '../perception/omsPipeline';
 export * from './mediaParser';
 export * from './captionService';
 export * from './posterService';
+export * from './mediaCapabilityDetector';
+export * from './trackModel';
+export * from './trackSelector';
+export * from './subtitleCueModel';
+export * from './subtitleStyleModel';
+export * from './subtitleParser';
+export * from './ambientLightEngine';
 

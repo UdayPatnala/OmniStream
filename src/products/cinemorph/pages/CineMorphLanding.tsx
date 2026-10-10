@@ -16,6 +16,7 @@ import {
 
 import { CineMorphNav } from '../components/landing/CineMorphNav';
 import { CinemaLounge } from '../components/landing/CinemaLounge';
+import { useCineMorphScene } from '../state/useCineMorphScene';
 
 export function CineMorphLanding() {
   const [fileError, setFileError] = useState<string | null>(null);
@@ -23,11 +24,14 @@ export function CineMorphLanding() {
   const [isPortraitMobile, setIsPortraitMobile] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState(false);
 
-  // Time-of-day adaptive environmental state: Morning (8 AM - 6 PM) vs Night (6 PM - 8 AM)
-  const [environmentalTime, setEnvironmentalTime] = useState<'morning' | 'night'>(() => {
-    const currentHour = new Date().getHours();
-    return currentHour >= 8 && currentHour < 18 ? 'morning' : 'night';
-  });
+  // CineMorph 6-Space Viewport Scene State Machine
+  const {
+    currentSpace,
+    environmentalTime,
+    dispatch,
+    navigateToSpace,
+    setEnvironmentalTime,
+  } = useCineMorphScene();
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const activeBlobUrlsRef = useRef<Set<string>>(new Set());
@@ -46,8 +50,8 @@ export function CineMorphLanding() {
 
   // Toggle environmental time manually via celestial dial
   const handleToggleEnvironmentalTime = useCallback(() => {
-    setEnvironmentalTime((prev) => (prev === 'morning' ? 'night' : 'morning'));
-  }, []);
+    setEnvironmentalTime(environmentalTime === 'morning' ? 'night' : 'morning');
+  }, [environmentalTime, setEnvironmentalTime]);
 
   // Orientation tracking and automatic landscape request for mobile touch devices
   useEffect(() => {
@@ -72,16 +76,19 @@ export function CineMorphLanding() {
     if (isIngesting) return;
     setIsIngesting(true);
     setFileError(null);
+    dispatch({ type: 'START_INGEST' });
     if (!file) {
       setIsIngesting(false);
+      dispatch({ type: 'CANCEL_PRINTING' });
       return;
     }
 
-    // Pre-flight media validation: strictly reject non-video and vertical/portrait files
-    const validation = await validateCineMorphMedia(file);
+    // Pre-flight media validation: accepts all video and high-fidelity audio formats
+    const validation = await validateCineMorphMedia(file, { allowAudio: true });
     if (!validation.isValid) {
-      setFileError(validation.error || 'Unsupported video format — CineMorph requires a landscape video.');
+      setFileError(validation.error || 'Unsupported media format — CineMorph requires a valid video or audio presentation.');
       setIsIngesting(false);
+      dispatch({ type: 'CANCEL_PRINTING' });
       return;
     }
     const ext = file.name.split('.').pop()?.toLowerCase() || '';
@@ -102,31 +109,34 @@ export function CineMorphLanding() {
       const fileId = `local-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
       const title = file.name.replace(/\.[^/.]+$/, '');
 
+      const isAudio = file.type?.startsWith('audio/') || ['mp3', 'wav', 'flac', 'aac', 'm4a', 'ogg', 'opus', 'alac', 'aiff', 'wma'].includes(ext);
+
       // Baseline instant analysis — zero UI blocking
       const initialContainerAnalysis = {
         containerFormat: ext.toUpperCase(),
-        mimeType: file.type || `video/${ext}`,
+        mimeType: file.type || (isAudio ? `audio/${ext}` : `video/${ext}`),
         durationSeconds: 0,
         fileSizeBytes: file.size,
         audioTracks: [
           {
             id: 'audio-0',
             streamIndex: 0,
-            label: 'Direct Master Audio',
-            language: 'Undetermined',
+            label: `${title} — Master Audio (${ext.toUpperCase() || 'Stereo 2.0'})`,
+            originalTitle: title,
+            language: 'Stereo Master',
             languageCode: 'und',
-            codec: 'Direct Audio',
+            codec: ext.toUpperCase() || 'Direct Audio',
             channels: 2,
             channelLayout: 'Stereo 2.0',
             isDefault: true,
             isPlayable: true,
           },
         ],
-        videoStreams: [
+        videoStreams: isAudio ? [] : [
           {
             id: 'video-0',
             streamIndex: 0,
-            label: 'Primary Video Stream',
+            label: `${title} — Primary Video (1080p)`,
             codec: 'Direct Video',
             width: 1920,
             height: 1080,
@@ -138,17 +148,17 @@ export function CineMorphLanding() {
         ],
         subtitleTracks: [],
         defaultAudioTrackId: 'audio-0',
-        defaultVideoStreamId: 'video-0',
+        defaultVideoStreamId: isAudio ? '' : 'video-0',
         isContainerSupported: true,
         isPlaybackSupported: true,
-        compatibilitySummary: 'Direct Container Source',
+        compatibilitySummary: isAudio ? `1 Master Audio Track (${ext.toUpperCase()})` : 'Direct Container Source',
       };
 
       const mediaItem: LocalMediaItem = {
         id: fileId,
         name: title,
         size: file.size,
-        type: file.type || `video/${ext}`,
+        type: file.type || (isAudio ? `audio/${ext}` : `video/${ext}`),
         url: blobUrl,
         duration: 0,
         progress: 0,
@@ -161,6 +171,9 @@ export function CineMorphLanding() {
       // Synchronize in-memory media immediately
       addLocalMediaToHistory(mediaItem);
       setActiveLocalMedia(mediaItem);
+
+      // Transition scene to ticket_printing space
+      dispatch({ type: 'START_PRINTING', ticketId: fileId });
 
       // Trigger the v1.5.0 physical ticket printing ritual INSTANTLY (<5ms)
       await useTicketStore.getState().trigger10sPrintAnimation({
@@ -216,6 +229,7 @@ export function CineMorphLanding() {
       if (activeSessionIdRef.current === sessionId) {
         console.error('[CineMorphLanding] Ingestion error:', err);
         setFileError('The feature container could not be calibrated. Please select another file.');
+        dispatch({ type: 'CANCEL_PRINTING' });
       }
     } finally {
       if (activeSessionIdRef.current === sessionId) {
@@ -227,6 +241,7 @@ export function CineMorphLanding() {
   return (
     <div
       data-cinemorph-time={environmentalTime}
+      data-cinemorph-space={currentSpace}
       className="cinemorph-spatial-root w-full h-[100dvh] relative flex flex-col justify-between overflow-hidden select-none bg-stone-950 cinemorph-env-transition"
       style={{
         backgroundColor: environmentalTime === 'morning' ? '#E8E2D7' : '#070809',
@@ -237,7 +252,8 @@ export function CineMorphLanding() {
       <CineMorphNav
         environmentalTime={environmentalTime}
         onToggleTime={handleToggleEnvironmentalTime}
-        activeSpace="lobby"
+        activeSpace={currentSpace === 'booking_office' ? 'booking' : currentSpace === 'personal_screening_room' ? 'screening_room' : 'lobby'}
+        onSwitchSpace={(space) => navigateToSpace(space === 'booking' ? 'booking_office' : space === 'screening_room' ? 'personal_screening_room' : 'arrival_lobby')}
         hasTicketOrMedia={!!activeLocalMedia || !!activeTicket}
       />
 
@@ -285,7 +301,7 @@ export function CineMorphLanding() {
         tabIndex={-1}
         className="sr-only"
         aria-hidden="true"
-        accept="video/*,.mp4,.webm,.mkv,.mov,.m4v,.avi,.wmv,.3gp,.ts,.ogv,.flv"
+        accept="video/*,audio/*,.mp4,.webm,.mkv,.mov,.m4v,.avi,.wmv,.3gp,.ts,.ogv,.flv,.mp3,.wav,.flac,.aac,.m4a,.ogg,.opus,.alac,.aiff"
         onChange={(e) => {
           if (e.target.files && e.target.files.length > 0) {
             const file = e.target.files[0];

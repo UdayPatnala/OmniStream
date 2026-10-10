@@ -13,6 +13,7 @@ import { useTicketStore } from '../ticketing/useTicketStore';
 import { useCineMorphStore, AspectRatioMode } from '../state/useCineMorphStore';
 import { omsTransitionService } from '../../../core/oms/omsTransitionService';
 import { resolveExternalMediaMeta } from '../../../core/oms/mediaResolver';
+import { matchesShortcut, formatKeyLabel, ShortcutAction } from '../../../core/shortcuts/shortcutManager';
 import { Video, AudioPreset, FrameAspectRatio, CineMorphTheme, GlowIntensity, LocalMediaItem, MediaSubtitleTrack } from '../types';
 import { OMSLogo } from '../../../shared/ui/OMSLogo';
 import {
@@ -20,8 +21,13 @@ import {
   Film, Monitor, ArrowLeft, RotateCcw, ChevronRight,
   Sparkles, HelpCircle, X, Keyboard, Sliders, Maximize2,
   Sun, FileText, Check, HardDrive, Armchair,
-  Eye, RefreshCw, Layers, Zap, Captions, Gauge, Languages, Tv
+  Eye, RefreshCw, Layers, Zap, Captions, Gauge, Languages, Tv, Smartphone
 } from 'lucide-react';
+import {
+  isMobileTouchDevice,
+  isPortraitOrientation,
+  requestLandscapeOrientation
+} from '../services/orientationService';
 import { 
   audioEngine, 
   THEME_CONFIGS, 
@@ -29,10 +35,25 @@ import {
   localVideoAnalyzer,
   hybridMediaRouter,
   adaptiveCinemaEngine,
-  mediaParser
+  mediaParser,
+  trackSelector,
+  createTrackSetFromAnalysis,
+  MediaTrackSet,
+  MediaSelectionState,
+  SubtitleCue,
+  SubtitleStyleConfig,
+  DEFAULT_SUBTITLE_STYLE,
+  SubtitleFontSize,
+  parseSubtitleFile,
+  detectSubtitleFormat,
+  ambientLightEngine,
 } from '../media';
+import { TrackSelectionMenu } from '../components/player/TrackSelectionMenu';
+import { cineMorphSpatialEngine } from '../spatial';
 import { CineMorphCaptionController } from '../media/captionService';
 import { CaptionOverlay } from '@omnistream/shared/ui/CaptionOverlay';
+import { errorRecoveryManager } from '../../../core/oms/errorRecoveryManager';
+import { CineMorphAuditoriumSeats } from '../components/theater/CineMorphAuditoriumSeats';
 
 type TheaterState = 'pre-show' | 'loading' | 'playing' | 'paused' | 'ended' | 'error';
 
@@ -60,12 +81,14 @@ export function calculateTheaterProjectionLayout({
   frameAspectRatio,
   frameStyleAspectRatio,
   nativeAspectRatio,
+  theaterSeatingEnabled,
 }: {
   isFullscreen: boolean;
   isOriginalMode: boolean;
   frameAspectRatio: string;
   frameStyleAspectRatio: string;
   nativeAspectRatio: number | null;
+  theaterSeatingEnabled?: boolean;
 }): TheaterProjectionLayout {
   const effectiveRatio = isOriginalMode && nativeAspectRatio
     ? `${nativeAspectRatio}`
@@ -77,23 +100,29 @@ export function calculateTheaterProjectionLayout({
 
   const screenClassName = isFullscreen
     ? 'mb-0'
+    : theaterSeatingEnabled
+    ? 'mb-2 sm:mb-3'
     : 'mb-3 sm:mb-5';
 
-  const maxWidth = isFullscreen
-    ? `min(99vw, calc(98vh * (${effectiveRatio})))`
-    : isOriginalMode
-    ? `min(98vw, calc(94vh * (${nativeAspectRatio || '16 / 9'})))`
-    : frameAspectRatio === '1.43:1'
-    ? `min(98vw, calc(94vh * (${frameStyleAspectRatio})))`
-    : `min(98vw, calc(92vh * (${frameStyleAspectRatio})))`;
-
   const maxHeight = isFullscreen
-    ? '98vh'
+    ? (theaterSeatingEnabled ? 'min(88vh, calc(100dvh - 5rem))' : '98vh')
+    : theaterSeatingEnabled
+    ? (isOriginalMode ? 'min(84vh, calc(100dvh - 5.5rem))' : frameAspectRatio === '1.43:1' ? 'min(84vh, calc(100dvh - 5.5rem))' : 'min(82vh, calc(100dvh - 5.5rem))')
     : isOriginalMode
     ? '94vh'
     : frameAspectRatio === '1.43:1'
     ? '94vh'
     : '92vh';
+
+  const maxWidth = isFullscreen
+    ? (theaterSeatingEnabled ? `min(99vw, calc(${maxHeight} * (${effectiveRatio})))` : `min(99vw, calc(98vh * (${effectiveRatio})))`)
+    : theaterSeatingEnabled
+    ? `min(98vw, calc(${maxHeight} * (${effectiveRatio})))`
+    : isOriginalMode
+    ? `min(98vw, calc(94vh * (${nativeAspectRatio || '16 / 9'})))`
+    : frameAspectRatio === '1.43:1'
+    ? `min(98vw, calc(94vh * (${frameStyleAspectRatio})))`
+    : `min(98vw, calc(92vh * (${frameStyleAspectRatio})))`;
 
   return {
     containerClassName,
@@ -125,8 +154,17 @@ export function CineMorphTheater() {
     activeLocalMedia, localMediaHistory, addLocalMediaToHistory,
     theaterSeatingEnabled, setTheaterSeatingEnabled,
     curtainAnimationEnabled, setCurtainAnimationEnabled,
-    devicePerformanceProfile
+    devicePerformanceProfile,
+    customShortcuts
   } = useAppStore();
+
+  const getKeyDisplay = useCallback((action: ShortcutAction, fallback: string) => {
+    const keys = customShortcuts?.[action];
+    if (keys && keys.length > 0) {
+      return keys.map(formatKeyLabel).join(' / ');
+    }
+    return fallback;
+  }, [customShortcuts]);
 
   const activeSession = useCineMorphStore((state) => state.activeSession);
   const activeTicket = useTicketStore((state) => state.activeTicket);
@@ -208,6 +246,8 @@ export function CineMorphTheater() {
   const [selectedSubtitleTrack, setSelectedSubtitleTrack] = useState('off');
   const [subtitlesOn, setSubtitlesOn] = useState(false);
   const [activeCaptionText, setActiveCaptionText] = useState<string | null>(null);
+  const [activeSubtitleCues, setActiveSubtitleCues] = useState<SubtitleCue[]>([]);
+  const [subtitleStyleConfig, setSubtitleStyleConfig] = useState<SubtitleStyleConfig>(DEFAULT_SUBTITLE_STYLE);
   const [speedRate, setSpeedRate] = useState(1);
   const [audioTrackIndex, setAudioTrackIndex] = useState(0);
   const [hudToast, setHudToast] = useState<string | null>(null);
@@ -219,6 +259,31 @@ export function CineMorphTheater() {
   // Audio/Video track selections
   const [selectedAudioTrackId, setSelectedAudioTrackId] = useState<string>('audio-0');
   const [selectedVideoTrackId, setSelectedVideoTrackId] = useState<string>('video-0');
+  const [isTrackMenuOpen, setIsTrackMenuOpen] = useState(false);
+
+  // Canonical MediaTrackSet and Selection State
+  const [trackSet, setTrackSet] = useState<MediaTrackSet>(() =>
+    createTrackSetFromAnalysis(localItem?.containerAnalysis)
+  );
+  const [selection, setSelection] = useState<MediaSelectionState>(() =>
+    trackSelector.getSelection()
+  );
+
+  useEffect(() => {
+    if (localItem?.containerAnalysis) {
+      const ts = createTrackSetFromAnalysis(localItem.containerAnalysis);
+      setTrackSet(ts);
+      const sel = trackSelector.initializeTracks(ts);
+      setSelection(sel);
+    }
+  }, [localItem?.id, localItem?.containerAnalysis]);
+
+  useEffect(() => {
+    return trackSelector.subscribe(({ trackSet: ts, selection: sel }) => {
+      setTrackSet(ts);
+      setSelection(sel);
+    });
+  }, []);
 
   // Pre-seed native aspect ratio from container analysis or session metadata if already known
   const initialNativeAspectRatio = React.useMemo(() => {
@@ -252,18 +317,62 @@ export function CineMorphTheater() {
   const [hoverTime, setHoverTime] = useState<number | null>(null);
   const [hoverPosPercent, setHoverPosPercent] = useState<number | null>(null);
 
+  // Mobile landscape orientation advisory state
+  const [isPortraitMobile, setIsPortraitMobile] = useState(() => isMobileTouchDevice() && isPortraitOrientation());
+  const [orientationDismissed, setOrientationDismissed] = useState(false);
+
+  useEffect(() => {
+    if (!isMobileTouchDevice()) return;
+    const checkOrientation = () => {
+      setIsPortraitMobile(isPortraitOrientation());
+    };
+    window.addEventListener('resize', checkOrientation);
+    window.addEventListener('orientationchange', checkOrientation);
+    return () => {
+      window.removeEventListener('resize', checkOrientation);
+      window.removeEventListener('orientationchange', checkOrientation);
+    };
+  }, []);
+
   // Real detected audio and video tracks from container demuxer (Zero fake tracks)
   const audioTrackOptions = React.useMemo(() => {
-    if (localItem?.containerAnalysis?.audioTracks && localItem.containerAnalysis.audioTracks.length > 0) {
-      return localItem.containerAnalysis.audioTracks;
+    const rawAudio = localItem?.containerAnalysis?.audioTracks;
+    const cleanMediaTitle = (localItem?.name || video?.title || 'Feature Presentation').replace(/\.[^/.]+$/, '');
+    
+    if (rawAudio && rawAudio.length > 0) {
+      return rawAudio.map((trk, i) => {
+        const hasPlaceholder = !trk.label || trk.label.includes('Stream #') || trk.label.includes('Direct Source');
+        const langDisplay = trk.language && trk.language !== 'Undetermined' ? trk.language : '';
+        const codecDisplay = trk.codec && trk.codec !== 'Source Audio' && trk.codec !== 'Direct Audio' ? trk.codec : '';
+        const layoutDisplay = trk.channelLayout || 'Stereo 2.0';
+        
+        let refinedLabel = trk.originalTitle || trk.label;
+        if (hasPlaceholder) {
+          if (langDisplay && codecDisplay) {
+            refinedLabel = `${langDisplay} • ${codecDisplay} (${layoutDisplay})`;
+          } else if (langDisplay) {
+            refinedLabel = `${langDisplay} Audio (${layoutDisplay})`;
+          } else if (rawAudio.length === 1) {
+            refinedLabel = `${cleanMediaTitle} — Master Audio (${layoutDisplay})`;
+          } else {
+            refinedLabel = `Audio Track ${i + 1} (${layoutDisplay})`;
+          }
+        }
+        return {
+          ...trk,
+          label: refinedLabel,
+          originalTitle: trk.originalTitle || refinedLabel,
+        };
+      });
     }
+
     if (isLocalMedia && localVideoRef.current && (localVideoRef.current as any).audioTracks?.length > 1) {
       const trks = (localVideoRef.current as any).audioTracks;
       return Array.from(trks).map((t: any, i: number) => ({
         id: `audio-${i}`,
         streamIndex: i,
-        label: t.label || `Audio Track #${i + 1}`,
-        originalTitle: t.label || undefined,
+        label: t.label || (t.language ? `${t.language} Audio` : `${cleanMediaTitle} — Track ${i + 1}`),
+        originalTitle: t.label || `${cleanMediaTitle} — Track ${i + 1}`,
         language: t.language || 'Undetermined',
         languageCode: t.language || 'und',
         codec: 'Direct Audio',
@@ -273,57 +382,78 @@ export function CineMorphTheater() {
         isPlayable: true,
       }));
     }
+
     return [
       {
         id: 'audio-0',
         streamIndex: 0,
-        label: 'Audio Stream #1 (Direct Source)',
-        originalTitle: undefined,
-        language: 'Undetermined',
+        label: `${cleanMediaTitle} — Master Audio (Stereo 2.0)`,
+        originalTitle: cleanMediaTitle,
+        language: 'Stereo Master',
         languageCode: 'und',
-        codec: 'Source Audio',
+        codec: 'Direct Audio',
         channels: 2,
         channelLayout: 'Stereo 2.0',
         isDefault: true,
         isPlayable: true,
       },
     ];
-  }, [localItem, isLocalMedia]);
+  }, [localItem, video, isLocalMedia]);
 
   const videoTrackOptions = React.useMemo(() => {
-    if (localItem?.containerAnalysis?.videoStreams && localItem.containerAnalysis.videoStreams.length > 0) {
-      return localItem.containerAnalysis.videoStreams;
+    const rawVideo = localItem?.containerAnalysis?.videoStreams;
+    const cleanMediaTitle = (localItem?.name || video?.title || 'Feature Presentation').replace(/\.[^/.]+$/, '');
+    const currentWidth = localVideoRef.current?.videoWidth || 1920;
+    const currentHeight = localVideoRef.current?.videoHeight || 1080;
+    
+    if (rawVideo && rawVideo.length > 0) {
+      return rawVideo.map((v, i) => {
+        const hasPlaceholder = !v.label || v.label.includes('Stream #') || v.label.includes('Direct Source');
+        let refinedLabel = v.label;
+        if (hasPlaceholder) {
+          const res = v.width && v.height ? `${v.width}×${v.height}` : `${currentWidth}×${currentHeight}`;
+          refinedLabel = rawVideo.length === 1
+            ? `${cleanMediaTitle} — Primary Video (${res})`
+            : `Video Track ${i + 1} (${res})`;
+        }
+        return {
+          ...v,
+          label: refinedLabel,
+        };
+      });
     }
+
     if (isLocalMedia && localVideoRef.current && (localVideoRef.current as any).videoTracks?.length > 1) {
       const trks = (localVideoRef.current as any).videoTracks;
       return Array.from(trks).map((t: any, i: number) => ({
         id: `video-${i}`,
         streamIndex: i,
-        label: t.label || `Video Stream #${i + 1}`,
+        label: t.label || `Video Track ${i + 1} (${currentWidth}×${currentHeight})`,
         codec: 'Direct Video',
-        width: 1920,
-        height: 1080,
-        resolution: 'Source Resolution',
+        width: currentWidth,
+        height: currentHeight,
+        resolution: `${currentHeight}p`,
         aspectRatio: '16:9',
         isDefault: i === 0,
         isPlayable: true,
       }));
     }
+
     return [
       {
         id: 'video-0',
         streamIndex: 0,
-        label: 'Video Stream #1 (Direct Source)',
+        label: `${cleanMediaTitle} — Primary Video (${currentWidth}×${currentHeight})`,
         codec: 'Source Video',
-        width: 1920,
-        height: 1080,
-        resolution: 'Source Resolution',
+        width: currentWidth,
+        height: currentHeight,
+        resolution: `${currentHeight}p`,
         aspectRatio: '16:9',
         isDefault: true,
         isPlayable: true,
       },
     ];
-  }, [localItem, isLocalMedia]);
+  }, [localItem, video, isLocalMedia]);
 
   const [externalSubtitleTracks, setExternalSubtitleTracks] = useState<MediaSubtitleTrack[]>([]);
 
@@ -354,6 +484,9 @@ export function CineMorphTheater() {
     controller.setOnChange((text) => {
       setActiveCaptionText(text);
     });
+    controller.setOnCuesChange((cues) => {
+      setActiveSubtitleCues(cues);
+    });
     return () => {
       controller.detachVideo();
     };
@@ -364,12 +497,15 @@ export function CineMorphTheater() {
   }, [subtitlesOn]);
 
   useEffect(() => {
-    if (isLocalMedia && localVideoRef.current) {
+    if (isLocalMedia && localVideoRef.current && !showIntroBumper) {
       captionControllerRef.current.attachVideo(localVideoRef.current);
-    } else {
+      if (subtitlesOn) {
+        captionControllerRef.current.syncCurrentTime();
+      }
+    } else if (!isLocalMedia) {
       captionControllerRef.current.detachVideo();
     }
-  }, [localItem?.url, isLocalMedia]);
+  }, [localItem?.url, isLocalMedia, showIntroBumper, subtitlesOn]);
 
   // Synchronize authentic default tracks when media analysis loads or changes
   useEffect(() => {
@@ -427,6 +563,71 @@ export function CineMorphTheater() {
       showToast(`ℹ️ Browser does not support switching multi-track audio; primary stream active.`);
     } else {
       showToast(`⚠️ ${result.message || 'Could not switch audio track'}`);
+    }
+  }, [showToast]);
+
+  const handleSelectAudioById = useCallback((trackId: string) => {
+    const res = trackSelector.selectAudioTrack(trackId, localVideoRef.current);
+    if (res.success && res.track) {
+      setSelectedAudioTrackId(trackId);
+      setAudioTrackIndex(res.track.streamIndex);
+      showToast(`🔊 Audio: ${res.track.label}`);
+    } else if (res.track?.unsupportedReason) {
+      showToast(`⚠️ ${res.track.unsupportedReason}`);
+    }
+  }, [showToast]);
+
+  const handleSelectSubtitleById = useCallback((trackId: string) => {
+    const res = trackSelector.selectTextTrack(trackId, captionControllerRef.current);
+    if (res.success) {
+      setSelectedSubtitleTrack(trackId);
+      setSubtitlesOn(trackId !== 'off');
+      if (res.track) {
+        showToast(`💬 Subtitles: ${res.track.label}`);
+      } else {
+        showToast('💬 Subtitles Off');
+      }
+    }
+  }, [showToast]);
+
+  const handleUploadExternalSubtitle = useCallback(async (file: File) => {
+    try {
+      const content = await file.text();
+      const extId = `ext-${Date.now()}`;
+      const format = detectSubtitleFormat(content, file.name);
+      const parsedCues = parseSubtitleFile(content, file.name);
+      const extTrack: MediaSubtitleTrack = {
+        id: extId,
+        streamIndex: -1,
+        format: format.toUpperCase(),
+        label: file.name.replace(/\.[^/.]+$/, ''),
+        language: 'External File',
+        languageCode: 'ext',
+        isDefault: false,
+        isForced: false,
+        cues: parsedCues.map((c) => ({
+          id: c.id,
+          startTime: c.startTime,
+          endTime: c.endTime,
+          text: c.text,
+        })),
+      };
+
+      setExternalSubtitleTracks((prev) => [extTrack, ...prev.filter((t) => t.label !== extTrack.label)]);
+      setSelectedSubtitleTrack(extId);
+      captionControllerRef.current.loadParsedCues(parsedCues);
+      setSubtitlesOn(true);
+      showToast(`💬 Subtitles Active: ${file.name}`);
+    } catch (err) {
+      showToast('⚠️ Failed to parse subtitle file');
+    }
+  }, [showToast]);
+
+  const handleSelectVideoById = useCallback((trackId: string) => {
+    const res = trackSelector.selectVideoTrack(trackId);
+    if (res.success && res.track) {
+      setSelectedVideoTrackId(trackId);
+      showToast(`🎬 Video: ${res.track.label}`);
     }
   }, [showToast]);
 
@@ -516,18 +717,22 @@ export function CineMorphTheater() {
     navigate(`/theater/${localId}`);
   };
 
-  // Restore saved aspect ratio and presentation settings from session or ticket
+  // Restore saved aspect ratio and presentation settings from session or ticket (initialization guard)
+  const initialSessionRatioSyncedRef = useRef<string | null>(null);
   useEffect(() => {
+    if (!id || initialSessionRatioSyncedRef.current === id) return;
     const ratio = activeSession?.aspectRatio || targetTicket?.aspectRatio;
     if (ratio) {
+      initialSessionRatioSyncedRef.current = id;
       const validRatio: FrameAspectRatio =
         ratio === '1.43:1' ? '1.43:1' :
         ratio === '1.90:1' ? '1.90:1' : 'original';
       setFrameAspectRatio(validRatio);
+      useCineMorphStore.getState().setAspectRatio(validRatio as AspectRatioMode);
       setPresentationMode(validRatio === 'original' ? 'original' : 'cinema');
       setCinemaMode(validRatio !== 'original');
     }
-  }, [activeSession?.aspectRatio, targetTicket?.aspectRatio, setCinemaMode, setFrameAspectRatio]);
+  }, [id, activeSession?.aspectRatio, targetTicket?.aspectRatio, setCinemaMode, setFrameAspectRatio]);
 
   // ── Curtain Sequence ────────────────────────────────────────────────────────
   useEffect(() => {
@@ -757,6 +962,16 @@ export function CineMorphTheater() {
         if (typeof data === 'string') {
           data = JSON.parse(data);
         }
+        // Big Bug Safeguard: Intercept YouTube iFrame error events & pause cleanly
+        if (data && (data.event === 'onError' || data.info?.errorCode !== undefined)) {
+          const errCode = data.info?.errorCode !== undefined ? data.info.errorCode : data.info;
+          setPlaying(false);
+          setTheaterState('paused');
+          errorRecoveryManager.handlePlayerError(errCode);
+          showToast(`⚠️ Playback paused (Error ${errCode || 'restricted'})`);
+          return;
+        }
+
         if (data && data.event === 'onStateChange') {
           if (data.info === 1) { // PLAYING
             setTheaterState('playing');
@@ -779,6 +994,9 @@ export function CineMorphTheater() {
             if (duration > 0) {
               setPlayed(curTime / duration);
             }
+            if (subtitlesOn) {
+              captionControllerRef.current.handleTimeUpdate(curTime);
+            }
             if (video && duration > 0 && Math.round(curTime) % 10 === 0) {
               useAppStore.getState().addToHistory(video, Math.floor(curTime), duration);
             }
@@ -789,7 +1007,7 @@ export function CineMorphTheater() {
 
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [curtainAnimationEnabled, duration, isLocalMedia, seeking, video]);
+  }, [curtainAnimationEnabled, duration, isLocalMedia, seeking, video, subtitlesOn, showToast]);
 
   const hybridDecision = hybridMediaRouter.determineRoute({
     isLocal: isLocalMedia,
@@ -806,6 +1024,9 @@ export function CineMorphTheater() {
       if (cached && bloomRef.current) {
         bloomRef.current.style.background = `radial-gradient(ellipse at center, ${cached.dominantColor} 0%, rgba(7, 5, 3, 0.95) 75%)`;
       }
+      if (bloomRef.current) {
+        ambientLightEngine.applyToElement(bloomRef.current, ambientLightEngine.analyzeVideoFrame(null), glowIntensity);
+      }
     }
 
     frameAnalysisTimerRef.current = setInterval(() => {
@@ -813,11 +1034,12 @@ export function CineMorphTheater() {
       if (activeVideoEl && !activeVideoEl.paused) {
         // Non-blocking async sampling via requestIdleCallback / microtask
         const runSampling = () => {
-          if (activeVideoEl) {
-            const analysis = localVideoAnalyzer.analyzeVideoFrame(activeVideoEl, showIntroBumper ? 'cinema-intro' : localItem?.id);
-            if (analysis && bloomRef.current) {
-              bloomRef.current.style.background = `radial-gradient(ellipse at center, ${analysis.dominantColor} 0%, rgba(7, 5, 3, 0.95) 75%)`;
-            }
+          if (activeVideoEl && bloomRef.current) {
+            // AmbientLightEngine performs 4-quadrant edge sampling + EMA filtering and directly updates DOM CSS variables
+            ambientLightEngine.analyzeAndApply(activeVideoEl, bloomRef.current, glowIntensity);
+
+            // Legacy cached analysis fallback for scene metrics
+            localVideoAnalyzer.analyzeVideoFrame(activeVideoEl, showIntroBumper ? 'cinema-intro' : localItem?.id);
           }
         };
 
@@ -832,7 +1054,7 @@ export function CineMorphTheater() {
     return () => {
       if (frameAnalysisTimerRef.current) clearInterval(frameAnalysisTimerRef.current);
     };
-  }, [isLocalMedia, localItem?.id, showIntroBumper, hybridDecision.enableDynamicAmbilight, hybridDecision.sampleIntervalMs]);
+  }, [isLocalMedia, localItem?.id, showIntroBumper, hybridDecision.enableDynamicAmbilight, hybridDecision.sampleIntervalMs, glowIntensity]);
 
   // ── Auto-hide Controls ──────────────────────────────────────────────────────
   const resetControlsTimer = useCallback(() => {
@@ -899,6 +1121,55 @@ export function CineMorphTheater() {
     }
   }, [isLocalMedia, playing, sendIframeCommand]);
 
+  const handleSelectAspectRatio = useCallback((ratio: FrameAspectRatio) => {
+    setFrameAspectRatio(ratio);
+    useCineMorphStore.getState().setAspectRatio(ratio as AspectRatioMode);
+    useCineMorphStore.getState().updateActiveSession({ aspectRatio: ratio as AspectRatioMode });
+    useTicketStore.setState(s => s.activeTicket ? ({ activeTicket: { ...s.activeTicket, aspectRatio: ratio as AspectRatioMode } }) : s);
+
+    if (ratio === 'original') {
+      setPresentationMode('original');
+      setCinemaMode(false);
+      showToast('🎬 Aspect Ratio: Original Native Source (100% Uncropped)');
+    } else {
+      setPresentationMode('cinema');
+      setCinemaMode(true);
+      const label = ratio === '1.43:1' ? 'True IMAX (1.43:1)' : 'IMAX (1.90:1)';
+      showToast(`🎬 Viewport Reframe: ${label}`);
+    }
+  }, [setCinemaMode, setFrameAspectRatio, showToast]);
+
+  const toggleSubtitles = useCallback(() => {
+    const nextCc = !subtitlesOn;
+    setSubtitlesOn(nextCc);
+    captionControllerRef.current.setEnabled(nextCc);
+
+    if (!isLocalMedia) {
+      if (nextCc) {
+        sendIframeCommand('loadModule', ['captions']);
+        sendIframeCommand('setOption', ['captions', 'track', { languageCode: 'en' }]);
+        sendIframeCommand('setOption', ['captions', 'fontSize', 1]);
+      } else {
+        sendIframeCommand('unloadModule', ['captions']);
+        sendIframeCommand('setOption', ['captions', 'track', {}]);
+      }
+    } else {
+      if (nextCc) {
+        const targetSub = subtitleTrackOptions.find((s: any) => s.id === selectedSubtitleTrack) || subtitleTrackOptions[0];
+        if (targetSub) {
+          setSelectedSubtitleTrack(targetSub.id);
+          captionControllerRef.current.setActiveTrackIndex(targetSub.streamIndex);
+          if (targetSub.cues && targetSub.cues.length > 0) {
+            captionControllerRef.current.loadParsedCues(targetSub.cues);
+          }
+        }
+      } else {
+        captionControllerRef.current.setActiveTrackIndex(-1);
+      }
+    }
+    showToast(nextCc ? '💬 Subtitles / CC Enabled' : '💬 Subtitles / CC Disabled');
+  }, [subtitlesOn, isLocalMedia, sendIframeCommand, subtitleTrackOptions, selectedSubtitleTrack, showToast]);
+
   // ── Keyboard Shortcuts ──────────────────────────────────────────────────────
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -916,83 +1187,85 @@ export function CineMorphTheater() {
         target?.isContentEditable
       ) return;
       resetControlsTimer();
-      switch (e.code) {
-        case 'Space':
-          e.preventDefault();
-          togglePlay();
-          break;
-        case 'ArrowLeft':
-          e.preventDefault();
-          if (duration > 0) {
-            const target = Math.max(0, (played * duration) - 10);
-            setPlayed(target / duration);
-            if (isLocalMedia && localVideoRef.current) {
-              localVideoRef.current.currentTime = target;
-            } else {
-              sendIframeCommand('seekTo', [target, true]);
-            }
+
+      if (e.key === 'Escape') {
+        if (showShortcuts) setShowShortcuts(false);
+        else if (showStudioDrawer) setShowStudioDrawer(false);
+        else if (!isFullscreen) exitTheater();
+        return;
+      }
+
+      if (matchesShortcut(e, 'togglePlay', customShortcuts)) {
+        e.preventDefault();
+        togglePlay();
+      } else if (matchesShortcut(e, 'seekBackward', customShortcuts)) {
+        e.preventDefault();
+        if (duration > 0) {
+          const target = Math.max(0, (played * duration) - 10);
+          setPlayed(target / duration);
+          if (isLocalMedia && localVideoRef.current) {
+            localVideoRef.current.currentTime = target;
+          } else {
+            sendIframeCommand('seekTo', [target, true]);
           }
-          break;
-        case 'ArrowRight':
-          e.preventDefault();
-          if (duration > 0) {
-            const target = Math.min(duration, (played * duration) + 10);
-            setPlayed(target / duration);
-            if (isLocalMedia && localVideoRef.current) {
-              localVideoRef.current.currentTime = target;
-            } else {
-              sendIframeCommand('seekTo', [target, true]);
-            }
+        }
+      } else if (matchesShortcut(e, 'seekForward', customShortcuts)) {
+        e.preventDefault();
+        if (duration > 0) {
+          const target = Math.min(duration, (played * duration) + 10);
+          setPlayed(target / duration);
+          if (isLocalMedia && localVideoRef.current) {
+            localVideoRef.current.currentTime = target;
+          } else {
+            sendIframeCommand('seekTo', [target, true]);
           }
-          break;
-        case 'ArrowUp':
-          e.preventDefault();
-          setVolume(v => {
-            const nv = Math.min(1, v + 0.1);
-            if (isLocalMedia && localVideoRef.current) localVideoRef.current.volume = nv;
-            else sendIframeCommand('setVolume', [Math.round(nv * 100)]);
-            return nv;
-          });
-          break;
-        case 'ArrowDown':
-          e.preventDefault();
-          setVolume(v => {
-            const nv = Math.max(0, v - 0.1);
-            if (isLocalMedia && localVideoRef.current) localVideoRef.current.volume = nv;
-            else sendIframeCommand('setVolume', [Math.round(nv * 100)]);
-            return nv;
-          });
-          break;
-        case 'KeyM':
-          setMuted(m => {
-            const nm = !m;
-            if (isLocalMedia && localVideoRef.current) localVideoRef.current.muted = nm;
-            else sendIframeCommand(nm ? 'mute' : 'unMute');
-            return nm;
-          });
-          break;
-        case 'KeyF':
-          toggleFullscreen();
-          break;
-        case 'KeyC':
-          togglePresentationMode();
-          break;
-        case 'KeyH':
-        case 'Slash':
-          if (e.shiftKey || e.code === 'KeyH') {
-            setShowShortcuts(s => !s);
-          }
-          break;
-        case 'Escape':
-          if (showShortcuts) setShowShortcuts(false);
-          else if (showStudioDrawer) setShowStudioDrawer(false);
-          else if (!isFullscreen) exitTheater();
-          break;
+        }
+      } else if (matchesShortcut(e, 'volumeUp', customShortcuts)) {
+        e.preventDefault();
+        setVolume(v => {
+          const nv = Math.min(1, v + 0.1);
+          if (isLocalMedia && localVideoRef.current) localVideoRef.current.volume = nv;
+          else sendIframeCommand('setVolume', [Math.round(nv * 100)]);
+          return nv;
+        });
+      } else if (matchesShortcut(e, 'volumeDown', customShortcuts)) {
+        e.preventDefault();
+        setVolume(v => {
+          const nv = Math.max(0, v - 0.1);
+          if (isLocalMedia && localVideoRef.current) localVideoRef.current.volume = nv;
+          else sendIframeCommand('setVolume', [Math.round(nv * 100)]);
+          return nv;
+        });
+      } else if (matchesShortcut(e, 'toggleMute', customShortcuts)) {
+        e.preventDefault();
+        setMuted(m => {
+          const nm = !m;
+          if (isLocalMedia && localVideoRef.current) localVideoRef.current.muted = nm;
+          else sendIframeCommand(nm ? 'mute' : 'unMute');
+          return nm;
+        });
+      } else if (matchesShortcut(e, 'toggleFullscreen', customShortcuts)) {
+        e.preventDefault();
+        toggleFullscreen();
+      } else if (matchesShortcut(e, 'toggleTheater', customShortcuts)) {
+        e.preventDefault();
+        togglePresentationMode();
+      } else if (matchesShortcut(e, 'toggleSubtitles', customShortcuts) || (!e.ctrlKey && !e.metaKey && !e.altKey && (e.key === 'c' || e.key === 'C'))) {
+        e.preventDefault();
+        toggleSubtitles();
+      } else if (matchesShortcut(e, 'showShortcuts', customShortcuts) || (e.shiftKey && e.key === '?') || e.code === 'KeyH') {
+        e.preventDefault();
+        setShowShortcuts(s => !s);
+      } else if (!e.ctrlKey && !e.metaKey && !e.altKey && (e.key === 's' || e.key === 'S')) {
+        e.preventDefault();
+        const next = !theaterSeatingEnabled;
+        setTheaterSeatingEnabled(next);
+        showToast(next ? '💺 Cinema Seating: Visible' : '💺 Cinema Seating: Hidden');
       }
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [duration, isFullscreen, isLocalMedia, played, resetControlsTimer, sendIframeCommand, showShortcuts, showStudioDrawer, togglePlay]);
+  }, [customShortcuts, duration, isFullscreen, isLocalMedia, played, resetControlsTimer, sendIframeCommand, showShortcuts, showStudioDrawer, togglePlay, toggleSubtitles, theaterSeatingEnabled, setTheaterSeatingEnabled, showToast]);
 
   // ── Fullscreen Lifecycle & Synchronization ──────────────────────────────────
   useEffect(() => {
@@ -1093,25 +1366,12 @@ export function CineMorphTheater() {
   };
 
   // ── Quick Cyclers ───────────────────────────────────────────────────────────
-  const cycleAspectRatio = () => {
+  const cycleAspectRatio = useCallback(() => {
     const ratios: FrameAspectRatio[] = ['original', '1.90:1', '1.43:1'];
     const currentIdx = ratios.indexOf(frameAspectRatio);
     const nextRatio = currentIdx === -1 ? 'original' : ratios[(currentIdx + 1) % ratios.length];
-    setFrameAspectRatio(nextRatio);
-    if (nextRatio === 'original') {
-      setPresentationMode('original');
-      setCinemaMode(false);
-    } else {
-      setPresentationMode('cinema');
-      setCinemaMode(true);
-    }
-    const label = nextRatio === 'original' 
-      ? 'Original (Native Source - 100% Uncropped)' 
-      : nextRatio === '1.43:1' 
-      ? 'True IMAX (1.43:1)' 
-      : 'IMAX (1.90:1)';
-    showToast(`🎬 Viewport Reframe: ${label}`);
-  };
+    handleSelectAspectRatio(nextRatio);
+  }, [frameAspectRatio, handleSelectAspectRatio]);
 
   const cycleTheme = () => {
     const themes: CineMorphTheme[] = ['imax-ultra', 'cyberpunk-oled', 'cinematic-dark', 'golden-hour', 'glassmorphic-neon'];
@@ -1129,12 +1389,10 @@ export function CineMorphTheater() {
     showToast(`💡 Ambient Dimmer: ${nextLevel.toUpperCase()}`);
   };
 
-  const togglePresentationMode = () => {
+  const togglePresentationMode = useCallback(() => {
     const next = presentationMode === 'cinema' ? 'original' : 'cinema';
-    setPresentationMode(next);
-    setCinemaMode(next === 'cinema');
-    showToast(next === 'cinema' ? '🎬 Cinema Presentation Activated' : '📺 Standard Mode Activated');
-  };
+    handleSelectAspectRatio(next === 'cinema' ? '1.90:1' : 'original');
+  }, [presentationMode, handleSelectAspectRatio]);
 
   const handoffToUTube = () => {
     if (activeVideo) {
@@ -1180,7 +1438,28 @@ export function CineMorphTheater() {
     frameAspectRatio,
     frameStyleAspectRatio: frameStyle.aspectRatioStyle,
     nativeAspectRatio,
+    theaterSeatingEnabled,
   });
+
+  // Master OMS-SBH (OmniStream Spatial Behavior & Harmonization) Engine
+  const omsMode: 'original' | '1.90' | '1.43' =
+    frameAspectRatio === '1.43:1' ? '1.43' : frameAspectRatio === '1.90:1' ? '1.90' : 'original';
+
+  const omsSBHState = React.useMemo(() => {
+    const width = isLocalMedia && localVideoRef.current ? localVideoRef.current.videoWidth : 1920;
+    const height = isLocalMedia && localVideoRef.current ? localVideoRef.current.videoHeight : (nativeAspectRatio ? Math.round(1920 / nativeAspectRatio) : 1080);
+    const vpW = typeof window !== 'undefined' ? window.innerWidth : 1920;
+    const vpH = typeof window !== 'undefined' ? window.innerHeight : 1080;
+    return cineMorphSpatialEngine.computeSpatialState({
+      widthPx: width || 1920,
+      heightPx: height || 1080,
+      viewportWidthPx: vpW,
+      viewportHeightPx: vpH,
+      mode: omsMode,
+      seatsVisible: theaterSeatingEnabled,
+      isFullscreen,
+    });
+  }, [omsMode, theaterSeatingEnabled, isFullscreen, isLocalMedia, nativeAspectRatio]);
 
   const safeDevicePerformance = (devicePerformanceProfile === 'ultra-low' ? 'low' : devicePerformanceProfile) as 'low' | 'balanced' | 'high';
 
@@ -1226,15 +1505,50 @@ export function CineMorphTheater() {
       onMouseMove={resetControlsTimer}
       onTouchStart={resetControlsTimer}
     >
+      {/* ── Mobile Landscape Orientation Advisory Banner ── */}
+      {isPortraitMobile && !orientationDismissed && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed top-4 left-1/2 -translate-x-1/2 z-50 max-w-sm w-[92%] p-3 rounded-2xl border backdrop-blur-xl flex items-center justify-between gap-3 shadow-2xl transition-all animate-in fade-in slide-in-from-top-4 bg-zinc-900/90 border-amber-500/30 text-amber-100"
+        >
+          <div className="flex items-center gap-2.5 text-xs font-mono font-medium">
+            <Smartphone className="w-4 h-4 shrink-0 text-amber-400 animate-pulse rotate-90" />
+            <span>Rotate to landscape for authentic theater sightlines</span>
+          </div>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              onClick={() => {
+                requestLandscapeOrientation().catch(() => {});
+              }}
+              className="px-2.5 py-1 text-[11px] font-mono font-semibold rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 transition-colors border border-amber-500/30 cursor-pointer"
+            >
+              Rotate
+            </button>
+            <button
+              onClick={() => setOrientationDismissed(true)}
+              aria-label="Dismiss orientation prompt"
+              className="p-1 rounded-lg hover:bg-white/10 text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* ── Dynamic Reactive Ambilight Bloom (Auditorium Ambient Glow) ── */}
       {glowIntensity !== 'off' && (
         <div
           ref={bloomRef}
           className="absolute inset-0 pointer-events-none transition-all duration-700 z-0"
           style={{
-            background: `radial-gradient(ellipse at center, ${
-              adaptiveDecision.ambientLight.lowpassColor || 'rgba(217, 119, 6, 0.35)'
-            } 0%, rgba(7, 5, 3, 0.95) 75%)`,
+            background: `
+              radial-gradient(ellipse at 50% 0%, var(--ambient-top, ${adaptiveDecision.ambientLight.lowpassColor || 'rgba(217, 119, 6, 0.35)'}) 0%, transparent 65%),
+              radial-gradient(ellipse at 50% 100%, var(--ambient-bottom, rgba(8, 10, 18, 0.3)) 0%, transparent 65%),
+              radial-gradient(ellipse at 0% 50%, var(--ambient-left, rgba(10, 12, 20, 0.35)) 0%, transparent 65%),
+              radial-gradient(ellipse at 100% 50%, var(--ambient-right, rgba(10, 12, 20, 0.35)) 0%, transparent 65%),
+              radial-gradient(ellipse at center, var(--ambient-dominant, ${adaptiveDecision.ambientLight.lowpassColor || 'rgba(217, 119, 6, 0.35)'}) 0%, rgba(7, 5, 3, 0.95) 75%)
+            `,
             filter: 'blur(80px)',
             opacity: theaterState === 'playing' ? (glowIntensity === 'ultra' ? 0.9 : 0.6) : 0.3,
             transform: 'translate3d(0, 0, 0)',
@@ -1255,12 +1569,24 @@ export function CineMorphTheater() {
       </div>
 
       {/* ── Natural Cinema Auditorium Architectural Atmosphere ── */}
-      <div className="absolute inset-0 pointer-events-none z-1">
-        {/* Soft Acoustic Side Wall Shadows */}
-        <div className="absolute inset-y-0 left-0 w-24 sm:w-48 bg-gradient-to-r from-black via-black/50 to-transparent" />
-        <div className="absolute inset-y-0 right-0 w-24 sm:w-48 bg-gradient-to-l from-black via-black/50 to-transparent" />
-        {/* Subtle Floor Ambient Incline */}
-        <div className="absolute bottom-0 inset-x-0 h-36 bg-gradient-to-t from-black via-black/70 to-transparent" />
+      <div className="absolute inset-0 pointer-events-none z-1 overflow-hidden">
+        {/* Architectural Acoustic Side Wall Baffles */}
+        <div 
+          className="absolute inset-y-0 left-0 w-28 sm:w-56 md:w-72 bg-gradient-to-r from-[#030202] via-[#050403]/80 to-transparent"
+          style={{
+            backgroundImage: 'repeating-linear-gradient(90deg, rgba(0,0,0,0.8) 0px, rgba(0,0,0,0.8) 28px, rgba(30,22,14,0.15) 29px, rgba(0,0,0,0.9) 44px)',
+          }}
+        />
+        <div 
+          className="absolute inset-y-0 right-0 w-28 sm:w-56 md:w-72 bg-gradient-to-l from-[#030202] via-[#050403]/80 to-transparent"
+          style={{
+            backgroundImage: 'repeating-linear-gradient(270deg, rgba(0,0,0,0.8) 0px, rgba(0,0,0,0.8) 28px, rgba(30,22,14,0.15) 29px, rgba(0,0,0,0.9) 44px)',
+          }}
+        />
+        {/* Proscenium Crown Header Shadow */}
+        <div className="absolute top-0 inset-x-0 h-16 sm:h-24 bg-gradient-to-b from-black/90 via-black/40 to-transparent" />
+        {/* Subtle Raked Floor Ambient Incline */}
+        <div className="absolute bottom-0 inset-x-0 h-44 bg-gradient-to-t from-black via-black/80 to-transparent" />
       </div>
 
       {/* ── HUD Toast Banner Alert ── */}
@@ -1270,52 +1596,42 @@ export function CineMorphTheater() {
         </div>
       )}
 
-      {/* ── The Cinema Screen Container ── */}
+      {/* ── The Cinema Screen Container (OMS-SBA: Proscenium Aperture & Projection Depth) ── */}
       <div
         ref={screenContainerRef}
         onClick={handleScreenClick}
-        className={`relative transition-all duration-500 ease-out flex items-center justify-center z-10 overflow-hidden bg-black cursor-pointer ${
+        className={`relative flex items-center justify-center z-10 overflow-hidden bg-black cursor-pointer ${
           projectionLayout.screenClassName
         } ${
           isOriginalMode
-            ? 'shadow-[0_20px_50px_rgba(0,0,0,0.8)] border border-white/10 rounded-xl'
+            ? 'shadow-[0_20px_50px_rgba(0,0,0,0.85)] border border-white/10 rounded-sm'
             : frameAspectRatio === '1.43:1'
-            ? 'shadow-[0_0_120px_rgba(217,119,6,0.22),0_25px_60px_rgba(0,0,0,0.95)] border border-amber-500/20 rounded-2xl'
-            : 'shadow-[0_0_90px_rgba(217,119,6,0.18),0_25px_60px_rgba(0,0,0,0.95)] border border-amber-500/15 rounded-2xl'
+            ? 'shadow-[0_0_120px_rgba(217,119,6,0.22),0_25px_60px_rgba(0,0,0,0.95)] border border-amber-500/20 rounded-sm'
+            : 'shadow-[0_0_90px_rgba(217,119,6,0.18),0_25px_60px_rgba(0,0,0,0.95)] border border-amber-500/15 rounded-sm'
         }`}
         style={{
-          aspectRatio: projectionLayout.aspectRatioStyle,
-          width: '100%',
-          maxWidth: projectionLayout.maxWidth,
-          maxHeight: projectionLayout.maxHeight,
-          clipPath: isOriginalMode
-            ? 'none'
-            : frameAspectRatio === '1.43:1'
-            ? 'polygon(0% 1.05%, 0.4% 0.45%, 1.2% 0.15%, 10% 0.38%, 25% 0.72%, 50% 0.95%, 75% 0.72%, 90% 0.38%, 98.8% 0.15%, 99.6% 0.45%, 100% 1.05%, 100% 98.95%, 99.6% 99.55%, 98.8% 99.85%, 90% 99.62%, 75% 99.28%, 50% 99.05%, 25% 99.28%, 10% 99.62%, 1.2% 99.85%, 0.4% 99.55%, 0% 98.95%)'
-            : 'polygon(0% 0.75%, 0.4% 0.35%, 1.2% 0.12%, 10% 0.25%, 25% 0.48%, 50% 0.65%, 75% 0.48%, 90% 0.25%, 98.8% 0.12%, 99.6% 0.35%, 100% 0.75%, 100% 99.25%, 99.6% 99.65%, 98.8% 99.88%, 90% 99.75%, 75% 99.52%, 50% 99.35%, 25% 99.52%, 10% 99.75%, 1.2% 99.88%, 0.4% 99.65%, 0% 99.25%)',
-          WebkitClipPath: isOriginalMode
-            ? 'none'
-            : frameAspectRatio === '1.43:1'
-            ? 'polygon(0% 1.05%, 0.4% 0.45%, 1.2% 0.15%, 10% 0.38%, 25% 0.72%, 50% 0.95%, 75% 0.72%, 90% 0.38%, 98.8% 0.15%, 99.6% 0.45%, 100% 1.05%, 100% 98.95%, 99.6% 99.55%, 98.8% 99.85%, 90% 99.62%, 75% 99.28%, 50% 99.05%, 25% 99.28%, 10% 99.62%, 1.2% 99.85%, 0.4% 99.55%, 0% 98.95%)'
-            : 'polygon(0% 0.75%, 0.4% 0.35%, 1.2% 0.12%, 10% 0.25%, 25% 0.48%, 50% 0.65%, 75% 0.48%, 90% 0.25%, 98.8% 0.12%, 99.6% 0.35%, 100% 0.75%, 100% 99.25%, 99.6% 99.65%, 98.8% 99.88%, 90% 99.75%, 75% 99.52%, 50% 99.35%, 25% 99.52%, 10% 99.75%, 1.2% 99.88%, 0.4% 99.65%, 0% 99.25%)',
-          transform: isOriginalMode
-            ? 'none'
-            : frameAspectRatio === '1.43:1'
-            ? 'perspective(1100px) rotateX(1.3deg)'
-            : 'perspective(1300px) rotateX(1.0deg)',
-          transformOrigin: 'center bottom',
+          ...omsSBHState.renderStyles.screenStyle,
         }}
       >
+        {/* Physical Aperture Depth Bezel (Specular Rim) */}
+        <div className="absolute inset-0 pointer-events-none z-20 border border-white/5" />
         {/* Subtitles / Real-Time Timed Caption Overlay */}
         <CaptionOverlay
           text={activeCaptionText}
+          cues={activeSubtitleCues}
+          styleConfig={subtitleStyleConfig}
           visible={subtitlesOn && !showIntroBumper && theaterState !== 'ended'}
         />
 
         <div
           className="w-full h-full transition-transform duration-500 relative overflow-hidden"
           style={{
-            transform: isOriginalMode ? 'none' : presentationMode === 'cinema' ? frameStyle.videoScaleTransform : 'none',
+            ...omsSBHState.renderStyles.projectionPlaneStyle,
+            transform: isOriginalMode
+              ? 'none'
+              : presentationMode === 'cinema'
+              ? frameStyle.videoScaleTransform
+              : omsSBHState.renderStyles.projectionPlaneStyle.transform,
           }}
         >
           {/* Theatrical Velvet Curtain Panels */}
@@ -1422,7 +1738,15 @@ export function CineMorphTheater() {
             </div>
           ) : isLocalMedia && localItem?.url ? (
             <video
-              ref={localVideoRef}
+              ref={(el) => {
+                localVideoRef.current = el;
+                if (el && isLocalMedia) {
+                  captionControllerRef.current.attachVideo(el);
+                  if (subtitlesOn) {
+                    captionControllerRef.current.syncCurrentTime();
+                  }
+                }
+              }}
               src={localItem.url}
               autoPlay
               playsInline
@@ -1442,6 +1766,9 @@ export function CineMorphTheater() {
                   const dur = localVideoRef.current.duration || 0;
                   setPlayed(dur > 0 ? cur / dur : 0);
                   setDuration(dur);
+                  if (subtitlesOn) {
+                    captionControllerRef.current.handleTimeUpdate(cur);
+                  }
                 }
               }}
               onLoadedMetadata={() => {
@@ -1455,6 +1782,11 @@ export function CineMorphTheater() {
                   setDuration(dur);
                   setTheaterState('playing');
                   setPlaying(true);
+
+                  captionControllerRef.current.attachVideo(localVideoRef.current);
+                  if (subtitlesOn) {
+                    captionControllerRef.current.syncCurrentTime();
+                  }
 
                   // Restore saved position or carried OMS timestamp
                   const savedTime = carriedStartTime !== undefined && carriedStartTime > 0
@@ -1517,7 +1849,7 @@ export function CineMorphTheater() {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="video/*"
+                accept="video/*,audio/*,.mp4,.webm,.mkv,.mov,.m4v,.avi,.wmv,.3gp,.ts,.ogv,.flv,.mp3,.wav,.flac,.aac,.m4a,.ogg,.opus,.alac,.aiff"
                 onChange={handleDirectLocalUpload}
                 className="hidden"
               />
@@ -1599,97 +1931,13 @@ export function CineMorphTheater() {
         </div>
       </div>
 
-      {/* ── Natural Cinema Auditorium Foreground Seating ── */}
-      {theaterSeatingEnabled && (
-        <div 
-          className={`absolute bottom-0 inset-x-0 pointer-events-none z-20 flex flex-col justify-end items-center px-4 sm:px-12 select-none transition-all duration-500 pb-1 sm:pb-2 ${
-            isOriginalMode
-              ? 'h-6 sm:h-7'
-              : frameAspectRatio === '1.43:1' 
-              ? 'h-10 sm:h-12' 
-              : 'h-11 sm:h-14'
-          }`}
-        >
-          {/* Subtle Carpeted Center Aisle Runway Glow */}
-          <div className="w-10 sm:w-20 h-1 bg-gradient-to-r from-transparent via-amber-600/20 to-transparent mb-1 rounded-full pointer-events-none" />
-
-          {/* Row A (Foreground VIP Recliner Tier) */}
-          <div 
-            className={`w-full max-w-6xl flex justify-between items-end gap-3 sm:gap-6 transition-all duration-500 ${
-              isOriginalMode
-                ? 'opacity-85 scale-[0.6] sm:scale-[0.65] origin-bottom'
-                : frameAspectRatio === '1.43:1' 
-                ? 'opacity-45 scale-100' 
-                : 'opacity-90 scale-100 sm:scale-105'
-            }`}
-          >
-            {/* Left Bank Row A */}
-            <div className="flex-1 flex gap-2 sm:gap-3 justify-end">
-              {[1, 2, 3, 4, 5, 6, 7].map((s) => (
-                <div
-                  key={`seat-a-l-${s}`}
-                  className={`flex-1 max-w-[64px] rounded-t-lg bg-gradient-to-b from-[#330710] via-[#180206] to-[#050001] border-t border-rose-800/60 relative flex flex-col items-center justify-start pt-0.5 shadow-2xl transition-all duration-500 ${
-                    frameAspectRatio === '1.43:1' ? 'h-5 sm:h-7' : 'h-8 sm:h-10.5'
-                  }`}
-                >
-                  {/* Subtle Plush Velvet Headrest */}
-                  <div 
-                    className={`w-[78%] rounded-t bg-gradient-to-b from-[#480c18] to-[#22050b] border-t border-rose-600/40 shadow-inner ${
-                      frameAspectRatio === '1.43:1' ? 'h-1.5 sm:h-2' : 'h-2.5 sm:h-3.5'
-                    }`} 
-                  />
-                  {/* Armrests */}
-                  <div 
-                    className={`absolute -left-0.5 bottom-0 w-1 bg-[#0d0102] rounded-t-sm border-t border-white/10 ${
-                      frameAspectRatio === '1.43:1' ? 'h-3 sm:h-4' : 'h-5 sm:h-7'
-                    }`} 
-                  />
-                  <div 
-                    className={`absolute -right-0.5 bottom-0 w-1 bg-[#0d0102] rounded-t-sm border-t border-white/10 ${
-                      frameAspectRatio === '1.43:1' ? 'h-3 sm:h-4' : 'h-5 sm:h-7'
-                    }`} 
-                  />
-                </div>
-              ))}
-            </div>
-
-            {/* Center Aisle Gap with Floor Guide Glow */}
-            <div className={`w-8 sm:w-16 relative flex items-center justify-center ${frameAspectRatio === '1.43:1' ? 'h-1' : 'h-2'}`}>
-              <div className="w-1.5 h-1.5 rounded-full bg-amber-500/30 blur-[1px]" />
-            </div>
-
-            {/* Right Bank Row A */}
-            <div className="flex-1 flex gap-2 sm:gap-3 justify-start">
-              {[1, 2, 3, 4, 5, 6, 7].map((s) => (
-                <div
-                  key={`seat-a-r-${s}`}
-                  className={`flex-1 max-w-[64px] rounded-t-lg bg-gradient-to-b from-[#330710] via-[#180206] to-[#050001] border-t border-rose-800/60 relative flex flex-col items-center justify-start pt-0.5 shadow-2xl transition-all duration-500 ${
-                    frameAspectRatio === '1.43:1' ? 'h-5 sm:h-7' : 'h-8 sm:h-10.5'
-                  }`}
-                >
-                  {/* Subtle Plush Velvet Headrest */}
-                  <div 
-                    className={`w-[78%] rounded-t bg-gradient-to-b from-[#480c18] to-[#22050b] border-t border-rose-600/40 shadow-inner ${
-                      frameAspectRatio === '1.43:1' ? 'h-1.5 sm:h-2' : 'h-2.5 sm:h-3.5'
-                    }`} 
-                  />
-                  {/* Armrests */}
-                  <div 
-                    className={`absolute -left-0.5 bottom-0 w-1 bg-[#0d0102] rounded-t-sm border-t border-white/10 ${
-                      frameAspectRatio === '1.43:1' ? 'h-3 sm:h-4' : 'h-5 sm:h-7'
-                    }`} 
-                  />
-                  <div 
-                    className={`absolute -right-0.5 bottom-0 w-1 bg-[#0d0102] rounded-t-sm border-t border-white/10 ${
-                      frameAspectRatio === '1.43:1' ? 'h-3 sm:h-4' : 'h-5 sm:h-7'
-                    }`} 
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
+      {/* ── Natural Cinema Auditorium Foreground Seating (Protected Plane) ── */}
+      <CineMorphAuditoriumSeats
+        visible={theaterSeatingEnabled}
+        frameAspectRatio={frameAspectRatio}
+        isFullscreen={isFullscreen}
+        theme={cinemorphTheme}
+      />
 
       {/* ── Floating Controls Deck (Sleek Vanishing Cinematic Interface) ── */}
       <div
@@ -1807,12 +2055,7 @@ export function CineMorphTheater() {
               {/* Aspect Ratio Selector Pills (True IMAX, IMAX, Original) */}
               <div className="flex items-center gap-0.5 bg-black/40 p-0.5 rounded-lg border border-amber-500/20">
                 <button
-                  onClick={() => { 
-                    setFrameAspectRatio('1.43:1'); 
-                    setPresentationMode('cinema');
-                    setCinemaMode(true);
-                    showToast('🎬 Aspect Ratio: True IMAX (1.43:1)'); 
-                  }}
+                  onClick={() => handleSelectAspectRatio('1.43:1')}
                   className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
                     frameAspectRatio === '1.43:1' 
                       ? 'bg-amber-500 text-black shadow-sm' 
@@ -1823,12 +2066,7 @@ export function CineMorphTheater() {
                   True IMAX
                 </button>
                 <button
-                  onClick={() => { 
-                    setFrameAspectRatio('1.90:1'); 
-                    setPresentationMode('cinema');
-                    setCinemaMode(true);
-                    showToast('🎬 Aspect Ratio: IMAX (1.90:1)'); 
-                  }}
+                  onClick={() => handleSelectAspectRatio('1.90:1')}
                   className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
                     frameAspectRatio === '1.90:1' 
                       ? 'bg-amber-500 text-black shadow-sm' 
@@ -1839,12 +2077,7 @@ export function CineMorphTheater() {
                   IMAX
                 </button>
                 <button
-                  onClick={() => { 
-                    setFrameAspectRatio('original'); 
-                    setPresentationMode('original');
-                    setCinemaMode(false);
-                    showToast('🎬 Aspect Ratio: Original Native Source'); 
-                  }}
+                  onClick={() => handleSelectAspectRatio('original')}
                   className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
                     frameAspectRatio === 'original' 
                       ? 'bg-amber-500 text-black shadow-sm' 
@@ -1854,6 +2087,57 @@ export function CineMorphTheater() {
                 >
                   Original
                 </button>
+              </div>
+
+              {/* Subtitles / CC Quick Toggle Button */}
+              <button
+                onClick={toggleSubtitles}
+                className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
+                  subtitlesOn 
+                    ? 'bg-amber-500/25 text-amber-200 border-amber-500/50 shadow-sm' 
+                    : 'text-amber-300/70 border-transparent hover:text-amber-100 hover:bg-amber-500/10'
+                }`}
+                title={`Subtitles / Closed Captions (${getKeyDisplay('toggleSubtitles', 'C')})`}
+                aria-label="Toggle Subtitles"
+              >
+                <Captions className="w-4 h-4" />
+              </button>
+
+              {/* Media Tracks Popover (Audio & Subtitle Track Selection) */}
+              <div className="relative">
+                <button
+                  onClick={() => setIsTrackMenuOpen((o) => !o)}
+                  className={`flex items-center gap-1.5 px-2 py-1 rounded-lg border text-[10px] font-sans font-medium transition-all cursor-pointer ${
+                    isTrackMenuOpen || trackSet.audioTracks.length > 1
+                      ? 'bg-amber-500/20 text-amber-200 border-amber-500/40 shadow-sm'
+                      : 'text-amber-300/70 border-transparent hover:text-amber-100 hover:bg-amber-500/10'
+                  }`}
+                  title="Media Audio & Subtitle Tracks"
+                  aria-label="Select Media Tracks"
+                >
+                  <Languages className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline max-w-[85px] truncate">
+                    {trackSet.audioTracks.find((a) => a.id === selection.selectedAudioTrackId)?.language !== 'Undetermined'
+                      ? trackSet.audioTracks.find((a) => a.id === selection.selectedAudioTrackId)?.language || 'Audio'
+                      : trackSet.audioTracks.find((a) => a.id === selection.selectedAudioTrackId)?.label || 'Audio'}
+                  </span>
+                  {trackSet.audioTracks.length > 1 && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
+                  )}
+                </button>
+
+                <TrackSelectionMenu
+                  isOpen={isTrackMenuOpen}
+                  onClose={() => setIsTrackMenuOpen(false)}
+                  trackSet={trackSet}
+                  selection={selection}
+                  onSelectAudio={handleSelectAudioById}
+                  onSelectSubtitle={handleSelectSubtitleById}
+                  onSelectVideo={handleSelectVideoById}
+                  onUploadSubtitleFile={handleUploadExternalSubtitle}
+                  subtitleStyleConfig={subtitleStyleConfig}
+                  onChangeSubtitleFontSize={(sz) => setSubtitleStyleConfig((prev) => ({ ...prev, fontSize: sz }))}
+                />
               </div>
 
               {/* OMS Studio Controls Drawer Toggle Button */}
@@ -2018,152 +2302,132 @@ export function CineMorphTheater() {
             </div>
           )}
 
-          {/* ── Subtitles & Closed Captions (Displayed ONLY if media contains captions) ── */}
-          {subtitleTrackOptions.length > 0 && (
-            <div className="space-y-2.5 pb-4 border-b border-amber-900/30">
-              <div className="text-[10px] font-bold text-amber-400 uppercase tracking-widest flex items-center justify-between">
-                <span className="flex items-center gap-1.5">
-                  <Captions className="w-3.5 h-3.5 text-amber-400" />
-                  Subtitles & Closed Captions
-                </span>
-                <span className="text-[9px] font-mono text-amber-400/70">
-                  {subtitleTrackOptions.length} Track{subtitleTrackOptions.length > 1 ? 's' : ''}
-                </span>
-              </div>
-
-              <button
-                onClick={() => {
-                  const nextCc = !subtitlesOn;
-                  setSubtitlesOn(nextCc);
-                  sendIframeCommand(nextCc ? 'loadModule' : 'unloadModule', ['captions']);
-                  captionControllerRef.current.setEnabled(nextCc);
-                  if (nextCc) {
-                    const targetSub = subtitleTrackOptions.find((s: any) => s.id === selectedSubtitleTrack) || subtitleTrackOptions[0];
-                    if (targetSub) {
-                      setSelectedSubtitleTrack(targetSub.id);
-                      captionControllerRef.current.setActiveTrackIndex(targetSub.streamIndex);
-                      if (targetSub.cues && targetSub.cues.length > 0) {
-                        captionControllerRef.current.loadParsedCues(targetSub.cues);
-                      }
-                    }
-                  } else {
-                    captionControllerRef.current.setActiveTrackIndex(-1);
-                  }
-                  showToast(nextCc ? '💬 Subtitles / CC Enabled' : '💬 Subtitles / CC Disabled');
-                }}
-                className={`w-full p-2.5 rounded-xl border text-xs font-semibold flex items-center justify-between transition-all cursor-pointer ${
-                  subtitlesOn ? 'bg-amber-500/20 text-amber-100 border-amber-500/40' : 'bg-amber-950/20 text-amber-300/70 border-amber-900/20 hover:bg-amber-900/30'
-                }`}
-              >
-                <span className="flex items-center gap-2">
-                  <Captions className="w-4 h-4 text-amber-400" />
-                  <span>Closed Captions & Subtitles</span>
-                </span>
-                <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-black/40 border border-amber-500/20">
-                  {subtitlesOn ? 'ON' : 'OFF'}
-                </span>
-              </button>
-
-              {/* Detected Subtitle Tracks List */}
-              {subtitlesOn && (
-                <div className="space-y-1.5 pt-1">
-                  <div className="text-[10px] font-mono text-amber-300/60 uppercase tracking-wider">
-                    Available Streams
-                  </div>
-                  <div className="space-y-1 max-h-36 overflow-y-auto pr-1">
-                    {subtitleTrackOptions.map((strk: any) => {
-                      const isSelected = selectedSubtitleTrack === strk.id || (selectedSubtitleTrack === 'off' && strk.isDefault);
-                      return (
-                        <button
-                          key={strk.id}
-                          onClick={() => {
-                            setSelectedSubtitleTrack(strk.id);
-                            captionControllerRef.current.setActiveTrackIndex(strk.streamIndex);
-                            if (strk.cues && strk.cues.length > 0) {
-                              captionControllerRef.current.loadParsedCues(strk.cues);
-                              showToast(`💬 Subtitles: ${strk.label}`);
-                              return;
-                            }
-                            if (strk.id.startsWith('ext-sub-')) {
-                              showToast(`💬 Subtitles: ${strk.label}`);
-                              return;
-                            }
-                            const hasNativeTracks = Boolean(isLocalMedia && localVideoRef.current && localVideoRef.current.textTracks && localVideoRef.current.textTracks.length > 0);
-                            if (hasNativeTracks) {
-                              for (let i = 0; i < localVideoRef.current!.textTracks.length; i++) {
-                                localVideoRef.current!.textTracks[i].mode = i === strk.streamIndex ? 'hidden' : 'disabled';
-                              }
-                              showToast(`💬 Subtitles: ${strk.label}`);
-                            } else {
-                              showToast(`💬 Subtitles: ${strk.label}`);
-                            }
-                          }}
-                          className={`w-full p-2 rounded-lg border text-left flex items-center justify-between transition-colors cursor-pointer ${
-                            isSelected
-                              ? 'bg-amber-500/20 border-amber-500/40 text-amber-100'
-                              : 'bg-amber-950/20 border-amber-900/20 text-amber-300/70 hover:bg-amber-900/30'
-                          }`}
-                        >
-                          <div className="min-w-0 pr-2">
-                            <div className="text-xs font-semibold truncate">{strk.label}</div>
-                            <div className="text-[10px] text-amber-300/60 font-mono mt-0.5">
-                              {strk.language} • {strk.format || 'Timed Text'}
-                            </div>
-                          </div>
-                          {isSelected && <Check className="w-3.5 h-3.5 text-amber-400 shrink-0" />}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* Load External Subtitle File (.srt, .vtt) */}
-              <div className="pt-1">
-                <input
-                  type="file"
-                  ref={subtitleFileInputRef}
-                  accept=".vtt,.srt,text/vtt,application/x-subrip"
-                  className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      const reader = new FileReader();
-                      reader.onload = (event) => {
-                        const content = event.target?.result as string;
-                        if (content) {
-                          const extId = `ext-sub-${Date.now()}`;
-                          const extTrack: MediaSubtitleTrack = {
-                            id: extId,
-                            streamIndex: 999,
-                            label: `${file.name.replace(/\.[^/.]+$/, '')} (External)`,
-                            language: 'External File',
-                            languageCode: 'ext',
-                            format: file.name.endsWith('.srt') ? 'SubRip (SRT)' : 'WebVTT',
-                            isDefault: true,
-                            isForced: false,
-                          };
-                          setExternalSubtitleTracks((prev) => [extTrack, ...prev.filter(t => t.label !== extTrack.label)]);
-                          setSelectedSubtitleTrack(extId);
-                          captionControllerRef.current.loadSubtitleFile(content);
-                          setSubtitlesOn(true);
-                          showToast(`💬 Subtitles Active: ${file.name}`);
-                        }
-                      };
-                      reader.readAsText(file);
-                    }
-                  }}
-                />
-                <button
-                  onClick={() => subtitleFileInputRef.current?.click()}
-                  className="w-full py-1.5 px-3 rounded-lg border border-amber-900/30 bg-amber-950/30 hover:bg-amber-900/40 text-[11px] text-amber-300/80 hover:text-amber-100 flex items-center justify-center gap-2 transition-colors cursor-pointer"
-                >
-                  <FileText className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Load External Subtitle (.srt, .vtt)</span>
-                </button>
-              </div>
+          {/* ── Subtitles & Closed Captions (Universal: Local Container Tracks & YouTube Streams) ── */}
+          <div className="space-y-2.5 pb-4 border-b border-amber-900/30">
+            <div className="text-[10px] font-bold text-amber-400 uppercase tracking-widest flex items-center justify-between">
+              <span className="flex items-center gap-1.5">
+                <Captions className="w-3.5 h-3.5 text-amber-400" />
+                Subtitles & Closed Captions
+              </span>
+              <span className="text-[9px] font-mono text-amber-400/70">
+                {subtitleTrackOptions.length > 0 ? `${subtitleTrackOptions.length} Track${subtitleTrackOptions.length > 1 ? 's' : ''}` : (isLocalMedia ? 'No Embedded Subs' : 'Auto / Ready')}
+              </span>
             </div>
-          )}
+
+            <button
+              onClick={toggleSubtitles}
+              className={`w-full p-2.5 rounded-xl border text-xs font-semibold flex items-center justify-between transition-all cursor-pointer ${
+                subtitlesOn ? 'bg-amber-500/20 text-amber-100 border-amber-500/40' : 'bg-amber-950/20 text-amber-300/70 border-amber-900/20 hover:bg-amber-900/30'
+              }`}
+            >
+              <span className="flex items-center gap-2">
+                <Captions className="w-4 h-4 text-amber-400" />
+                <span>Closed Captions & Subtitles</span>
+              </span>
+              <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-black/40 border border-amber-500/20">
+                {subtitlesOn ? 'ON' : 'OFF'}
+              </span>
+            </button>
+
+            {/* Detected Subtitle Tracks List */}
+            {subtitlesOn && subtitleTrackOptions.length > 0 && (
+              <div className="space-y-1.5 pt-1">
+                <div className="text-[10px] font-mono text-amber-300/60 uppercase tracking-wider">
+                  Available Streams
+                </div>
+                <div className="space-y-1 max-h-36 overflow-y-auto pr-1">
+                  {subtitleTrackOptions.map((strk: any) => {
+                    const isSelected = selectedSubtitleTrack === strk.id || (selectedSubtitleTrack === 'off' && strk.isDefault);
+                    return (
+                      <button
+                        key={strk.id}
+                        onClick={() => {
+                          setSelectedSubtitleTrack(strk.id);
+                          captionControllerRef.current.setActiveTrackIndex(strk.streamIndex);
+                          if (strk.cues && strk.cues.length > 0) {
+                            captionControllerRef.current.loadParsedCues(strk.cues);
+                            showToast(`💬 Subtitles: ${strk.label}`);
+                            return;
+                          }
+                          if (strk.id.startsWith('ext-sub-')) {
+                            showToast(`💬 Subtitles: ${strk.label}`);
+                            return;
+                          }
+                          const hasNativeTracks = Boolean(isLocalMedia && localVideoRef.current && localVideoRef.current.textTracks && localVideoRef.current.textTracks.length > 0);
+                          if (hasNativeTracks) {
+                            for (let i = 0; i < localVideoRef.current!.textTracks.length; i++) {
+                              localVideoRef.current!.textTracks[i].mode = i === strk.streamIndex ? 'hidden' : 'disabled';
+                            }
+                            showToast(`💬 Subtitles: ${strk.label}`);
+                          } else {
+                            showToast(`💬 Subtitles: ${strk.label}`);
+                          }
+                        }}
+                        className={`w-full p-2 rounded-lg border text-left flex items-center justify-between transition-colors cursor-pointer ${
+                          isSelected
+                            ? 'bg-amber-500/20 border-amber-500/40 text-amber-100'
+                            : 'bg-amber-950/20 border-amber-900/20 text-amber-300/70 hover:bg-amber-900/30'
+                        }`}
+                      >
+                        <div className="min-w-0 pr-2">
+                          <div className="text-xs font-semibold truncate">{strk.label}</div>
+                          <div className="text-[10px] text-amber-300/60 font-mono mt-0.5">
+                            {strk.language} • {strk.format || 'Timed Text'}
+                          </div>
+                        </div>
+                        {isSelected && <Check className="w-3.5 h-3.5 text-amber-400 shrink-0" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Load External Subtitle File (.srt, .vtt) */}
+            <div className="pt-1">
+              <input
+                type="file"
+                ref={subtitleFileInputRef}
+                accept=".vtt,.srt,text/vtt,application/x-subrip"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                      const content = event.target?.result as string;
+                      if (content) {
+                        const extId = `ext-sub-${Date.now()}`;
+                        const extTrack: MediaSubtitleTrack = {
+                          id: extId,
+                          streamIndex: 999,
+                          label: `${file.name.replace(/\.[^/.]+$/, '')} (External)`,
+                          language: 'External File',
+                          languageCode: 'ext',
+                          format: file.name.endsWith('.srt') ? 'SubRip (SRT)' : 'WebVTT',
+                          isDefault: true,
+                          isForced: false,
+                        };
+                        setExternalSubtitleTracks((prev) => [extTrack, ...prev.filter(t => t.label !== extTrack.label)]);
+                        setSelectedSubtitleTrack(extId);
+                        captionControllerRef.current.loadSubtitleFile(content);
+                        setSubtitlesOn(true);
+                        showToast(`💬 Subtitles Active: ${file.name}`);
+                      }
+                    };
+                    reader.readAsText(file);
+                  }
+                }}
+              />
+              <button
+                onClick={() => subtitleFileInputRef.current?.click()}
+                className="w-full py-1.5 px-3 rounded-lg border border-amber-900/30 bg-amber-950/30 hover:bg-amber-900/40 text-[11px] text-amber-300/80 hover:text-amber-100 flex items-center justify-center gap-2 transition-colors cursor-pointer"
+              >
+                <FileText className="w-3.5 h-3.5 text-amber-400" />
+                <span>Load External Subtitle (.srt, .vtt)</span>
+              </button>
+            </div>
+          </div>
 
           {/* ── Environment & Playback Tools ── */}
           <div className="space-y-3 pb-4 border-b border-amber-900/30">
@@ -2263,35 +2527,43 @@ export function CineMorphTheater() {
             <div className="space-y-3 text-xs text-amber-200/80">
               <div className="flex items-center justify-between py-1">
                 <span>Play / Pause</span>
-                <kbd className="px-2 py-1 bg-amber-950/50 rounded font-mono text-amber-300 border border-amber-500/20">Space</kbd>
+                <kbd className="px-2 py-1 bg-amber-950/50 rounded font-mono text-amber-300 border border-amber-500/20">{getKeyDisplay('togglePlay', 'Space')}</kbd>
               </div>
               <div className="flex items-center justify-between py-1">
                 <span>Seek Forward / Backward 10s</span>
-                <kbd className="px-2 py-1 bg-amber-950/50 rounded font-mono text-amber-300 border border-amber-500/20">➔ / ⬅</kbd>
+                <kbd className="px-2 py-1 bg-amber-950/50 rounded font-mono text-amber-300 border border-amber-500/20">{`${getKeyDisplay('seekForward', '→')} / ${getKeyDisplay('seekBackward', '←')}`}</kbd>
               </div>
               <div className="flex items-center justify-between py-1">
                 <span>Volume Up / Down</span>
-                <kbd className="px-2 py-1 bg-amber-950/50 rounded font-mono text-amber-300 border border-amber-500/20">⬆ / ⬇</kbd>
+                <kbd className="px-2 py-1 bg-amber-950/50 rounded font-mono text-amber-300 border border-amber-500/20">{`${getKeyDisplay('volumeUp', '↑')} / ${getKeyDisplay('volumeDown', '↓')}`}</kbd>
               </div>
               <div className="flex items-center justify-between py-1">
                 <span>Mute / Unmute</span>
-                <kbd className="px-2 py-1 bg-amber-950/50 rounded font-mono text-amber-300 border border-amber-500/20">M</kbd>
+                <kbd className="px-2 py-1 bg-amber-950/50 rounded font-mono text-amber-300 border border-amber-500/20">{getKeyDisplay('toggleMute', 'M')}</kbd>
               </div>
               <div className="flex items-center justify-between py-1">
                 <span>Toggle Fullscreen</span>
-                <kbd className="px-2 py-1 bg-amber-950/50 rounded font-mono text-amber-300 border border-amber-500/20">F</kbd>
+                <kbd className="px-2 py-1 bg-amber-950/50 rounded font-mono text-amber-300 border border-amber-500/20">{getKeyDisplay('toggleFullscreen', 'F')}</kbd>
+              </div>
+              <div className="flex items-center justify-between py-1">
+                <span>Toggle Subtitles / CC</span>
+                <kbd className="px-2 py-1 bg-amber-950/50 rounded font-mono text-amber-300 border border-amber-500/20">{getKeyDisplay('toggleSubtitles', 'C')}</kbd>
               </div>
               <div className="flex items-center justify-between py-1">
                 <span>Toggle Presentation Mode</span>
-                <kbd className="px-2 py-1 bg-amber-950/50 rounded font-mono text-amber-300 border border-amber-500/20">C</kbd>
+                <kbd className="px-2 py-1 bg-amber-950/50 rounded font-mono text-amber-300 border border-amber-500/20">{getKeyDisplay('toggleTheater', 'T')}</kbd>
+              </div>
+              <div className="flex items-center justify-between py-1">
+                <span>Toggle Cinema Seating</span>
+                <kbd className="px-2 py-1 bg-amber-950/50 rounded font-mono text-amber-300 border border-amber-500/20">S</kbd>
               </div>
               <div className="flex items-center justify-between py-1">
                 <span>Exit Theater / Close Overlays</span>
                 <kbd className="px-2 py-1 bg-amber-900/10 rounded font-mono text-amber-800 border border-amber-900/10">Esc</kbd>
               </div>
               <div className="flex items-center justify-between py-1">
-                <span>Toggle Shortcuts Help</span>
-                <kbd className="px-2 py-1 bg-amber-900/10 rounded font-mono text-amber-800 border border-amber-900/10">?</kbd>
+                <span>Show / Hide Shortcuts</span>
+                <kbd className="px-2 py-1 bg-amber-950/50 rounded font-mono text-amber-300 border border-amber-500/20">{getKeyDisplay('showShortcuts', 'H / ?')}</kbd>
               </div>
             </div>
           </div>

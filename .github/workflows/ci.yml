@@ -1,0 +1,38 @@
+name: OmniStream CI & Release Governance Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate:
+    name: Lint, Test & Production Build
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [ 22.x ]
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: TypeScript Static Typecheck & Lint
+        run: npm run lint
+
+      - name: Automated Vitest Test Matrix (Tiers 1-5 + Architecture)
+        run: npm test -- --run
+
+      - name: Production Bundle Build
+        run: npm run build

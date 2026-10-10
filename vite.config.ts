@@ -15,15 +15,16 @@ export default defineConfig(() => {
         '@omnistream/utube':     path.resolve(__dirname, 'src/products/u-tube'),
         '@omnistream/cinemorph': path.resolve(__dirname, 'src/products/cinemorph'),
         '@omnistream/shared':    path.resolve(__dirname, 'src/shared'),
-        // Legacy alias — preserved for backward compatibility during migration
+        '@tests':                path.resolve(__dirname, 'tests'),
+        // Root alias
         '@': path.resolve(__dirname, '.'),
       },
     },
     test: {
       globals: true,
       environment: 'jsdom',
-      setupFiles: ['./src/tests/setup.ts'],
-      include: ['src/**/*.{test,spec}.{ts,tsx}', 'tests/**/*.{test,spec}.{ts,tsx}'],
+      setupFiles: ['./tests/setup.ts'],
+      include: ['tests/**/*.{test,spec}.{ts,tsx}'],
       coverage: {
         reporter: ['text', 'json', 'html'],
       },

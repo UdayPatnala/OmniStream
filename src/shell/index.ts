@@ -1,4 +1,4 @@
-﻿/**
+/**
  * OmniStream Shell Public Barrel API (OPCA v1.0)
  */
 
@@ -11,3 +11,5 @@ export * from './Bento/ModeCard';
 export * from './Bento/TicketDrawer';
 export * from './ThresholdPortal/ThresholdPortal';
 export * from './Settings/GlobalSettingsDrawer';
+export * from './pages/RootLanding';
+export * from './pages/Settings';

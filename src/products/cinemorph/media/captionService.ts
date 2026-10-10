@@ -1,14 +1,22 @@
-﻿/**
- * captionService.ts â€” OmniStream CineMorph Real-Time Timed-Text & Caption Synchronization Engine
+/**
+ * captionService.ts — OmniStream CineMorph Real-Time Timed-Text & Caption Synchronization Engine
  * Copyright (c) Patnala Uday Kumar. All rights reserved.
  *
  * Provides real-time synchronization between media playback and caption cues.
  * Supports:
  * 1. Native HTMLVideoElement TextTrack / VTTCue events (cuechange).
- * 2. Client-side WebVTT (.vtt) and SubRip (.srt) parser with timestamp normalization.
- * 3. Sanitized text extraction with formatting tag stripping.
- * 4. Zero-DOM-overhead state updates (only triggers on cue entry/exit).
+ * 2. Client-side WebVTT (.vtt), SubRip (.srt), and ASS/SSA (.ass) parser with timestamp normalization.
+ * 3. Sanitized text extraction with formatting tag stripping and speaker extraction.
+ * 4. High-performance O(log n) binary search cue lookup for zero-stutter 4K playback.
+ * 5. Full backward compatibility with existing tests and integration points.
  */
+
+import { SubtitleCue, findActiveCues, parseTimecodeToSeconds } from './subtitleCueModel';
+import { parseSubtitleFile, sanitizeCueText } from './subtitleParser';
+
+export type { SubtitleCue } from './subtitleCueModel';
+export { findActiveCues, parseTimecodeToSeconds } from './subtitleCueModel';
+export { parseSubtitleFile, sanitizeCueText } from './subtitleParser';
 
 export interface NormalizedCaptionCue {
   id?: string;
@@ -18,140 +26,23 @@ export interface NormalizedCaptionCue {
 }
 
 /**
- * Sanitizes and strips HTML/WebVTT cue markup while preserving readable text & line breaks
- */
-export function sanitizeCueText(rawText: string): string {
-  if (!rawText) return '';
-
-  return rawText
-    // Replace ASS line breaks \N or \n
-    .replace(/\\N/gi, '\n')
-    .replace(/\\n/g, '\n')
-    // Remove ASS override tags like {\an8}, {\pos(100,100)}, {\c&HFFFFFF&}
-    .replace(/\{[^\}]*\}/g, '')
-    // Remove WebVTT voice tags like <v Speaker> or </v>
-    .replace(/<\/?[vV][^>]*>/g, '')
-    // Remove standard inline formatting tags: <b>, <i>, <u>, <c.class>, <ruby>, <rt>, <lang>
-    .replace(/<\/?[a-zA-Z0-9_.-]+(?:\.[a-zA-Z0-9_.-]+)*(?::[a-zA-Z0-9_.-]+)*(?: [^>]*)?>/g, '')
-    // Remove WebVTT intra-cue timestamps like <00:01:23.456>
-    .replace(/<\d{2}:\d{2}(?::\d{2})?(?:\.\d{1,3})?>/g, '')
-    // Decode basic HTML entities
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;|&apos;/g, "'")
-    .replace(/&nbsp;/g, ' ')
-    // Normalize consecutive newlines and trim
-    .split('\n')
-    .map((line) => line.replace(/[ \t]{2,}/g, ' ').trim())
-    .filter((line) => line.length > 0)
-    .join('\n')
-    .trim();
-}
-
-/**
- * Parses timecode strings (HH:MM:SS.mmm, MM:SS.mmm, HH:MM:SS,mmm) into seconds
+ * Backward-compatible timecode parser
  */
 export function parseTimecode(tcStr: string): number | null {
-  if (!tcStr) return null;
-  const cleaned = tcStr.trim().replace(',', '.');
-  const parts = cleaned.split(':');
-
-  if (parts.length === 3) {
-    const hours = parseFloat(parts[0]);
-    const minutes = parseFloat(parts[1]);
-    const seconds = parseFloat(parts[2]);
-    if (isNaN(hours) || isNaN(minutes) || isNaN(seconds)) return null;
-    return hours * 3600 + minutes * 60 + seconds;
-  } else if (parts.length === 2) {
-    const minutes = parseFloat(parts[0]);
-    const seconds = parseFloat(parts[1]);
-    if (isNaN(minutes) || isNaN(seconds)) return null;
-    return minutes * 60 + seconds;
-  }
-
-  const secOnly = parseFloat(cleaned);
-  return isNaN(secOnly) ? null : secOnly;
+  return parseTimecodeToSeconds(tcStr);
 }
 
 /**
- * Parses WebVTT or SRT content into normalized caption cues
+ * Backward-compatible subtitle content parser
  */
 export function parseSubtitleContent(content: string): NormalizedCaptionCue[] {
-  if (!content || typeof content !== 'string') return [];
-
-  const cues: NormalizedCaptionCue[] = [];
-  // Normalize line endings
-  const lines = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
-
-  let i = 0;
-  // Skip WEBVTT header if present
-  if (lines.length > 0 && lines[0].trim().toUpperCase().startsWith('WEBVTT')) {
-    i++;
-    // Skip header metadata / comments until empty line
-    while (i < lines.length && lines[i].trim() !== '') {
-      i++;
-    }
-  }
-
-  while (i < lines.length) {
-    const line = lines[i].trim();
-    if (!line) {
-      i++;
-      continue;
-    }
-
-    // Check for NOTE / STYLE / REGION blocks in WebVTT
-    if (line.startsWith('NOTE') || line.startsWith('STYLE') || line.startsWith('REGION')) {
-      while (i < lines.length && lines[i].trim() !== '') {
-        i++;
-      }
-      continue;
-    }
-
-    // Check if line is an index or cue identifier before timestamp
-    let cueId: string | undefined;
-    let timeLine = line;
-
-    if (!timeLine.includes('-->') && i + 1 < lines.length && lines[i + 1].includes('-->')) {
-      cueId = line;
-      i++;
-      timeLine = lines[i].trim();
-    }
-
-    if (timeLine.includes('-->')) {
-      const [startStr, ...rest] = timeLine.split('-->');
-      const endPart = rest.join('-->').trim().split(/\s+/)[0]; // strip WebVTT cue settings like align:center
-
-      const startTime = parseTimecode(startStr);
-      const endTime = parseTimecode(endPart);
-
-      i++;
-      const textLines: string[] = [];
-      while (i < lines.length && lines[i].trim() !== '') {
-        textLines.push(lines[i]);
-        i++;
-      }
-
-      if (startTime !== null && endTime !== null && endTime >= startTime) {
-        const sanitized = sanitizeCueText(textLines.join('\n'));
-        if (sanitized) {
-          cues.push({
-            id: cueId,
-            startTime,
-            endTime,
-            text: sanitized,
-          });
-        }
-      }
-    } else {
-      i++;
-    }
-  }
-
-  // Sort cues chronologically
-  return cues.sort((a, b) => a.startTime - b.startTime);
+  const cues = parseSubtitleFile(content);
+  return cues.map((c) => ({
+    id: c.id,
+    startTime: c.startTime,
+    endTime: c.endTime,
+    text: c.text,
+  }));
 }
 
 /**
@@ -159,9 +50,11 @@ export function parseSubtitleContent(content: string): NormalizedCaptionCue[] {
  */
 export class CineMorphCaptionController {
   private activeCueText: string | null = null;
-  private parsedCues: NormalizedCaptionCue[] = [];
+  private activeCues: SubtitleCue[] = [];
+  private parsedCues: SubtitleCue[] = [];
   private videoEl: HTMLVideoElement | null = null;
   private changeCallback: ((text: string | null) => void) | null = null;
+  private cuesChangeCallback: ((cues: SubtitleCue[]) => void) | null = null;
   private isEnabled: boolean = true;
   private activeTrackIndex: number = -1; // -1 means default/all
   private boundOnTimeUpdate: () => void;
@@ -176,10 +69,14 @@ export class CineMorphCaptionController {
     this.changeCallback = callback;
   }
 
+  public setOnCuesChange(callback: (cues: SubtitleCue[]) => void): void {
+    this.cuesChangeCallback = callback;
+  }
+
   public setEnabled(enabled: boolean): void {
     this.isEnabled = enabled;
     if (!enabled) {
-      this.updateActiveText(null);
+      this.updateActiveText(null, []);
     } else {
       this.syncCurrentTime();
     }
@@ -207,6 +104,7 @@ export class CineMorphCaptionController {
       video.addEventListener('timeupdate', this.boundOnTimeUpdate);
       video.addEventListener('seeking', this.boundOnTimeUpdate);
       video.addEventListener('seeked', this.boundOnTimeUpdate);
+      video.addEventListener('ratechange', this.boundOnTimeUpdate);
       video.addEventListener('emptied', this.boundOnTimeUpdate);
 
       // Listen to textTrack list changes
@@ -242,6 +140,7 @@ export class CineMorphCaptionController {
       this.videoEl.removeEventListener('timeupdate', this.boundOnTimeUpdate);
       this.videoEl.removeEventListener('seeking', this.boundOnTimeUpdate);
       this.videoEl.removeEventListener('seeked', this.boundOnTimeUpdate);
+      this.videoEl.removeEventListener('ratechange', this.boundOnTimeUpdate);
       this.videoEl.removeEventListener('emptied', this.boundOnTimeUpdate);
 
       if (this.videoEl.textTracks) {
@@ -251,30 +150,42 @@ export class CineMorphCaptionController {
       }
       this.videoEl = null;
     }
-    this.updateActiveText(null);
+    this.updateActiveText(null, []);
   }
 
-  public loadSubtitleFile(content: string): void {
-    this.parsedCues = parseSubtitleContent(content);
+  public loadSubtitleFile(content: string, filename?: string): void {
+    this.parsedCues = parseSubtitleFile(content, filename);
     this.syncCurrentTime();
   }
 
-  public loadParsedCues(cues: NormalizedCaptionCue[]): void {
-    this.parsedCues = cues || [];
+  public loadParsedCues(cues: (SubtitleCue | NormalizedCaptionCue)[]): void {
+    this.parsedCues = (cues || []).map((c, i) => ({
+      id: c.id || `cue-${i + 1}`,
+      startTime: c.startTime,
+      endTime: c.endTime,
+      text: c.text,
+      format: (c as SubtitleCue).format || 'native',
+      speaker: (c as SubtitleCue).speaker,
+      isSdh: (c as SubtitleCue).isSdh,
+      isRtl: (c as SubtitleCue).isRtl,
+    }));
     this.syncCurrentTime();
   }
 
   public clearSubtitles(): void {
     this.parsedCues = [];
-    this.updateActiveText(null);
+    this.updateActiveText(null, []);
   }
 
   public getParsedCuesCount(): number {
     return this.parsedCues.length;
   }
 
-  public getActiveCueAtTime(currentTime: number): string | null {
-    if (!this.isEnabled) return null;
+  /**
+   * Retrieves active SubtitleCue objects at authoritative media time
+   */
+  public getActiveSubtitleCuesAtTime(currentTime: number): SubtitleCue[] {
+    if (!this.isEnabled) return [];
 
     // 1. Check native textTracks first
     if (this.videoEl && this.videoEl.textTracks && this.videoEl.textTracks.length > 0) {
@@ -282,69 +193,98 @@ export class CineMorphCaptionController {
         ? [this.activeTrackIndex]
         : Array.from({ length: this.videoEl.textTracks.length }, (_, idx) => idx);
 
+      const nativeCues: SubtitleCue[] = [];
       for (const i of targetIndices) {
         const track = this.videoEl.textTracks[i];
         if (track && track.mode !== 'disabled') {
-          const activeCues = track.activeCues;
-          if (activeCues && activeCues.length > 0) {
-            const cueTexts: string[] = [];
-            for (let j = 0; j < activeCues.length; j++) {
-              const cue = activeCues[j] as VTTCue;
+          const active = track.activeCues;
+          if (active && active.length > 0) {
+            for (let j = 0; j < active.length; j++) {
+              const cue = active[j] as VTTCue;
               if (cue && cue.text) {
                 const clean = sanitizeCueText(cue.text);
-                if (clean) cueTexts.push(clean);
+                if (clean) {
+                  nativeCues.push({
+                    id: cue.id || `native-${i}-${j}`,
+                    startTime: cue.startTime,
+                    endTime: cue.endTime,
+                    text: clean,
+                    format: 'native',
+                  });
+                }
               }
-            }
-            if (cueTexts.length > 0) {
-              return cueTexts.join('\n');
             }
           }
         }
       }
-    }
-
-    // 2. Check loaded parsed cues
-    if (this.parsedCues.length > 0) {
-      const active = this.parsedCues.filter(
-        (c) => currentTime >= c.startTime && currentTime <= c.endTime
-      );
-      if (active.length > 0) {
-        return active.map((c) => c.text).join('\n');
+      if (nativeCues.length > 0) {
+        return nativeCues;
       }
     }
 
+    // 2. High-performance O(log n) binary search on parsed cues
+    if (this.parsedCues.length > 0) {
+      return findActiveCues(this.parsedCues, currentTime);
+    }
+
+    return [];
+  }
+
+  /**
+   * Backward-compatible method returning concatenated string of active text
+   */
+  public getActiveCueAtTime(currentTime: number): string | null {
+    const active = this.getActiveSubtitleCuesAtTime(currentTime);
+    if (active.length > 0) {
+      return active.map((c) => c.text).join('\n');
+    }
     return null;
   }
 
-  private handleTimeUpdate(): void {
-    this.syncCurrentTime();
+  public handleTimeUpdate(forcedTime?: number): void {
+    this.syncCurrentTime(forcedTime);
   }
 
   private handleCueChange(): void {
     this.syncCurrentTime();
   }
 
-  private syncCurrentTime(): void {
-    if (!this.isEnabled || !this.videoEl) {
-      this.updateActiveText(null);
+  public syncCurrentTime(forcedTime?: number): void {
+    if (!this.isEnabled) {
+      this.updateActiveText(null, []);
       return;
     }
-    const curTime = this.videoEl.currentTime || 0;
-    const activeText = this.getActiveCueAtTime(curTime);
-    this.updateActiveText(activeText);
+    const curTime = forcedTime !== undefined 
+      ? forcedTime 
+      : (this.videoEl ? (this.videoEl.currentTime || 0) : null);
+
+    if (curTime === null) {
+      this.updateActiveText(null, []);
+      return;
+    }
+    const activeCues = this.getActiveSubtitleCuesAtTime(curTime);
+    const activeText = activeCues.length > 0 ? activeCues.map((c) => c.text).join('\n') : null;
+    this.updateActiveText(activeText, activeCues);
   }
 
-  private updateActiveText(newText: string | null): void {
-    if (this.activeCueText !== newText) {
-      this.activeCueText = newText;
-      if (this.changeCallback) {
-        this.changeCallback(newText);
-      }
+  private updateActiveText(newText: string | null, cues: SubtitleCue[]): void {
+    const textChanged = this.activeCueText !== newText;
+    this.activeCueText = newText;
+    this.activeCues = cues;
+
+    if (textChanged && this.changeCallback) {
+      this.changeCallback(newText);
+    }
+    if (this.cuesChangeCallback) {
+      this.cuesChangeCallback(cues);
     }
   }
 
   public getActiveText(): string | null {
     return this.activeCueText;
   }
-}
 
+  public getActiveCues(): SubtitleCue[] {
+    return this.activeCues;
+  }
+}

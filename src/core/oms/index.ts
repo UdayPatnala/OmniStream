@@ -9,3 +9,5 @@ export * from './capabilityResolver';
 export * from './fallbackRouter';
 export * from './modelRegistry';
 export * from './mediaResolver';
+export * from './omsTransitionService';
+export * from './errorRecoveryManager';

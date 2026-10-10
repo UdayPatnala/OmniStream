@@ -12,12 +12,11 @@
 
 ---
 
-## Architectural Documentation & Intelligence
+## Authoritative Documentation
 
-For complete architecture diagrams, capability maps, model registries, fallback chains, and ADRs, see:
-📖 **[`docs/architecture/OMNISTREAM_LIVING_ARCHITECTURE_INTELLIGENCE.md`](./docs/architecture/OMNISTREAM_LIVING_ARCHITECTURE_INTELLIGENCE.md)**
-📖 **[`START_HERE.md`](./START_HERE.md)**
-📖 **[`GEMINI.md`](./GEMINI.md)**
+OmniStream strictly enforces the **Two-File Documentation Policy**:
+- 📖 **[`OMNISTREAM.md`](./OMNISTREAM.md)**: **Product & System Architecture Master** — Complete product vision, OPCA v1.0 capsule architecture, OMS-SBH spatial math, UI/UX standards, audio DSP, and security/privacy rules.
+- 📜 **[`VERSION_CONTROLLER.md`](./VERSION_CONTROLLER.md)**: **Version Control & Governance Master** — Authoritative A.BC.DE.F version ledger, full chronological changelog (v0.01.00.0 to v1.09.06.1), test verification benchmarks, and release gates.
 
 ---
 
@@ -37,9 +36,9 @@ npm install
 npm run dev
 ```
 
-### Run Full Test Suite (58 suites, 294 tests)
+### Run Full Test Suite (76 suites, 441 tests)
 ```bash
-npx vitest run
+npm test
 ```
 
 ### Production Build

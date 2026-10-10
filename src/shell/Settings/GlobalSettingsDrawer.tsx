@@ -12,10 +12,22 @@ import {
   Trash2, 
   ShieldCheck, 
   Zap, 
-  Sparkles 
+  Sparkles,
+  Keyboard,
+  RotateCcw,
+  Edit3
 } from 'lucide-react';
-import { useAppStore } from '../../store';
-import { useTicketStore } from '../../state/useTicketStore';
+import { useAppStore, useCineMorphStore } from '../../store';
+import { useTicketStore } from '@omnistream/cinemorph';
+import { APP_VERSION_LABEL } from '@/src/core/config/version';
+import { 
+  SHORTCUT_DEFINITIONS, 
+  ShortcutAction, 
+  formatKeyLabel, 
+  findConflictingAction, 
+  normalizeKey, 
+  isModifierKey 
+} from '../../core/shortcuts/shortcutManager';
 
 interface GlobalSettingsDrawerProps {
   isOpen: boolean;
@@ -33,20 +45,24 @@ export const GlobalSettingsDrawer: React.FC<GlobalSettingsDrawerProps> = ({ isOp
     devicePerformanceProfile, 
     setDevicePerformanceProfile, 
     clearHistory, 
-    clearSearchHistory 
+    clearSearchHistory,
+    customShortcuts,
+    updateShortcut,
+    resetShortcuts
   } = useAppStore();
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [editingAction, setEditingAction] = useState<ShortcutAction | null>(null);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  // Close on Escape key
+  // Close on Escape key (if not recording shortcut)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
+      if (e.key === 'Escape' && isOpen && !editingAction) {
         e.preventDefault();
         onClose();
       }
@@ -55,7 +71,44 @@ export const GlobalSettingsDrawer: React.FC<GlobalSettingsDrawerProps> = ({ isOp
       window.addEventListener('keydown', handleKeyDown);
     }
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, editingAction]);
+
+  // Shortcut key capture listener
+  useEffect(() => {
+    if (!editingAction || !isOpen) return;
+
+    const handleRecordKey = (e: KeyboardEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (e.key === 'Escape') {
+        setEditingAction(null);
+        return;
+      }
+
+      if (isModifierKey(e.key)) {
+        return;
+      }
+
+      const rawKey = e.key;
+      const normalized = normalizeKey(rawKey);
+      if (!normalized) return;
+
+      const conflict = findConflictingAction(normalized, editingAction, customShortcuts);
+      updateShortcut(editingAction, [normalized]);
+
+      if (conflict) {
+        showToast(`⚠️ Reassigned "${formatKeyLabel(normalized)}" (${SHORTCUT_DEFINITIONS[conflict]?.label} also uses it)`);
+      } else {
+        showToast(`✅ ${SHORTCUT_DEFINITIONS[editingAction]?.label} mapped to [${formatKeyLabel(normalized)}]`);
+      }
+
+      setEditingAction(null);
+    };
+
+    window.addEventListener('keydown', handleRecordKey, { capture: true });
+    return () => window.removeEventListener('keydown', handleRecordKey, { capture: true });
+  }, [editingAction, isOpen, customShortcuts, updateShortcut]);
 
   if (!isOpen) return null;
 
@@ -197,7 +250,10 @@ export const GlobalSettingsDrawer: React.FC<GlobalSettingsDrawerProps> = ({ isOp
                 <button
                   key={r.id}
                   onClick={() => {
-                    setFrameAspectRatio(r.id as any);
+                    const nextRatio = r.id as any;
+                    setFrameAspectRatio(nextRatio);
+                    useCineMorphStore.getState().setAspectRatio(nextRatio);
+                    useCineMorphStore.getState().updateActiveSession({ aspectRatio: nextRatio });
                     showToast(`🎬 Viewport Aspect: ${r.label}`);
                   }}
                   className={`p-2.5 rounded-xl border text-xs font-bold text-center transition-all cursor-pointer ${
@@ -233,6 +289,77 @@ export const GlobalSettingsDrawer: React.FC<GlobalSettingsDrawerProps> = ({ isOp
                   <option value="low">Low Power</option>
                 </select>
               </div>
+            </div>
+          </section>
+
+          {/* Keyboard Shortcuts Customization */}
+          <section className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <Keyboard className="w-3.5 h-3.5 text-utube-primary" />
+                <h3 className="text-xs font-bold text-utube-text-muted uppercase tracking-wider">
+                  Keyboard Shortcuts
+                </h3>
+              </div>
+              <button
+                onClick={() => {
+                  resetShortcuts();
+                  showToast('🔄 Shortcuts restored to defaults');
+                }}
+                className="text-[10px] text-utube-text-muted hover:text-utube-primary flex items-center gap-1 font-semibold cursor-pointer transition-colors"
+                title="Reset all keyboard shortcuts to factory defaults"
+              >
+                <RotateCcw className="w-3 h-3" />
+                <span>Reset</span>
+              </button>
+            </div>
+
+            {/* Listening state banner when remapping a key */}
+            {editingAction && (
+              <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-xs font-medium flex items-center justify-between animate-pulse">
+                <span>Press any key for <strong>{SHORTCUT_DEFINITIONS[editingAction]?.label}</strong> (Esc to cancel)...</span>
+                <kbd className="px-1.5 py-0.5 rounded bg-amber-500/20 text-[10px] font-mono">Esc</kbd>
+              </div>
+            )}
+
+            <div className="p-3 rounded-2xl bg-utube-surface/40 border border-utube-border space-y-2.5">
+              {Object.values(SHORTCUT_DEFINITIONS).map((def) => {
+                const activeKeys = customShortcuts?.[def.id] ?? def.defaultKeys;
+                const isEditing = editingAction === def.id;
+
+                return (
+                  <div key={def.id} className="flex items-center justify-between text-xs py-1 border-b border-utube-border/40 last:border-0">
+                    <div>
+                      <div className="font-semibold text-utube-text">{def.label}</div>
+                      <div className="text-[10px] text-utube-text-muted">{def.description}</div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      {activeKeys.map((k, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => setEditingAction(isEditing ? null : def.id)}
+                          className={`px-2 py-1 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer ${
+                            isEditing
+                              ? 'bg-amber-500 text-black shadow ring-2 ring-amber-400 animate-pulse'
+                              : 'bg-utube-surface border border-utube-border text-utube-text hover:border-utube-primary hover:text-utube-primary'
+                          }`}
+                          title="Click to remap this shortcut"
+                        >
+                          {formatKeyLabel(k)}
+                        </button>
+                      ))}
+                      <button
+                        onClick={() => setEditingAction(isEditing ? null : def.id)}
+                        className="p-1 rounded-lg text-utube-text-muted hover:text-utube-primary hover:bg-utube-surface transition-colors cursor-pointer"
+                        title="Edit keybinding"
+                      >
+                        <Edit3 className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </section>
 
@@ -288,7 +415,7 @@ export const GlobalSettingsDrawer: React.FC<GlobalSettingsDrawerProps> = ({ isOp
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
             Zero-Cloud Private Workstation
           </span>
-          <span className="font-mono font-bold text-utube-text">v2.0.0</span>
+          <span className="font-mono font-bold text-utube-text">{APP_VERSION_LABEL}</span>
         </div>
       </aside>
     </div>

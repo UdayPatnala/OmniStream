@@ -6,6 +6,7 @@ import {
 import { cn } from '@omnistream/shared/utils/utils';
 import { useAppStore } from '@/src/store';
 import { OMSLogo } from '@omnistream/shared/ui/OMSLogo';
+import { APP_VERSION_LABEL } from '@/src/core/config/version';
 
 // ── Navigation taxonomy ────────────────────────────────────────────────────────
 //
@@ -99,6 +100,9 @@ export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
             <span className="truncate max-w-full font-medium">{item.label}</span>
           </NavLink>
         ))}
+        <div className="mt-auto pb-1 text-[9px] font-mono text-utube-text-muted/50 text-center select-none truncate">
+          {APP_VERSION_LABEL}
+        </div>
       </aside>
     );
   }
@@ -244,6 +248,12 @@ export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
             )}
           </NavLink>
         ))}
+      </div>
+
+      {/* ── Product Metadata ── */}
+      <div className="mt-auto pt-6 pb-1 px-3 flex items-center justify-between text-[10px] font-mono text-utube-text-muted/60 select-none">
+        <span>OmniStream</span>
+        <span>{APP_VERSION_LABEL}</span>
       </div>
     </aside>
   );

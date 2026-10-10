@@ -1,15 +1,15 @@
 {
   "name": "omnistream",
   "private": true,
-  "version": "1.9.0",
+  "version": "1.09.13.0",
   "type": "module",
   "scripts": {
-    "dev": "tsx server.ts",
-    "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
+    "dev": "tsx server/index.ts",
+    "build": "vite build && esbuild server/index.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
     "render-build": "npm install && npm run build",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
-    "start": "tsx server.ts",
+    "start": "tsx server/index.ts",
     "lint": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest"

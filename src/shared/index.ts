@@ -1,4 +1,4 @@
-﻿/**
+/**
  * OmniStream Shared — Public API
  * ================================
  * Genuinely product-neutral UI primitives and utilities.
@@ -15,3 +15,4 @@ export { ErrorBoundary } from './ui/ErrorBoundary';
 export { Skeleton } from './ui/Skeleton';
 export { CaptionOverlay } from './ui/CaptionOverlay';
 export { OMSLogo } from './ui/OMSLogo';
+export * from './contracts';

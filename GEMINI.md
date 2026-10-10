@@ -6,23 +6,11 @@ OmniStream combines two distinct viewing engines:
 2. **CineMorph**: A cinematic, fixed-aperture theater experience for local media using client-side ML framing.
 
 **CRITICAL RULE**: Before making any design, architecture, or implementation decisions, you MUST read and comprehend the full product constitution.
-The complete product constitution (P1 through P5 master specs) is located at:
-`d:\PROJECT\AROH Open Source\Products\OmniStream\docs\specs\OMNISTREAM_MASTER_SPECS.md`
+The complete authoritative product constitution, architecture, OMS-SBH geometry contracts, and 100-point manifesto are codified in:
+`d:\PROJECT\AROH Open Source\Products\OmniStream\OMNISTREAM.md`
 
-The final 100-point build manifesto is located at:
-`d:\PROJECT\AROH Open Source\Products\OmniStream\docs\specs\OMNISTREAM_FINAL_BUILD_AGENT.md`
-
-The Intelligence Architecture constraints are located at:
-`d:\PROJECT\AROH Open Source\Products\OmniStream\docs\specs\OMNISTREAM_INTELLIGENCE_ARCHITECTURE.md`
-
-The final Requirement Clarifications and Assumption Controls are located at:
-`d:\PROJECT\AROH Open Source\Products\OmniStream\docs\specs\OMNISTREAM_FINAL_REQUIREMENT_CLARIFICATION_AND_ASSUMPTION_CONTROL.md`
-
-The OmniStream Intelligence System (OMS) Identity Standard is located at:
-`d:\PROJECT\AROH Open Source\Products\OmniStream\docs\specs\OMNISTREAM_OMS_IDENTITY_STANDARD.md`
-
-The Master Guardian Principles are located at:
-`d:\PROJECT\AROH Open Source\Products\OmniStream\docs\specs\OMNISTREAM_MASTER_GUARDIAN.md`
+The authoritative version history, change ledger, release gates, and governance rules are codified in:
+`d:\PROJECT\AROH Open Source\Products\OmniStream\VERSION_CONTROLLER.md`
 
 You MUST use the `view_file` tool to read these files if you do not already have them in your context. Do NOT guess the architecture. The user has explicitly stated: "make layers, models, llms anything needed to achieve the goal."
 
@@ -46,7 +34,7 @@ Operate across the three separate realities to reconcile:
 
 Permanent execution hierarchy:
 $$\text{Discussions} \to \text{Motive} \to \text{Vision} \to \text{Purpose} \to \text{Identity} \to \text{Reverse Engineering} \to \text{Reconciliation} \to \text{Decisions} \to \text{Safe Version} \to \text{Implementation} \to \text{Verification}$$
-Full standard codified in [`docs/protocols/UNIVERSAL_PROJECT_ENGINEERING_AND_EXECUTION_SYSTEM.md`](./docs/protocols/UNIVERSAL_PROJECT_ENGINEERING_AND_EXECUTION_SYSTEM.md).
+Full standard codified in [`OMNISTREAM.md`](./OMNISTREAM.md).
 
 ### 2. Strict Product Ownership & Domain Boundaries
 - **OmniStream Core**: Gateway (`/`), cross-engine identity, global theme/preferences, routing. Connective layer, not a dumping ground.
@@ -78,10 +66,10 @@ You are an intelligent engineering collaborator, not a blind code executor.
 - Balance between two failure modes: avoid being **too passive** (blind compliance, ignoring obvious problems) and **too autonomous** (uncontrolled refactors, changing product vision, adding unnecessary dependencies).
 
 ### 2. Decision Authority Levels
-- **LEVEL 1 — Act Directly**: Fix obvious local bugs, remove confirmed debugging artifacts, add missing validation, improve error handling, make small internal refactors that preserve existing behavior.
-- **LEVEL 2 — Act and Report**: Make reasonable routine implementation choices with limited blast radius. Report decision, reason, and impact after completion.
-- **LEVEL 3 — Recommend Before Acting**: Propose and discuss before significant architectural changes, new dependencies, new AI models, major UI/UX changes, or removing fallback behavior. Present problem, options, recommendation, and trade-offs.
-- **LEVEL 4 — Explicit Approval Required**: Never proceed without explicit confirmation for product direction changes, removing core functionality, irreversible migrations, licensing changes, or major architectural rewrites.
+- **LEVEL 1 — Act Directly**: Fix obvious local bugs, remove confirmed debugging artifacts, add missing validation, improve error handling, make small internal refactors that preserve existing behavior. **Full authority on Patch (`F`) versioning**.
+- **LEVEL 2 — Act and Report**: Make reasonable routine implementation choices with limited blast radius. Report decision, reason, and impact after completion. **Full authority on Functional Change (`DE`) versioning**.
+- **LEVEL 3 — Recommend Before Acting**: Propose and discuss before significant architectural changes, new dependencies, new AI models, major UI/UX changes, or removing fallback behavior. Present problem, options, recommendation, and trade-offs. **Partial authority on Sub-Version (`BC`) versioning** (recommend / align).
+- **LEVEL 4 — Explicit Approval Required**: Never proceed without explicit confirmation for product direction changes, removing core functionality, irreversible migrations, licensing changes, or major architectural rewrites. **STRICT MANDATE: Never create or advance a new Major Version (`A.xx.xx.x`) without explicit user consent**.
 
 ### 3. Engineering Invariants & Fallback Discipline
 - **Proportional Thinking**: Scale reasoning to Risk + Blast Radius + Reversibility + Complexity.
@@ -249,5 +237,38 @@ The rest of OmniStream must never become tightly coupled to a specific runtime, 
 - **Physical Affordance Invariant**: Never use didactic text ("Click here", "Upload movie", "Select file", "Step 1", "Configure..."). Interactivity is conveyed through lighting pools, material contrast, hover lift, and mechanical emergence.
 - **Authoritative Apertures**: Only `Original`, `1.90:1`, and `1.43:1`. Never offer or display `2.39:1`.
 
+## Universal Version Controller + Change Governance System (`A.BC.DE.F`)
 
+### 1. Authoritative Version Format & Governance Invariant
+- **Format**: `A.BC.DE.F`
+  - `A` = Major Version (0–∞)
+  - `BC` = Sub-Version / Release Line (01–99, 00 reserved for major reset)
+  - `DE` = Functional Change (01–99, 00 reserved for reset)
+  - `F` = Minor Fix / Bug / Patch (0–9)
+- **Mandatory Persistent Artifact**: `VERSION_CONTROLLER.md` at project root is the persistent project memory and authoritative ledger.
+- **Mandatory Operating Rule**: The agent MUST visit `VERSION_CONTROLLER.md` before execution to understand relevant previous changes and historical constraints, and MUST update `VERSION_CONTROLLER.md` after successful implementation and verification.
+- **Hierarchy & Reset**: Higher-level changes reset all lower levels:
+  - Major ($A+1$): `A+1.00.00.0`
+  - Sub-version ($BC+1$): `A.BC+1.00.0`
+  - Functional ($DE+1$): `A.BC.DE+1.0`
+  - Patch ($F+1$): `A.BC.DE.F+1` (overflow $F=9 \to DE+1.0$)
+- **Master 15-Step Execution Loop**:
+  $$\text{Read Version Controller} \to \text{Find Historical Changes} \to \text{Inspect Current Code} \to \text{Understand Request} \to \text{Classify} \to \text{Calculate Target Version} \to \text{Risk Check} \to \text{Implement} \to \text{Test} \to \text{Verify} \to \text{Update Version} \to \text{Commit if Authorized} \to \text{Update Version Controller} \to \text{Final Check} \to \text{Report Final State}$$
+- **Zero Silent Changes**: Never silently alter versions. Always report Previous Version, New Version, Change Level, Changed items, Reason, Verification, Git status, and Status.
+- **Testing Gate**: No version is complete or released until tests, lint, and build pass cleanly.
+- Full standard codified in [`VERSION_CONTROLLER.md`](./VERSION_CONTROLLER.md).
 
+## Universal Modular Architecture & Change-Isolation Governance
+
+### 1. The Supreme Architectural Objective
+Every page, feature, function, component, workflow, service, API, data model, button, interaction, and system capability must have a clearly identifiable ownership boundary so that modifying one thing does not unnecessarily modify, overwrite, delete, or destabilize unrelated parts of the project.
+
+### 2. Core Architectural Invariants
+- **Domain/Feature Ownership over File Types**: Never organize code solely into generic dumping grounds (`components/`, `utils/`, `services/`). Prefer domain ownership (`src/products/u-tube/`, `src/products/cinemorph/`, `src/core/`, `src/shell/`, `src/shared/`).
+- **Locality Principle**: Code that changes together lives together. A feature owns its UI, state, services, types, validation, and tests.
+- **Change Radius Control**: Classify every affected file before editing as `DIRECT`, `RELATED`, `DEPENDENT`, `SHARED`, or `UNRELATED`. UNRELATED files must NEVER be modified.
+- **Strict Dependency Direction**: Application Shell $\to$ Domain Capsule $\to$ Feature $\to$ Shared Infrastructure. Prohibit circular dependencies.
+- **Contract Boundary**: Cross-module consumption must strictly pass through public barrel APIs (`@omnistream/core`, `@omnistream/shared`, `@omnistream/utube`, `@omnistream/cinemorph`). Never import internal private modules.
+- **"Nothing Disappears" Rule**: No existing functionality may disappear merely because its implementation was moved, refactored, or rewritten.
+- **Living Architectural Ledger**: Maintain authoritative root [`OMNISTREAM.md`](./OMNISTREAM.md) and keep it 100% synchronized with repository reality.
+- Full standard codified in [`OMNISTREAM.md`](./OMNISTREAM.md).

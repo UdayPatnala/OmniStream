@@ -376,3 +376,5 @@ export interface AdaptiveSystemMetrics {
   currentFps: number;
   droppedFramesCount: number;
 }
+
+export type { ShortcutAction } from './core/shortcuts/shortcutManager';

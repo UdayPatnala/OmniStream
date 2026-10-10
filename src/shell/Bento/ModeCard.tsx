@@ -14,7 +14,7 @@ import {
   Tv,
   Sparkles
 } from 'lucide-react';
-import { useCineMorphStore } from '../../state/useCineMorphStore';
+import { useCineMorphStore } from '@omnistream/cinemorph';
 import { useAppStore } from '../../store';
 
 interface ModeCardProps {

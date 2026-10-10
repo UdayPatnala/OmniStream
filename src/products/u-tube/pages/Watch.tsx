@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   ThumbsUp,
@@ -57,6 +57,7 @@ export function Watch() {
 
   useEffect(() => {
     if (!id) return;
+    let isCancelled = false;
 
     // Set a minimal stub so the player can start immediately
     const stub: Video = {
@@ -79,12 +80,14 @@ export function Watch() {
     (async () => {
       try {
         const videos = await getVideosByIds([id]);
+        if (isCancelled) return;
         if (videos.length > 0) {
           const v = videos[0];
           setVideo(v);
           setActiveVideo(v);
           if (v.channelId) {
             const chan = await getChannelDetails(v.channelId);
+            if (isCancelled) return;
             setChannel(chan);
           }
         }
@@ -95,9 +98,14 @@ export function Watch() {
     (async () => {
       try {
         const rels = await getRelatedVideos(id, activeVideo?.title || video?.title);
+        if (isCancelled) return;
         setRelated(rels.filter(r => r.id !== id));
       } catch (_) {}
     })();
+
+    return () => {
+      isCancelled = true;
+    };
   }, [id, activeVideo?.title]);
 
   const isSubscribed = subscriptions.some(s => s.id === video?.channelId);

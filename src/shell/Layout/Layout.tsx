@@ -4,6 +4,7 @@ import { Sidebar } from '../Sidebar/Sidebar';
 import { Header } from '../Header/Header';
 import { useAppStore } from '@/src/store';
 import { BottomNav } from '../BottomNav/BottomNav';
+import { APP_VERSION_LABEL } from '@/src/core/config/version';
 
 export function Layout({ children }: { children: ReactNode }) {
   const { theme, rootLandingPreference } = useAppStore();
@@ -53,6 +54,10 @@ export function Layout({ children }: { children: ReactNode }) {
             {children}
           </main>
           <BottomNav />
+          {/* Subtle Bottom-Right Production Version Metadata */}
+          <div className="hidden md:block absolute bottom-1 right-2.5 z-20 pointer-events-none select-none text-[9px] font-mono text-utube-text-muted/40">
+            {APP_VERSION_LABEL}
+          </div>
         </div>
       </div>
     </div>

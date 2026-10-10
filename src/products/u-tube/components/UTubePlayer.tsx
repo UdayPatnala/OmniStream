@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Play,
@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import { Video } from '../types';
 import { useAppStore } from '@/src/store';
-import { omsTransitionService } from '@omnistream/core/oms/omsTransitionService';
+import { omsTransitionService, matchesShortcut, errorRecoveryManager } from '@omnistream/core';
 
 export interface UTubePlayerProps {
   video: Video;
@@ -51,7 +51,7 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const progressTrackRef = useRef<HTMLDivElement>(null);
 
-  const { addToHistory, saveWatchPosition } = useAppStore();
+  const { addToHistory, saveWatchPosition, customShortcuts } = useAppStore();
 
   // Playback state
   const [isPlaying, setIsPlaying] = useState(true);
@@ -140,6 +140,10 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
         const timeSinceSeek = Date.now() - lastSeekTimestampRef.current;
         if (timeSinceSeek > 400) {
           setCurrentTime((prev) => {
+            if (duration > 0 && prev >= duration) {
+              setIsPlaying(false);
+              return duration;
+            }
             const next = duration > 0 ? Math.min(duration, prev + 0.25) : prev + 0.25;
             onTimeUpdate?.(next, duration, isPlaying);
             return next;
@@ -158,6 +162,20 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
     const handleMessage = (event: MessageEvent) => {
       try {
         const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+
+        // Big Bug Safeguard: Intercept YouTube iFrame error events & pause cleanly
+        if (data && (data.event === 'onError' || data.info?.errorCode !== undefined)) {
+          const errCode = data.info?.errorCode !== undefined ? data.info.errorCode : data.info;
+          setIsPlaying(false);
+          const next = errorRecoveryManager.handlePlayerError(errCode);
+          if (next && onNext) {
+            onNext();
+          } else {
+            showToast(`⚠️ Playback paused (Error ${errCode || 'restricted'})`);
+          }
+          return;
+        }
+
         if (data && data.event === 'infoDelivery' && data.info) {
           const timeSinceSeek = Date.now() - lastSeekTimestampRef.current;
           if (typeof data.info.currentTime === 'number' && !isScrubbing) {
@@ -186,7 +204,7 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
 
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [isScrubbing, duration, isPlaying, currentTime, onNext, onTimeUpdate]);
+  }, [isScrubbing, duration, isPlaying, currentTime, onNext, onTimeUpdate, showToast]);
 
   // Save history on initial playback
   useEffect(() => {
@@ -308,54 +326,40 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
         return;
       }
 
-      switch (e.key.toLowerCase()) {
-        case ' ':
-        case 'k':
-          e.preventDefault();
-          togglePlay();
-          break;
-        case 'j':
-        case 'arrowleft':
-          e.preventDefault();
-          seekRelative(-10);
-          break;
-        case 'l':
-        case 'arrowright':
-          e.preventDefault();
-          seekRelative(10);
-          break;
-        case 'arrowup':
-          e.preventDefault();
-          handleVolumeChange(Math.min(1, volume + 0.05));
-          break;
-        case 'arrowdown':
-          e.preventDefault();
-          handleVolumeChange(Math.max(0, volume - 0.05));
-          break;
-        case 'm':
-          e.preventDefault();
-          toggleMute();
-          break;
-        case 'f':
-          e.preventDefault();
-          toggleFullscreen();
-          break;
-        case 'c':
-          e.preventDefault();
-          toggleSubtitles();
-          break;
-        case 't':
-          e.preventDefault();
-          onToggleTheaterMode?.();
-          break;
-        default:
-          break;
+      if (matchesShortcut(e, 'togglePlay', customShortcuts)) {
+        e.preventDefault();
+        togglePlay();
+      } else if (matchesShortcut(e, 'seekBackward', customShortcuts)) {
+        e.preventDefault();
+        seekRelative(-10);
+      } else if (matchesShortcut(e, 'seekForward', customShortcuts)) {
+        e.preventDefault();
+        seekRelative(10);
+      } else if (matchesShortcut(e, 'volumeUp', customShortcuts)) {
+        e.preventDefault();
+        handleVolumeChange(Math.min(1, volume + 0.05));
+      } else if (matchesShortcut(e, 'volumeDown', customShortcuts)) {
+        e.preventDefault();
+        handleVolumeChange(Math.max(0, volume - 0.05));
+      } else if (matchesShortcut(e, 'toggleMute', customShortcuts)) {
+        e.preventDefault();
+        toggleMute();
+      } else if (matchesShortcut(e, 'toggleFullscreen', customShortcuts)) {
+        e.preventDefault();
+        toggleFullscreen();
+      } else if (matchesShortcut(e, 'toggleSubtitles', customShortcuts)) {
+        e.preventDefault();
+        toggleSubtitles();
+      } else if (matchesShortcut(e, 'toggleTheater', customShortcuts)) {
+        e.preventDefault();
+        onToggleTheaterMode?.();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [
+    customShortcuts,
     togglePlay,
     seekRelative,
     handleVolumeChange,

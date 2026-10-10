@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAppStore } from '@/src/store';
 import { getPopularVideos, searchVideos, getVideosByIds } from '../services/youtube';
 import { getRecommendedVideos } from '../services/recommendations';
@@ -25,24 +25,28 @@ export function Home() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let isCancelled = false;
     async function fetchHome() {
       try {
         setLoading(true);
         if (activeCategory === 'All') {
           const vids = await getPopularVideos();
+          if (isCancelled) return;
           setPopular(vids);
           const recs = getRecommendedVideos(vids, history, subscriptions, collections, searchHistory);
           setRecommended(recs.slice(0, 10));
         } else {
           const res = await searchVideos(activeCategory);
+          if (isCancelled) return;
           const videoIds = res.results.filter(r => r.type === 'video').map(r => r.id);
           if (videoIds.length > 0) {
-            const richVideos = await getVideosByIds(videoIds);
-            if (richVideos.length > 0) {
-              setPopular(richVideos);
-              setRecommended([]);
-              return;
-            }
+             const richVideos = await getVideosByIds(videoIds);
+             if (isCancelled) return;
+             if (richVideos.length > 0) {
+               setPopular(richVideos);
+               setRecommended([]);
+               return;
+             }
           }
           const vids: Video[] = res.results.map(r => ({
             id: r.id,
@@ -55,16 +59,22 @@ export function Home() {
             publishedAt: r.publishedAt,
             thumbnails: r.thumbnails,
           }));
+          if (isCancelled) return;
           setPopular(vids);
           setRecommended([]);
         }
       } catch (err: any) {
         // Safe silent fallback handled by youtube.ts
       } finally {
-        setLoading(false);
+        if (!isCancelled) {
+          setLoading(false);
+        }
       }
     }
     fetchHome();
+    return () => {
+      isCancelled = true;
+    };
   }, [activeCategory, history, subscriptions, collections, searchHistory]);
 
   // Continue Watching: Progress between 5% and 95%

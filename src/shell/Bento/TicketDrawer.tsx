@@ -6,7 +6,7 @@ import {
   Clock,
   Clapperboard,
 } from 'lucide-react';
-import { useTicketStore, MovieTicket } from '../../state/useTicketStore';
+import { useTicketStore, type MovieTicket } from '@omnistream/cinemorph';
 
 interface TicketDrawerProps {
   className?: string;

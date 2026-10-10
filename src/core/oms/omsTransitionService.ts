@@ -1,4 +1,4 @@
-﻿/**
+/**
  * OMS Contextual Transition Service (Core Infrastructure)
  * Copyright (c) Patnala Uday Kumar. All rights reserved.
  *
@@ -6,9 +6,10 @@
  * Governs the intentional handoff of active playback context from U-Tube to the
  * OmniStream Gateway and into CineMorph (and vice-versa) without losing timestamps
  * or forcing automatic unwanted navigation jumps.
- *
- * Zero product dependencies — pure core event and context contract.
  */
+
+import { Video } from '../../types';
+import { useTicketStore, useCineMorphStore, useAppStore } from '../../store';
 
 export interface OMSTransitionContext {
   contentId: string;
@@ -52,20 +53,34 @@ export class OMSTransitionService {
   public captureAndHandoffToGateway(
     params: {
       contentId?: string;
-      video?: { id: string; title: string; thumbnails?: { high?: string; medium?: string; default?: string } };
+      video?: { id?: string; title?: string; thumbnails?: { high?: string; medium?: string; default?: string } } | Video;
       currentTime: number;
       duration?: number;
       isPlaying?: boolean;
+      aspectRatioPreference?: 'original' | '1.90:1' | '1.43:1';
     },
     navigate: (path: string, options?: { state?: any }) => void
   ): OMSTransitionContext {
-    const videoId = params.contentId || params.video?.id || '';
-    const title = params.video?.title || `Media Presentation: ${videoId}`;
+    const video = (params.video as any) || {};
+    const videoId = params.contentId || video.id || '';
+    const title = video.title || `Media Presentation: ${videoId}`;
+    const duration = params.duration ?? 0;
+    const currentTime = params.currentTime;
+    const isPlaying = params.isPlaying !== false;
+
     const thumbnail =
-      params.video?.thumbnails?.high ||
-      params.video?.thumbnails?.medium ||
-      params.video?.thumbnails?.default ||
+      video.thumbnails?.high ||
+      video.thumbnails?.medium ||
+      video.thumbnails?.default ||
       `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+
+    const activeAppRatio = useAppStore.getState().frameAspectRatio;
+    const activeCineRatio = useCineMorphStore.getState().aspectRatio;
+    const resolvedRatio: 'original' | '1.90:1' | '1.43:1' =
+      (params as any).aspectRatioPreference ||
+      (activeAppRatio === 'original' || activeAppRatio === '1.90:1' || activeAppRatio === '1.43:1' ? activeAppRatio : undefined) ||
+      (activeCineRatio === 'original' || activeCineRatio === '1.90:1' || activeCineRatio === '1.43:1' ? activeCineRatio : undefined) ||
+      'original';
 
     const context: OMSTransitionContext = {
       contentId: videoId,
@@ -73,16 +88,28 @@ export class OMSTransitionService {
       sourceUrl: videoId,
       title,
       thumbnailUrl: thumbnail,
-      durationSeconds: Number.isFinite(params.duration) && (params.duration || 0) > 0 ? (params.duration || 0) : 600,
-      currentTimestampSeconds: Number.isFinite(params.currentTime) ? Math.max(0, Math.floor(params.currentTime)) : 0,
-      playbackState: params.isPlaying !== false ? 'playing' : 'paused',
-      aspectRatioPreference: '1.90:1',
+      durationSeconds: Number.isFinite(duration) && duration > 0 ? duration : 600,
+      currentTimestampSeconds: Number.isFinite(currentTime) ? Math.max(0, Math.floor(currentTime)) : 0,
+      playbackState: isPlaying ? 'playing' : 'paused',
+      aspectRatioPreference: resolvedRatio,
       transferredAt: Date.now(),
     };
 
     this.activeContext = context;
     this.onHandoffListeners.forEach(fn => fn(context));
 
+    // Save watch position in App Store
+    if (typeof useAppStore.getState().saveWatchPosition === 'function') {
+      useAppStore.getState().saveWatchPosition(videoId, context.currentTimestampSeconds, context.durationSeconds);
+    }
+
+    // Update CineMorph Store
+    useCineMorphStore.setState({
+      playbackTimestamp: context.currentTimestampSeconds,
+      isPlaying: context.playbackState === 'playing',
+    });
+
+    // Navigate to OmniStream Gateway carrying context
     navigate('/', {
       state: {
         fromOMS: true,
@@ -101,6 +128,29 @@ export class OMSTransitionService {
     navigate: (path: string, options?: { state?: any }) => void
   ): Promise<void> {
     this.onEntryListeners.forEach(fn => fn(context));
+
+    // Clear any stale local media to prevent media identity collision
+    useAppStore.getState().setActiveLocalMedia(null);
+
+    const resolvedRatio = context.aspectRatioPreference || useAppStore.getState().frameAspectRatio || 'original';
+
+    // Populate active session ticket immediately with carried context metadata
+    useTicketStore.setState({
+      activeTicket: {
+        ticketId: `ticket-${context.contentId}`,
+        movieTitle: context.title,
+        aspectRatio: resolvedRatio === '1.43:1' ? '1.43:1' : resolvedRatio === '1.90:1' ? '1.90:1' : 'original',
+        framingRule: 'auto',
+        seatAssignment: 'ROW A • SWEETSPOT',
+        sourceUrl: context.sourceUrl,
+        timestampSeconds: context.currentTimestampSeconds,
+        durationSeconds: context.durationSeconds,
+        thumbnailDataUrl: context.thumbnailUrl,
+        isLocal: false,
+        printedAt: Date.now(),
+      },
+      isPrintingAnimationActive: false,
+    });
 
     navigate(`/theater/${context.contentId}`, {
       state: {
@@ -140,10 +190,13 @@ export class OMSTransitionService {
     },
     navigate: (path: string, options?: { state?: any }) => void
   ): void {
-    navigate(`/watch/${params.videoId}`, {
+    const { videoId, currentTime, isPlaying } = params;
+
+    // Return safely to standard U-Tube watch player
+    navigate(`/watch/${videoId}`, {
       state: {
-        startTime: Number.isFinite(params.currentTime) ? Math.max(0, Math.floor(params.currentTime)) : 0,
-        autoPlay: params.isPlaying,
+        startTime: Number.isFinite(currentTime) ? Math.max(0, Math.floor(currentTime)) : 0,
+        autoPlay: isPlaying,
         omsReturn: true,
       },
     });
