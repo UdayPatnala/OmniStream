@@ -4,13 +4,13 @@
 > **Repository**: `https://github.com/UdayPatnala/OmniStream.git`  
 > **Workspace**: `UdayPatnala/OmniStream`  
 > **Author & Architect**: Patnala Uday Kumar (UdayPatnala)  
-> **Authoritative Current Version**: `1.09.13.0` (Format: `A.BC.DE.F`)  
+> **Authoritative Current Version**: `1.09.13.1` (Format: `A.BC.DE.F`)  
 > **Current Status**: `VERIFIED` (84 test suites, 526/526 tests passing, 0 TypeScript errors, clean production bundle)  
 > **Operating Directive**: This document is the single authoritative source of truth for **what changed, when it changed, and how OmniStream is governed over time**. It records all releases, milestones, bug fixes, test benchmarks, and the A.BC.DE.F governance standard.
 
 ## Current Version
 
-`1.09.13.0`
+`1.09.13.1`
 
 ## Current Status
 
@@ -43,8 +43,8 @@ Higher-level advancements unconditionally reset all lower-level counters:
 ### 1.3 Synchronization Invariant
 The version string must be synchronized across four authoritative touchpoints simultaneously:
 1. `VERSION_CONTROLLER.md` (Current Version header)
-2. `package.json` (`"version": "1.09.12.0"`)
-3. `src/core/config/version.ts` (`export const APP_VERSION = '1.09.12.0'`)
+2. `package.json` (`"version": "1.09.13.1"`)
+3. `src/core/config/version.ts` (`export const APP_VERSION = '1.09.13.1'`)
 4. Automated test `tests/unit/version.test.ts` validates this consistency on every test run.
 
 ---
@@ -52,7 +52,7 @@ The version string must be synchronized across four authoritative touchpoints si
 ## 2. Current Version & Release Status
 
 ### Current Version
-`1.09.13.0`
+`1.09.13.1`
 
 ### Current Status
 `VERIFIED`
@@ -71,7 +71,8 @@ The version string must be synchronized across four authoritative touchpoints si
 
 | Version | Previous | Level | Commit | Summary & Impact | Status |
 |---|---|---|---|---|:---:|
-| **1.09.13.0** | 1.09.12.0 | FUNCTIONAL | `PENDING` | CineMorph Proscenium Subtle Curve, Sightline Clearance Guarantee (Zero Seat Overlap), Real Media Track Extraction & Universal Audio/Video Ingest: softened screen proscenium corner rounding to subtle 2px (`rounded-sm`), refined aperture edge curve (<0.15%), guaranteed sightline buffer ($y_{\text{screen\_bottom}} \le y_{\text{seat\_top}} - \text{buffer}$), maximized screen viewport to 98vh/99vw when seating is toggled off, derived real media titles from filenames and codecs (eliminating fake demo stream strings), expanded media ingestion to accept all high-fidelity audio formats (FLAC, MP3, WAV, AAC, M4A, OGG, OPUS, ALAC, AIFF) and video containers, executed OMS-SBH empirical benchmark (10,000 iterations, 0 violations, 2.1 µs solver), 84 test suites (526 tests) passing cleanly. | `VERIFIED` |
+| **1.09.13.1** | 1.09.13.0 | PATCH | `PENDING` | Fullscreen Seat Clearance, Flush Proscenium Border Polygon & Deep MP4/MKV Track Sanitization: added fullscreen bottom clearance (`mb-6 sm:mb-8`) and compacted auditorium seat strip (`<26px`) so seats never overlap the screen in fullscreen or windowed modes; replaced top/bottom border-clipping polygon offsets and trapezoidal `rotateX` tilt with flush full-bounds polygon (`0%..100%`) so screen borders remain intact on all 4 sides; passed `cleanMediaName` into `parseMoovBox`/`parseTrakBox`/`parseMatroskaTrackEntry`, filtered muxer handler boilerplate, fixed UTF-8 separator encoding, and reactive-bound `loadedVideoDims` on `<video>` metadata load. | `VERIFIED` |
+| **1.09.13.0** | 1.09.12.0 | FUNCTIONAL | `02628bd` | CineMorph Proscenium Subtle Curve, Sightline Clearance Guarantee (Zero Seat Overlap), Real Media Track Extraction & Universal Audio/Video Ingest: softened screen proscenium corner rounding to subtle 2px (`rounded-sm`), refined aperture edge curve (<0.15%), guaranteed sightline buffer ($y_{\text{screen\_bottom}} \le y_{\text{seat\_top}} - \text{buffer}$), maximized screen viewport to 98vh/99vw when seating is toggled off, derived real media titles from filenames and codecs (eliminating fake demo stream strings), expanded media ingestion to accept all high-fidelity audio formats (FLAC, MP3, WAV, AAC, M4A, OGG, OPUS, ALAC, AIFF) and video containers, executed OMS-SBH empirical benchmark (10,000 iterations, 0 violations, 2.1 µs solver), 84 test suites (526 tests) passing cleanly. | `VERIFIED` |
 | **1.09.12.0** | 1.09.11.0 | FUNCTIONAL | `PENDING` | CineMorph Ambient Mode Phase V1 (CSS Variable Edge Glow & 16-point Canvas Downsampler): standalone `AmbientLightEngine` with 4-quadrant edge downsampling (top, bottom, left, right, dominant), photic safety EMA low-pass filtering, scene cut detection, direct DOM CSS variable injection (`--ambient-top`, `--ambient-bottom`, `--ambient-left`, `--ambient-right`, `--ambient-dominant`, `--ambient-luma`, `--ambient-opacity`), zero React re-renders, 84 test suites (526 tests) passing, clean production bundle, zero client video uploads. | `VERIFIED` |
 | **1.09.11.0** | 1.09.10.0 | FUNCTIONAL | `PENDING` | CineMorph Subtitle & Caption System (Track Discovery -> Multi-Format Parsing -> Binary Search Lookup -> Screen Geometry Anchoring -> Accessible Presentation): native WebVTT/SRT/ASS parsers, sub-microsecond O(log n) binary search cue lookup, SDH sound effect preservation, RTL auto-direction, external subtitle file upload, font size scaling, 83 test suites (515 tests) passing, clean production bundle, zero client video uploads. | `VERIFIED` |
 | **1.09.10.0** | 1.09.09.0 | FUNCTIONAL | `PENDING` | CineMorph Media-Track Architecture, Audio/Video Selection, Player Controls, and Future Ambient Mode Roadmap: formal decoupled media playback pipeline (`MediaCapabilityDetector`, Canonical `TrackModel`, Deterministic `TrackSelector`), ARIA-accessible `TrackSelectionMenu` popover, `CineMorphPlayerControls` bottom transport bar, 80 test suites (482 tests) passing, clean production bundle, zero client video uploads. | `VERIFIED` |
@@ -84,7 +85,15 @@ The version string must be synchronized across four authoritative touchpoints si
 
 ## 4. Detailed Release History & Milestone Logs
 
-### Release v1.09.13.0 (Current)
+### Release v1.09.13.1 (Current)
+- **Date**: 2026-10-12
+- **Type**: `PATCH` (Fullscreen Seat Clearance, Flush Proscenium Border Polygon & Deep MP4/MKV Track Sanitization)
+- **Summary**:
+  - **Fullscreen & Windowed Seat Clearance**: Added `mb-6 sm:mb-8` bottom screen clearance when `isFullscreen && theaterSeatingEnabled` and reduced `CineMorphAuditoriumSeats` vertical footprint to `<26px` (`h-3 sm:h-3.5 md:h-4`), eliminating the remaining fullscreen `justify-center` overlap where `absolute bottom-0` seats touched the bottom of the screen.
+  - **Flush Proscenium Border Polygon & Zero Trapezoid Tilt**: Updated `apertureClipCurve` in `geometrySolver.ts` to a full-bounds `0%..100%` polygon and set `perspectiveTransform = 'none'` in `domRendererAdapter.ts`, preventing top/bottom 1px CSS borders from being clipped off while preserving crisp `rounded-sm` (2px) edges.
+  - **Deep MP4/MKV Demuxer Track Naming & Live `<video>` Metadata Sync**: Passed `cleanMediaName` into `parseMoovBox`, `parseTrakBox`, and `parseMatroskaTrackEntry`, filtered muxer handler boilerplate (`SoundHandler`, `VideoHandler`, `GPAC`, `ISO Media`), fixed UTF-8 bullet encoding, and bound `loadedVideoDims` on `onLoadedMetadata` so real video dimensions and authentic track titles always populate the studio track drawer.
+
+### Release v1.09.13.0
 - **Date**: 2026-10-10
 - **Type**: `FUNCTIONAL` (CineMorph Proscenium Subtle Curve, Sightline Clearance Guarantee, Real Track Extraction & Universal Audio/Video Ingest)
 - **Summary**:

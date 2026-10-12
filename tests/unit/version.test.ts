@@ -6,8 +6,8 @@ import path from 'node:path';
 
 describe('Authoritative Application Version & Governance Consistency', () => {
   it('maintains valid A.BC.DE.F formatted authoritative version', () => {
-    expect(APP_VERSION).toBe('1.09.13.0');
-    expect(APP_VERSION_LABEL).toBe('v1.09.13.0');
+    expect(APP_VERSION).toBe('1.09.13.1');
+    expect(APP_VERSION_LABEL).toBe('v1.09.13.1');
     expect(APP_RELEASE_STATUS).toBe('VERIFIED');
     expect(APP_VERSION_METADATA.governanceFormat).toBe('A.BC.DE.F');
   });

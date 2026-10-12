@@ -4,7 +4,7 @@
 > **Repository**: `https://github.com/UdayPatnala/OmniStream.git`  
 > **Workspace**: `UdayPatnala/OmniStream`  
 > **Author & Architect**: Patnala Uday Kumar (UdayPatnala)  
-> **Authoritative Current Version**: `1.09.13.0` (Format: `A.BC.DE.F`)  
+> **Authoritative Current Version**: `1.09.13.1` (Format: `A.BC.DE.F`)  
 > **Current Release Status**: `VERIFIED` (84 test suites, 526/526 tests passing, 0 TypeScript errors, clean production bundle)  
 > **Operating Directive**: This document is the single authoritative source of truth for **what OmniStream is, how it is architected, and how it is designed to work**. It governs all product intent, domain capsules, spatial behavior models, technical specifications, and architectural invariants.
 
@@ -15,7 +15,7 @@
 - **Name**: OmniStream (OMS)
 - **Type**: High-performance, client-side personal media experience platform and dual-engine viewing ecosystem.
 - **Status**: Production-Ready / Stable Baseline (`VERIFIED`).
-- **Current Version**: `1.09.13.0` (Format: `A.BC.DE.F`, where $A=1$, $BC=09$, $DE=13$, $F=0$).
+- **Current Version**: `1.09.13.1` (Format: `A.BC.DE.F`, where $A=1$, $BC=09$, $DE=13$, $F=1$).
 - **Repository**: `https://github.com/UdayPatnala/OmniStream.git` (`main` branch).
 - **Architecture Standard**: OmniStream Product Capsule Architecture (OPCA v1.0).
 - **Core Purpose**: Unify two deliberately distinct media consumption paradigms into a single, cohesive, local-first ecosystem without cross-product contamination:

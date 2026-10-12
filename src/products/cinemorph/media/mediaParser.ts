@@ -351,19 +351,20 @@ export class CineMorphMediaParser {
       }
     }
 
+    const cleanMediaName = fileName.replace(/\.[^/.]+$/, '') || 'Media';
+
     if (moovBuffer) {
-      this.parseMoovBox(new DataView(moovBuffer), audioTracks, videoStreams, subtitleTracks);
+      this.parseMoovBox(new DataView(moovBuffer), audioTracks, videoStreams, subtitleTracks, cleanMediaName);
     }
 
     // If no tracks found through box parsing, create clean baseline
-    const cleanMediaName = fileName.replace(/\.[^/.]+$/, '') || 'Media';
     if (audioTracks.length === 0) {
       audioTracks.push({
         id: 'audio-0',
         streamIndex: 0,
         label: `${cleanMediaName} — Master Audio (Stereo 2.0)`,
         originalTitle: cleanMediaName,
-        language: 'Stereo Master',
+        language: 'Original Audio',
         languageCode: 'und',
         codec: 'AAC / PCM',
         channels: 2,
@@ -424,7 +425,8 @@ export class CineMorphMediaParser {
     view: DataView,
     audioTracks: MediaAudioTrack[],
     videoStreams: MediaVideoStream[],
-    subtitleTracks: MediaSubtitleTrack[]
+    subtitleTracks: MediaSubtitleTrack[],
+    cleanMediaName = 'Media'
   ) {
     let offset = 8; // skip moov header (size + 'moov')
     let trackIndex = 0;
@@ -437,7 +439,7 @@ export class CineMorphMediaParser {
 
       if (boxType === 'trak') {
         const trakView = new DataView(view.buffer, view.byteOffset + offset, Math.min(boxSize, view.byteLength - offset));
-        this.parseTrakBox(trakView, trackIndex, audioTracks, videoStreams, subtitleTracks);
+        this.parseTrakBox(trakView, trackIndex, audioTracks, videoStreams, subtitleTracks, cleanMediaName);
         trackIndex++;
       }
 
@@ -450,7 +452,8 @@ export class CineMorphMediaParser {
     trackIndex: number,
     audioTracks: MediaAudioTrack[],
     videoStreams: MediaVideoStream[],
-    subtitleTracks: MediaSubtitleTrack[]
+    subtitleTracks: MediaSubtitleTrack[],
+    cleanMediaName = 'Media'
   ) {
     let handlerType = '';
     let languageCode = 'und';
@@ -504,7 +507,8 @@ export class CineMorphMediaParser {
                 if (rawStr.charCodeAt(0) === rawStr.length - 1) {
                   rawStr = rawStr.slice(1).trim();
                 }
-                if (rawStr && !/^(sound|video|subtitle|meta|hint|core media)\s*(handler)?$/i.test(rawStr)) {
+                const isMuxerBoilerplate = /(sound|video|subtitle|meta|hint|core media|gpac|iso media|bento4|ffmpeg|apple|mainconcept|media handler|handler)/i.test(rawStr);
+                if (rawStr && !isMuxerBoilerplate) {
                   trackTitle = rawStr;
                 }
               }
@@ -536,18 +540,18 @@ export class CineMorphMediaParser {
       const probe = probeAudioCodecPlayability(displayCodec, channels);
       const streamIdx = audioTracks.length;
 
-      // Prioritize genuine original embedded title, fallback to honest descriptive label
+      // Prioritize genuine original embedded title, fallback to authentic media title + codec
       const label = trackTitle 
         ? trackTitle 
         : languageName !== 'Undetermined'
-        ? `${languageName} â€¢ ${displayCodec} (${channelLayout})`
-        : `Audio Track #${streamIdx + 1} â€¢ ${displayCodec} (${channelLayout})`;
+        ? `${cleanMediaName} — ${languageName} (${displayCodec} • ${channelLayout})`
+        : `${cleanMediaName} — ${displayCodec} (${channelLayout})`;
 
       audioTracks.push({
         id: `audio-${streamIdx}`,
         streamIndex: streamIdx,
         label,
-        originalTitle: trackTitle || undefined,
+        originalTitle: trackTitle || label,
         language: languageName,
         languageCode,
         codec: displayCodec,
@@ -566,7 +570,7 @@ export class CineMorphMediaParser {
 
       const label = trackTitle
         ? trackTitle
-        : `Video Stream #${streamIdx + 1} â€¢ ${displayCodec} (${width}x${height})`;
+        : `${cleanMediaName} — ${displayCodec} (${width}×${height})`;
 
       videoStreams.push({
         id: `video-${streamIdx}`,
@@ -575,7 +579,7 @@ export class CineMorphMediaParser {
         codec: displayCodec,
         width,
         height,
-        resolution: `${width}x${height}`,
+        resolution: `${width}×${height}`,
         aspectRatio,
         isDefault: streamIdx === 0,
         isPlayable: probe.isPlayable,
@@ -587,7 +591,7 @@ export class CineMorphMediaParser {
         ? trackTitle
         : languageName !== 'Undetermined'
         ? `${languageName} Subtitles`
-        : `Subtitle Track #${streamIdx + 1}`;
+        : `${cleanMediaName} — Subtitles #${streamIdx + 1}`;
 
       subtitleTracks.push({
         id: `sub-${streamIdx}`,
@@ -774,6 +778,7 @@ export class CineMorphMediaParser {
     }
 
     const subtitleTrackMap = new Map<number, MediaSubtitleTrack>();
+    const cleanMediaName = fileName.replace(/\.[^/.]+$/, '') || 'Media';
 
     if (tracksPos !== -1) {
       let pos = tracksPos + 4;
@@ -795,7 +800,7 @@ export class CineMorphMediaParser {
 
         const entryEnd = Math.min(pos + entryLength, uint8.length);
         if (id === 0xae) { // TrackEntry (0xAE)
-          this.parseMatroskaTrackEntry(uint8, pos, entryEnd, audioTracks, videoStreams, subtitleTracks, subtitleTrackMap);
+          this.parseMatroskaTrackEntry(uint8, pos, entryEnd, audioTracks, videoStreams, subtitleTracks, subtitleTrackMap, cleanMediaName);
         }
         if (entryEnd <= pos) {
           pos++;
@@ -814,14 +819,13 @@ export class CineMorphMediaParser {
       }
     }
 
-    const cleanMediaName = fileName.replace(/\.[^/.]+$/, '') || 'Media';
     if (audioTracks.length === 0) {
       audioTracks.push({
         id: 'audio-0',
         streamIndex: 0,
         label: `${cleanMediaName} — Master Audio (Stereo 2.0)`,
         originalTitle: cleanMediaName,
-        language: 'Stereo Master',
+        language: 'Original Audio',
         languageCode: 'und',
         codec: 'Opus / Vorbis',
         channels: 2,
@@ -947,7 +951,8 @@ export class CineMorphMediaParser {
     audioTracks: MediaAudioTrack[],
     videoStreams: MediaVideoStream[],
     subtitleTracks: MediaSubtitleTrack[],
-    subtitleTrackMap?: Map<number, MediaSubtitleTrack>
+    subtitleTrackMap?: Map<number, MediaSubtitleTrack>,
+    cleanMediaName = 'Media'
   ) {
     let trackType = 0; // 1 = video, 2 = audio, 17 = subtitle
     let trackNumber = 1;
@@ -1049,14 +1054,14 @@ export class CineMorphMediaParser {
       const label = trackName
         ? trackName
         : languageName !== 'Undetermined'
-        ? `${languageName} â€¢ ${displayCodec} (${channelLayout})`
-        : `Audio Track #${streamIdx + 1} â€¢ ${displayCodec} (${channelLayout})`;
+        ? `${cleanMediaName} — ${languageName} (${displayCodec} • ${channelLayout})`
+        : `${cleanMediaName} — ${displayCodec} (${channelLayout})`;
 
       audioTracks.push({
         id: `audio-${streamIdx}`,
         streamIndex: streamIdx,
         label,
-        originalTitle: trackName || undefined,
+        originalTitle: trackName || label,
         language: languageName,
         languageCode,
         codec: displayCodec,
@@ -1074,7 +1079,7 @@ export class CineMorphMediaParser {
 
       const label = trackName
         ? trackName
-        : `Video Stream #${streamIdx + 1} â€¢ ${displayCodec} (${width}x${height})`;
+        : `${cleanMediaName} — ${displayCodec} (${width}×${height})`;
 
       videoStreams.push({
         id: `video-${streamIdx}`,
@@ -1083,7 +1088,7 @@ export class CineMorphMediaParser {
         codec: displayCodec,
         width,
         height,
-        resolution: `${width}x${height}`,
+        resolution: `${width}×${height}`,
         aspectRatio,
         isDefault,
         isPlayable: probe.isPlayable,
@@ -1095,7 +1100,7 @@ export class CineMorphMediaParser {
         ? trackName
         : languageName !== 'Undetermined'
         ? `${languageName} Subtitles`
-        : `Subtitle Track #${streamIdx + 1}`;
+        : `${cleanMediaName} — Subtitles #${streamIdx + 1}`;
 
       const subTrack: MediaSubtitleTrack = {
         id: `sub-${streamIdx}`,

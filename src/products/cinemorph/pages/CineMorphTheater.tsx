@@ -99,7 +99,7 @@ export function calculateTheaterProjectionLayout({
     : 'justify-start pt-2 sm:pt-3';
 
   const screenClassName = isFullscreen
-    ? 'mb-0'
+    ? (theaterSeatingEnabled ? 'mb-6 sm:mb-8' : 'mb-0')
     : theaterSeatingEnabled
     ? 'mb-2 sm:mb-3'
     : 'mb-3 sm:mb-5';
@@ -305,6 +305,7 @@ export function CineMorphTheater() {
   // Curved screen activation for original mode
   const [curvedScreenActive, setCurvedScreenActive] = useState(false);
   const [nativeAspectRatio, setNativeAspectRatio] = useState<number | null>(initialNativeAspectRatio);
+  const [loadedVideoDims, setLoadedVideoDims] = useState<{ width: number; height: number } | null>(null);
 
   // Sync aspect ratio when container analysis completes post-mount
   useEffect(() => {
@@ -338,30 +339,42 @@ export function CineMorphTheater() {
   const audioTrackOptions = React.useMemo(() => {
     const rawAudio = localItem?.containerAnalysis?.audioTracks;
     const cleanMediaTitle = (localItem?.name || video?.title || 'Feature Presentation').replace(/\.[^/.]+$/, '');
-    
+    const isLegacyPlaceholder = (s?: string) =>
+      !s ||
+      s.includes('Stream #') ||
+      s.includes('Audio Track #') ||
+      s.includes('Direct Source') ||
+      s.includes('â€¢') ||
+      s === 'Feature Presentation';
+
     if (rawAudio && rawAudio.length > 0) {
       return rawAudio.map((trk, i) => {
-        const hasPlaceholder = !trk.label || trk.label.includes('Stream #') || trk.label.includes('Direct Source');
-        const langDisplay = trk.language && trk.language !== 'Undetermined' ? trk.language : '';
-        const codecDisplay = trk.codec && trk.codec !== 'Source Audio' && trk.codec !== 'Direct Audio' ? trk.codec : '';
+        const candidateLabel = trk.originalTitle && !isLegacyPlaceholder(trk.originalTitle) ? trk.originalTitle : trk.label;
+        const hasPlaceholder = isLegacyPlaceholder(candidateLabel);
+        const langDisplay = trk.language && trk.language !== 'Undetermined' && trk.language !== 'Stereo Master' ? trk.language : '';
+        const codecDisplay =
+          trk.codec && trk.codec !== 'Source Audio' && trk.codec !== 'Direct Audio'
+            ? trk.codec
+            : 'AAC / PCM';
         const layoutDisplay = trk.channelLayout || 'Stereo 2.0';
-        
-        let refinedLabel = trk.originalTitle || trk.label;
+
+        let refinedLabel = candidateLabel || '';
         if (hasPlaceholder) {
-          if (langDisplay && codecDisplay) {
-            refinedLabel = `${langDisplay} • ${codecDisplay} (${layoutDisplay})`;
-          } else if (langDisplay) {
-            refinedLabel = `${langDisplay} Audio (${layoutDisplay})`;
+          if (langDisplay) {
+            refinedLabel = `${cleanMediaTitle} — ${langDisplay} (${codecDisplay} • ${layoutDisplay})`;
           } else if (rawAudio.length === 1) {
-            refinedLabel = `${cleanMediaTitle} — Master Audio (${layoutDisplay})`;
+            refinedLabel = `${cleanMediaTitle} — ${codecDisplay} (${layoutDisplay})`;
           } else {
-            refinedLabel = `Audio Track ${i + 1} (${layoutDisplay})`;
+            refinedLabel = `${cleanMediaTitle} — Audio ${i + 1} (${codecDisplay} • ${layoutDisplay})`;
           }
         }
         return {
           ...trk,
           label: refinedLabel,
-          originalTitle: trk.originalTitle || refinedLabel,
+          originalTitle: refinedLabel,
+          language: langDisplay || 'Original Audio',
+          codec: codecDisplay,
+          channelLayout: layoutDisplay,
         };
       });
     }
@@ -371,13 +384,13 @@ export function CineMorphTheater() {
       return Array.from(trks).map((t: any, i: number) => ({
         id: `audio-${i}`,
         streamIndex: i,
-        label: t.label || (t.language ? `${t.language} Audio` : `${cleanMediaTitle} — Track ${i + 1}`),
+        label: t.label || (t.language ? `${cleanMediaTitle} — ${t.language}` : `${cleanMediaTitle} — Track ${i + 1}`),
         originalTitle: t.label || `${cleanMediaTitle} — Track ${i + 1}`,
-        language: t.language || 'Undetermined',
+        language: t.language || 'Original Audio',
         languageCode: t.language || 'und',
-        codec: 'Direct Audio',
+        codec: 'AAC / PCM',
         channels: 2,
-        channelLayout: 'Multi-Channel',
+        channelLayout: 'Stereo 2.0',
         isDefault: i === 0,
         isPlayable: true,
       }));
@@ -387,11 +400,11 @@ export function CineMorphTheater() {
       {
         id: 'audio-0',
         streamIndex: 0,
-        label: `${cleanMediaTitle} — Master Audio (Stereo 2.0)`,
+        label: `${cleanMediaTitle} — AAC / PCM (Stereo 2.0)`,
         originalTitle: cleanMediaTitle,
-        language: 'Stereo Master',
+        language: 'Original Audio',
         languageCode: 'und',
-        codec: 'Direct Audio',
+        codec: 'AAC / PCM',
         channels: 2,
         channelLayout: 'Stereo 2.0',
         isDefault: true,
@@ -403,22 +416,39 @@ export function CineMorphTheater() {
   const videoTrackOptions = React.useMemo(() => {
     const rawVideo = localItem?.containerAnalysis?.videoStreams;
     const cleanMediaTitle = (localItem?.name || video?.title || 'Feature Presentation').replace(/\.[^/.]+$/, '');
-    const currentWidth = localVideoRef.current?.videoWidth || 1920;
-    const currentHeight = localVideoRef.current?.videoHeight || 1080;
-    
+    const currentWidth = loadedVideoDims?.width || localVideoRef.current?.videoWidth || 1920;
+    const currentHeight = loadedVideoDims?.height || localVideoRef.current?.videoHeight || 1080;
+    const isLegacyVideoPlaceholder = (s?: string) =>
+      !s ||
+      s.includes('Stream #') ||
+      s.includes('Video Track') ||
+      s.includes('Direct Source') ||
+      s.includes('â€¢') ||
+      s === 'Feature Presentation';
+
     if (rawVideo && rawVideo.length > 0) {
       return rawVideo.map((v, i) => {
-        const hasPlaceholder = !v.label || v.label.includes('Stream #') || v.label.includes('Direct Source');
-        let refinedLabel = v.label;
-        if (hasPlaceholder) {
-          const res = v.width && v.height ? `${v.width}×${v.height}` : `${currentWidth}×${currentHeight}`;
-          refinedLabel = rawVideo.length === 1
-            ? `${cleanMediaTitle} — Primary Video (${res})`
-            : `Video Track ${i + 1} (${res})`;
-        }
+        const realWidth = loadedVideoDims?.width || v.width || currentWidth;
+        const realHeight = loadedVideoDims?.height || v.height || currentHeight;
+        const codecDisplay =
+          v.codec && v.codec !== 'Source Video' && v.codec !== 'Direct Video'
+            ? v.codec
+            : 'H.264 / AVC';
+        const res = `${realWidth}×${realHeight}`;
+        const hasPlaceholder = isLegacyVideoPlaceholder(v.label) || (loadedVideoDims && !v.label.includes(`${realWidth}`));
+        const refinedLabel = hasPlaceholder
+          ? rawVideo.length === 1
+            ? `${cleanMediaTitle} — ${codecDisplay} (${res})`
+            : `${cleanMediaTitle} — Video ${i + 1} (${res})`
+          : v.label;
+
         return {
           ...v,
           label: refinedLabel,
+          codec: codecDisplay,
+          width: realWidth,
+          height: realHeight,
+          resolution: `${realHeight}p (${res})`,
         };
       });
     }
@@ -428,11 +458,11 @@ export function CineMorphTheater() {
       return Array.from(trks).map((t: any, i: number) => ({
         id: `video-${i}`,
         streamIndex: i,
-        label: t.label || `Video Track ${i + 1} (${currentWidth}×${currentHeight})`,
-        codec: 'Direct Video',
+        label: t.label || `${cleanMediaTitle} — Video ${i + 1} (${currentWidth}×${currentHeight})`,
+        codec: 'H.264 / AVC',
         width: currentWidth,
         height: currentHeight,
-        resolution: `${currentHeight}p`,
+        resolution: `${currentHeight}p (${currentWidth}×${currentHeight})`,
         aspectRatio: '16:9',
         isDefault: i === 0,
         isPlayable: true,
@@ -443,17 +473,17 @@ export function CineMorphTheater() {
       {
         id: 'video-0',
         streamIndex: 0,
-        label: `${cleanMediaTitle} — Primary Video (${currentWidth}×${currentHeight})`,
-        codec: 'Source Video',
+        label: `${cleanMediaTitle} — H.264 / AVC (${currentWidth}×${currentHeight})`,
+        codec: 'H.264 / AVC',
         width: currentWidth,
         height: currentHeight,
-        resolution: `${currentHeight}p`,
+        resolution: `${currentHeight}p (${currentWidth}×${currentHeight})`,
         aspectRatio: '16:9',
         isDefault: true,
         isPlayable: true,
       },
     ];
-  }, [localItem, video, isLocalMedia]);
+  }, [localItem, video, isLocalMedia, loadedVideoDims, nativeAspectRatio]);
 
   const [externalSubtitleTracks, setExternalSubtitleTracks] = useState<MediaSubtitleTrack[]>([]);
 
@@ -1777,6 +1807,7 @@ export function CineMorphTheater() {
                   const vh = localVideoRef.current.videoHeight;
                   if (vw > 0 && vh > 0) {
                     setNativeAspectRatio(vw / vh);
+                    setLoadedVideoDims({ width: vw, height: vh });
                   }
                   const dur = localVideoRef.current.duration || 0;
                   setDuration(dur);
@@ -2212,17 +2243,17 @@ export function CineMorphTheater() {
                           : 'bg-amber-950/20 text-amber-300/70 border-amber-900/20 hover:bg-amber-900/30'
                       }`}
                     >
-                      <div>
+                      <div className="min-w-0 flex-1 pr-2">
                         <div className="text-xs font-bold text-amber-100 flex items-center gap-2">
-                          <span className="truncate max-w-[180px]">{trk.label}</span>
-                          {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />}
+                          <span className="truncate max-w-[235px]" title={trk.label}>{trk.label}</span>
+                          {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />}
                           {!trk.isPlayable && (
-                            <span className="text-[8px] font-mono uppercase bg-red-950/80 text-red-300 px-1.5 py-0.5 rounded border border-red-800/40">
+                            <span className="text-[8px] font-mono uppercase bg-red-950/80 text-red-300 px-1.5 py-0.5 rounded border border-red-800/40 shrink-0">
                               Unsupported Codec
                             </span>
                           )}
                           {isSecondaryWithoutBrowserSupport && (
-                            <span className="text-[8px] font-mono uppercase bg-amber-950/60 text-amber-400/80 px-1.5 py-0.5 rounded border border-amber-900/40" title="Primary stream active in standard browser">
+                            <span className="text-[8px] font-mono uppercase bg-amber-950/60 text-amber-400/80 px-1.5 py-0.5 rounded border border-amber-900/40 shrink-0" title="Primary stream active in standard browser">
                               Secondary
                             </span>
                           )}
@@ -2280,12 +2311,12 @@ export function CineMorphTheater() {
                           : 'bg-amber-950/20 text-amber-300/70 border-amber-900/20 hover:bg-amber-900/30'
                       }`}
                     >
-                      <div>
+                      <div className="min-w-0 flex-1 pr-2">
                         <div className="text-xs font-bold text-amber-100 flex items-center gap-2">
-                          <span className="truncate max-w-[200px]">{vtrk.label}</span>
-                          {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />}
+                          <span className="truncate max-w-[235px]" title={vtrk.label}>{vtrk.label}</span>
+                          {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />}
                           {!vtrk.isPlayable && (
-                            <span className="text-[8px] font-mono uppercase bg-red-950/80 text-red-300 px-1.5 py-0.5 rounded border border-red-800/40">
+                            <span className="text-[8px] font-mono uppercase bg-red-950/80 text-red-300 px-1.5 py-0.5 rounded border border-red-800/40 shrink-0">
                               Unsupported
                             </span>
                           )}

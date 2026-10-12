@@ -58,11 +58,7 @@ export class OMSDOMRendererAdapter {
       ? `min(98vw, calc(94vh * (${effectiveAspect})))`
       : `min(98vw, calc(92vh * (${effectiveAspect})))`;
 
-    const perspectiveTransform = isOriginal
-      ? 'none'
-      : isImax
-      ? 'perspective(1100px) rotateX(1.3deg)'
-      : 'perspective(1300px) rotateX(1.0deg)';
+    const perspectiveTransform = 'none';
 
     const screenStyle: React.CSSProperties = {
       aspectRatio: effectiveAspect,

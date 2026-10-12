@@ -4,7 +4,7 @@
  *
  * Single Source of Truth for Live Application Runtime and UI Metadata.
  */
-export const APP_VERSION = '1.09.13.0';
+export const APP_VERSION = '1.09.13.1';
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
 export const APP_RELEASE_STATUS = 'VERIFIED' as const;
 
@@ -20,6 +20,6 @@ export const APP_VERSION_METADATA: AppVersionMetadata = {
   version: APP_VERSION,
   label: APP_VERSION_LABEL,
   status: APP_RELEASE_STATUS,
-  releaseDate: '2026-10-10',
+  releaseDate: '2026-10-12',
   governanceFormat: 'A.BC.DE.F',
 };

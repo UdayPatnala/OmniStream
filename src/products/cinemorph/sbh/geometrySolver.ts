@@ -185,13 +185,11 @@ export function resolveScreenAndAperture(
     },
   };
 
-  // Aperture hole sits exactly at proscenium screen inner boundary (<0.15% subtle organic edge curve)
+  // Aperture hole sits flush at proscenium screen boundary without clipping borders
   const apertureClipCurve =
     mode === 'original'
       ? 'none'
-      : mode === '1.43'
-      ? 'polygon(0% 0.15%, 0.4% 0.06%, 1.2% 0.02%, 10% 0.05%, 25% 0.10%, 50% 0.12%, 75% 0.10%, 90% 0.05%, 98.8% 0.02%, 99.6% 0.06%, 100% 0.15%, 100% 99.85%, 99.6% 99.94%, 98.8% 99.98%, 90% 99.95%, 75% 99.90%, 50% 99.88%, 25% 99.90%, 10% 99.95%, 1.2% 99.98%, 0.4% 99.94%, 0% 99.85%)'
-      : 'polygon(0% 0.10%, 0.4% 0.04%, 1.2% 0.01%, 10% 0.03%, 25% 0.06%, 50% 0.08%, 75% 0.06%, 90% 0.03%, 98.8% 0.01%, 99.6% 0.04%, 100% 0.10%, 100% 99.90%, 99.6% 99.96%, 98.8% 99.99%, 90% 99.97%, 75% 99.94%, 50% 99.92%, 25% 99.94%, 10% 99.97%, 1.2% 99.99%, 0.4% 99.96%, 0% 99.90%)';
+      : 'polygon(0% 0%, 50% 0%, 100% 0%, 100% 100%, 50% 100%, 0% 100%)';
 
   const aperture: OMSApertureGeometry = {
     bounds: { ...screenBounds },
