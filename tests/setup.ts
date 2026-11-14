@@ -1,6 +1,5 @@
 import '@testing-library/jest-dom';
 import { beforeEach, afterEach, vi } from 'vitest';
-import { useAppStore } from '@/src/store';
 
 const storageMap = new Map<string, string>();
 const sessionStorageMap = new Map<string, string>();
@@ -53,6 +52,45 @@ class MockStereoPannerNode extends MockAudioNode {
   pan = { value: 0 };
 }
 
+class MockPannerNode extends MockAudioNode {
+  panningModel = 'HRTF';
+  distanceModel = 'inverse';
+  positionX = { value: 0, setValueAtTime: vi.fn(), setTargetAtTime: vi.fn() };
+  positionY = { value: 0, setValueAtTime: vi.fn(), setTargetAtTime: vi.fn() };
+  positionZ = { value: 0, setValueAtTime: vi.fn(), setTargetAtTime: vi.fn() };
+  orientationX = { value: 0, setValueAtTime: vi.fn(), setTargetAtTime: vi.fn() };
+  orientationY = { value: 0, setValueAtTime: vi.fn(), setTargetAtTime: vi.fn() };
+  orientationZ = { value: -1, setValueAtTime: vi.fn(), setTargetAtTime: vi.fn() };
+  refDistance = 1;
+  maxDistance = 10000;
+  rolloffFactor = 1;
+  coneInnerAngle = 360;
+  coneOuterAngle = 360;
+  coneOuterGain = 0;
+  setPosition(x: number, y: number, z: number) {
+    this.positionX.value = x;
+    this.positionY.value = y;
+    this.positionZ.value = z;
+  }
+  setOrientation(x: number, y: number, z: number) {
+    this.orientationX.value = x;
+    this.orientationY.value = y;
+    this.orientationZ.value = z;
+  }
+}
+
+class MockDelayNode extends MockAudioNode {
+  delayTime = { value: 0, setValueAtTime: vi.fn(), setTargetAtTime: vi.fn() };
+}
+
+class MockChannelSplitterNode extends MockAudioNode {
+  numberOfOutputs = 6;
+}
+
+class MockChannelMergerNode extends MockAudioNode {
+  numberOfInputs = 6;
+}
+
 class MockAnalyserNode extends MockAudioNode {
   fftSize = 64;
   frequencyBinCount = 32;
@@ -61,20 +99,58 @@ class MockAnalyserNode extends MockAudioNode {
   }
 }
 
+class MockGainNode extends MockAudioNode {
+  gain = {
+    value: 1,
+    setValueAtTime: vi.fn(),
+    setTargetAtTime: vi.fn(),
+    exponentialRampToValueAtTime: vi.fn(),
+    linearRampToValueAtTime: vi.fn(),
+  };
+}
+
 class MockAudioContext {
   state = 'running';
+  currentTime = 0;
   destination = new MockAudioNode();
+  listener = {
+    positionX: { value: 0 },
+    positionY: { value: 0 },
+    positionZ: { value: 0 },
+    forwardX: { value: 0 },
+    forwardY: { value: 0 },
+    forwardZ: { value: -1 },
+    upX: { value: 0 },
+    upY: { value: 1 },
+    upZ: { value: 0 },
+    setPosition: vi.fn(),
+    setOrientation: vi.fn(),
+  };
   createBiquadFilter() { return new MockBiquadFilterNode(); }
   createDynamicsCompressor() { return new MockDynamicsCompressorNode(); }
   createStereoPanner() { return new MockStereoPannerNode(); }
+  createPanner() { return new MockPannerNode(); }
+  createDelay() { return new MockDelayNode(); }
+  createChannelSplitter(numberOfOutputs = 6) {
+    const node = new MockChannelSplitterNode();
+    node.numberOfOutputs = numberOfOutputs;
+    return node;
+  }
+  createChannelMerger(numberOfInputs = 6) {
+    const node = new MockChannelMergerNode();
+    node.numberOfInputs = numberOfInputs;
+    return node;
+  }
   createAnalyser() { return new MockAnalyserNode(); }
   createMediaElementSource() { return new MockAudioNode(); }
   createOscillator() {
     return {
       connect: vi.fn(),
+      disconnect: vi.fn(),
       start: vi.fn(),
       stop: vi.fn(),
       frequency: {
+        value: 440,
         setValueAtTime: vi.fn(),
         exponentialRampToValueAtTime: vi.fn(),
         linearRampToValueAtTime: vi.fn(),
@@ -82,16 +158,7 @@ class MockAudioContext {
       type: 'sine',
     };
   }
-  createGain() {
-    return {
-      connect: vi.fn(),
-      gain: {
-        setValueAtTime: vi.fn(),
-        exponentialRampToValueAtTime: vi.fn(),
-        linearRampToValueAtTime: vi.fn(),
-      },
-    };
-  }
+  createGain() { return new MockGainNode(); }
   resume() { this.state = 'running'; return Promise.resolve(); }
   suspend() { this.state = 'suspended'; return Promise.resolve(); }
   close() { this.state = 'closed'; return Promise.resolve(); }
@@ -182,6 +249,8 @@ if (!URL.createObjectURL) {
 if (!URL.revokeObjectURL) {
   URL.revokeObjectURL = vi.fn();
 }
+
+import { useAppStore } from '@/src/store';
 
 beforeEach(() => {
   mockLocalStorage.clear();

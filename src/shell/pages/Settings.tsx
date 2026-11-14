@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { useAppStore } from '../../store';
+import { useAppStore } from '@/src/store';
 import { Info, ShieldCheck, Heart, Sparkles, Sliders, Film } from 'lucide-react';
 import { RankingProfile } from '../../types';
-import { APP_VERSION_LABEL } from '../../core/config/version';
+import { APP_VERSION_LABEL } from '@omnistream/core';
 
 export function SettingsPage() {
   const { 

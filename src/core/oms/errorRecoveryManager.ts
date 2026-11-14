@@ -1,5 +1,11 @@
 import { Video } from '../../types';
-import { useAppStore } from '../../store';
+
+export interface IErrorRecoveryDelegate {
+  getActiveVideo: () => Video | null;
+  switchToNextCandidate: () => Video | null;
+  getCurrentCandidateIndex: () => number;
+  setRecoveryMessage: (msg: string | null) => void;
+}
 
 /**
  * Error Recovery Manager - Zero-human-intervention failure detection & candidate fallback switcher.
@@ -8,10 +14,18 @@ import { useAppStore } from '../../store';
 
 class ErrorRecoveryManager {
   private failedVideoIds = new Set<string>();
+  private delegate: IErrorRecoveryDelegate | null = null;
+
+  public setDelegate(delegate: IErrorRecoveryDelegate | null): void {
+    this.delegate = delegate;
+  }
+
+  public getDelegate(): IErrorRecoveryDelegate | null {
+    return this.delegate;
+  }
 
   public handlePlayerError(errorEvent: any): Video | null {
-    const store = useAppStore.getState();
-    const currentVideo = store.activeVideo;
+    const currentVideo = this.delegate?.getActiveVideo() ?? null;
 
     let errorCode = 'Unknown Error';
     if (typeof errorEvent === 'number') {
@@ -26,21 +40,22 @@ class ErrorRecoveryManager {
     }
 
     // Switch to next candidate in the ranked pipeline
-    const nextVideo = store.switchToNextCandidate();
+    const nextVideo = this.delegate?.switchToNextCandidate() ?? null;
 
     if (nextVideo) {
-      store.setRecoveryMessage(
-        `⚠️ Playback error (${errorCode}). Auto-switched to candidate #${store.currentCandidateIndex + 1}: "${nextVideo.title.slice(0, 40)}..."`
+      const candidateIndex = this.delegate?.getCurrentCandidateIndex() ?? 0;
+      this.delegate?.setRecoveryMessage(
+        `⚠️ Playback error (${errorCode}). Auto-switched to candidate #${candidateIndex + 1}: "${nextVideo.title.slice(0, 40)}..."`
       );
 
       // Auto-hide recovery toast message after 4 seconds
       setTimeout(() => {
-        useAppStore.getState().setRecoveryMessage(null);
+        this.delegate?.setRecoveryMessage(null);
       }, 4000);
 
       return nextVideo;
     } else {
-      store.setRecoveryMessage('❌ All candidates exhausted for this topic. Please try searching another term.');
+      this.delegate?.setRecoveryMessage('❌ All candidates exhausted for this topic. Please try searching another term.');
       return null;
     }
   }

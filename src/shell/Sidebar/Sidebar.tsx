@@ -3,10 +3,9 @@ import {
   Home, Tv, FolderHeart, History,
   Music, Gamepad2, Film, Compass
 } from 'lucide-react';
-import { cn } from '@omnistream/shared/utils/utils';
+import { cn, OMSLogo } from '@omnistream/shared';
 import { useAppStore } from '@/src/store';
-import { OMSLogo } from '@omnistream/shared/ui/OMSLogo';
-import { APP_VERSION_LABEL } from '@/src/core/config/version';
+import { APP_VERSION_LABEL } from '@omnistream/core';
 
 // ── Navigation taxonomy ────────────────────────────────────────────────────────
 //

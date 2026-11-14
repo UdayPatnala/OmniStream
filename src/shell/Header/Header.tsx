@@ -1,15 +1,17 @@
 import { Search, Menu, Clock, X, Mic, Sparkles } from 'lucide-react';
 import { useState, useEffect, type FormEvent } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
-import { fetchSearchSuggestions } from '@omnistream/utube/services/youtube';
 import { useAppStore } from '@/src/store';
 import { AnimatePresence, motion } from 'motion/react';
-import { extractYouTubeId } from '@omnistream/shared/utils/utils';
-import { playbackService } from '@omnistream/utube/services/playbackService';
-import { IntentRouter } from '@omnistream/core/oms/intentRouter';
-
-import { playbackStateMachine, PlaybackState } from '@omnistream/utube/services/playbackStateMachine';
-import { OMSLogo } from '@omnistream/shared/ui/OMSLogo';
+import {
+  fetchSearchSuggestions,
+  playbackService,
+  playbackStateMachine,
+  PlaybackState,
+  extractYouTubeId,
+} from '@omnistream/utube';
+import { IntentRouter } from '@omnistream/core';
+import { OMSLogo } from '@omnistream/shared';
 
 export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
   const [searchParams] = useSearchParams();

@@ -6,9 +6,13 @@ import { OMS_CandidateGenerator } from './candidateGenerator';
 import { OMS_CompositionScorer } from './compositionScorer';
 import { OMS_TemporalController } from './temporalController';
 import { OMS_ApertureTransform } from './types';
-import { OMSCapabilityResolver, ICapabilityTierDefinition, CapabilityFailureType } from '@omnistream/core/oms/capabilityResolver';
-import { MediaPipeBlazeFaceAdapter } from '@omnistream/core/oms/blazeFaceAdapter';
-import { IVisualPerceptionEvidence } from '@omnistream/core/oms/interfaces';
+import {
+  OMSCapabilityResolver,
+  ICapabilityTierDefinition,
+  CapabilityFailureType,
+  MediaPipeBlazeFaceAdapter,
+  IVisualPerceptionEvidence,
+} from '@omnistream/core';
 
 export interface OMSPipelineContext {
   canvasAvailable: boolean;

@@ -17,17 +17,17 @@ import {
   RotateCcw,
   Edit3
 } from 'lucide-react';
-import { useAppStore, useCineMorphStore } from '../../store';
-import { useTicketStore } from '@omnistream/cinemorph';
-import { APP_VERSION_LABEL } from '@/src/core/config/version';
+import { useAppStore } from '@/src/store';
+import { useTicketStore, useCineMorphStore } from '@omnistream/cinemorph';
 import { 
+  APP_VERSION_LABEL,
   SHORTCUT_DEFINITIONS, 
   ShortcutAction, 
   formatKeyLabel, 
   findConflictingAction, 
   normalizeKey, 
   isModifierKey 
-} from '../../core/shortcuts/shortcutManager';
+} from '@omnistream/core';
 
 interface GlobalSettingsDrawerProps {
   isOpen: boolean;

@@ -140,7 +140,7 @@ export type CineMorphTheme =
 
 export type GlowIntensity = 'off' | 'low' | 'medium' | 'ultra';
 
-export type FrameAspectRatio = 'original' | '1.90:1' | '1.43:1' | '16:9' | '21:9' | '4:3' | '1:1' | 'auto';
+export type FrameAspectRatio = 'original' | '1.90:1' | '1.43:1' | '16:9' | '21:9' | '4:3' | '1:1' | 'auto' | 'screen-x';
 
 export type FrameReframeMode = 'center' | 'face-priority' | 'smart-pan-zoom';
 
@@ -320,7 +320,7 @@ export interface CineMorphScreeningSession {
   file?: File;
   posterUrl?: string;
   thumbnailUrl?: string;
-  aspectRatio: 'original' | '1.90:1' | '1.43:1' | '4:3';
+  aspectRatio: 'original' | '1.90:1' | '1.43:1' | '4:3' | 'screen-x';
   framingRule: string;
   durationSeconds: number;
   timestampSeconds: number;

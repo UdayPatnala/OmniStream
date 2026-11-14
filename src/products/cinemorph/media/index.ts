@@ -16,4 +16,5 @@ export * from './subtitleCueModel';
 export * from './subtitleStyleModel';
 export * from './subtitleParser';
 export * from './ambientLightEngine';
+export * from './screenXAmbientEngine';
 

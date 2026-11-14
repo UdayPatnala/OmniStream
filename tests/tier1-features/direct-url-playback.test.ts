@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { extractYouTubeId } from '@omnistream/shared/utils/utils';
+import { extractYouTubeId } from '@omnistream/utube';
 import { createUTubeStore } from '../helpers/contracts';
 import { useAppStore } from '@/src/store';
 

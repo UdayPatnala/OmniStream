@@ -28,6 +28,15 @@ export class LocalVideoAnalyzer {
    * Analyzes an active HTML5 Video Element frame
    */
   public analyzeVideoFrame(videoEl: HTMLVideoElement, fileKey?: string): LocalVideoAnalysis | null {
+    if (!this.ctx && typeof document !== 'undefined') {
+      if (!this.canvas) {
+        this.canvas = document.createElement('canvas');
+        this.canvas.width = 16;
+        this.canvas.height = 9;
+      }
+      this.ctx = this.canvas.getContext('2d', { willReadFrequently: true });
+    }
+
     if (
       !this.ctx ||
       !this.canvas ||

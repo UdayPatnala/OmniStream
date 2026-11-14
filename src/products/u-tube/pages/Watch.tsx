@@ -16,9 +16,9 @@ import {
 import { getVideosByIds, getChannelDetails, getRelatedVideos } from '../services/youtube';
 import { Video, Channel } from '../types';
 import { useAppStore } from '@/src/store';
-import { formatViews, formatTimeAgo } from '@omnistream/shared/utils/utils';
+import { formatViews, formatTimeAgo } from '@omnistream/shared';
 import { UTubePlayer } from '../components/UTubePlayer';
-import { omsTransitionService } from '@omnistream/core/oms/omsTransitionService';
+import { omsTransitionService } from '@omnistream/core';
 
 export function Watch() {
   const { id } = useParams<{ id: string }>();

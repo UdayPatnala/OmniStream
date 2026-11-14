@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { extractYouTubeId } from '@omnistream/shared/utils/utils';
-import { errorRecoveryManager } from '@omnistream/utube/services/errorRecoveryManager';
+import { extractYouTubeId } from '@omnistream/utube';
+import { errorRecoveryManager } from '@omnistream/core';
 import { useAppStore } from '@/src/store';
 import { MOCK_VIDEOS } from '../helpers/fixtures';
 

@@ -5,3 +5,4 @@ export * from './geometryContracts';
 export * from './apiContracts';
 export * from './subtitleContracts';
 export * from './ambientContracts';
+export * from './audioContracts';

@@ -11,11 +11,16 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useAppStore } from '@/src/store';
 import { useTicketStore } from '../ticketing/useTicketStore';
 import { useCineMorphStore, AspectRatioMode } from '../state/useCineMorphStore';
-import { omsTransitionService } from '../../../core/oms/omsTransitionService';
-import { resolveExternalMediaMeta } from '../../../core/oms/mediaResolver';
-import { matchesShortcut, formatKeyLabel, ShortcutAction } from '../../../core/shortcuts/shortcutManager';
+import {
+  omsTransitionService,
+  resolveExternalMediaMeta,
+  matchesShortcut,
+  formatKeyLabel,
+  ShortcutAction,
+  errorRecoveryManager,
+} from '@omnistream/core';
 import { Video, AudioPreset, FrameAspectRatio, CineMorphTheme, GlowIntensity, LocalMediaItem, MediaSubtitleTrack } from '../types';
-import { OMSLogo } from '../../../shared/ui/OMSLogo';
+import { OMSLogo, CaptionOverlay } from '@omnistream/shared';
 import {
   Play, Pause, Volume2, VolumeX, Maximize, Minimize,
   Film, Monitor, ArrowLeft, RotateCcw, ChevronRight,
@@ -47,12 +52,11 @@ import {
   parseSubtitleFile,
   detectSubtitleFormat,
   ambientLightEngine,
+  screenXAmbientEngine,
 } from '../media';
 import { TrackSelectionMenu } from '../components/player/TrackSelectionMenu';
 import { cineMorphSpatialEngine } from '../spatial';
 import { CineMorphCaptionController } from '../media/captionService';
-import { CaptionOverlay } from '@omnistream/shared/ui/CaptionOverlay';
-import { errorRecoveryManager } from '../../../core/oms/errorRecoveryManager';
 import { CineMorphAuditoriumSeats } from '../components/theater/CineMorphAuditoriumSeats';
 
 type TheaterState = 'pre-show' | 'loading' | 'playing' | 'paused' | 'ended' | 'error';
@@ -90,8 +94,12 @@ export function calculateTheaterProjectionLayout({
   nativeAspectRatio: number | null;
   theaterSeatingEnabled?: boolean;
 }): TheaterProjectionLayout {
-  const effectiveRatio = isOriginalMode && nativeAspectRatio
+  const isScreenX = frameAspectRatio === 'screen-x';
+
+  const effectiveRatio = (isOriginalMode || isScreenX) && nativeAspectRatio
     ? `${nativeAspectRatio}`
+    : isScreenX
+    ? '16 / 9'
     : frameStyleAspectRatio;
 
   const containerClassName = isFullscreen
@@ -104,7 +112,11 @@ export function calculateTheaterProjectionLayout({
     ? 'mb-2 sm:mb-3'
     : 'mb-3 sm:mb-5';
 
-  const maxHeight = isFullscreen
+  const maxHeight = isScreenX
+    ? (isFullscreen
+        ? (theaterSeatingEnabled ? 'min(85vh, calc(100dvh - 5rem))' : '85vh')
+        : (theaterSeatingEnabled ? 'min(82vh, calc(100dvh - 5.5rem))' : '85vh'))
+    : isFullscreen
     ? (theaterSeatingEnabled ? 'min(88vh, calc(100dvh - 5rem))' : '98vh')
     : theaterSeatingEnabled
     ? (isOriginalMode ? 'min(84vh, calc(100dvh - 5.5rem))' : frameAspectRatio === '1.43:1' ? 'min(84vh, calc(100dvh - 5.5rem))' : 'min(82vh, calc(100dvh - 5.5rem))')
@@ -114,7 +126,9 @@ export function calculateTheaterProjectionLayout({
     ? '94vh'
     : '92vh';
 
-  const maxWidth = isFullscreen
+  const maxWidth = isScreenX
+    ? `min(85vw, calc(${maxHeight} * (${effectiveRatio})))`
+    : isFullscreen
     ? (theaterSeatingEnabled ? `min(99vw, calc(${maxHeight} * (${effectiveRatio})))` : `min(99vw, calc(98vh * (${effectiveRatio})))`)
     : theaterSeatingEnabled
     ? `min(98vw, calc(${maxHeight} * (${effectiveRatio})))`
@@ -217,6 +231,53 @@ export function CineMorphTheater() {
   const frameAnalysisTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const captionControllerRef = useRef<CineMorphCaptionController>(new CineMorphCaptionController());
   const subtitleFileInputRef = useRef<HTMLInputElement | null>(null);
+  const createdBlobUrlsRef = useRef<Set<string>>(new Set());
+
+  // ── Media Memory Cleanup on Unmount ─────────────────────────────────────────
+  useEffect(() => {
+    return () => {
+      // Memory cleanup: revoke all created blob URLs on unmount to prevent multi-GB memory retention
+      createdBlobUrlsRef.current.forEach((url) => {
+        try {
+          URL.revokeObjectURL(url);
+        } catch (_) {}
+      });
+      createdBlobUrlsRef.current.clear();
+
+      const currentLocal = useAppStore.getState().activeLocalMedia;
+      if (currentLocal?.url && currentLocal.url.startsWith('blob:')) {
+        try {
+          URL.revokeObjectURL(currentLocal.url);
+        } catch (_) {}
+      }
+
+      // Stop video playback and release media decoding pipeline
+      if (localVideoRef.current) {
+        try {
+          localVideoRef.current.pause();
+          localVideoRef.current.removeAttribute('src');
+          localVideoRef.current.load();
+        } catch (_) {}
+      }
+      if (introVideoRef.current) {
+        try {
+          introVideoRef.current.pause();
+          introVideoRef.current.removeAttribute('src');
+          introVideoRef.current.load();
+        } catch (_) {}
+      }
+
+      // Clear active timers and intervals
+      if (controlsTimerRef.current) clearTimeout(controlsTimerRef.current);
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+      if (frameAnalysisTimerRef.current) clearInterval(frameAnalysisTimerRef.current);
+
+      // Release subtitle buffer
+      try {
+        captionControllerRef.current.clearSubtitles();
+      } catch (_) {}
+    };
+  }, []);
 
   // ── States ──────────────────────────────────────────────────────────────────
   const [video, setVideo] = useState<Video | null>(
@@ -231,7 +292,7 @@ export function CineMorphTheater() {
   const [seeking, setSeeking] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(() => getIsFullscreenActive());
   const [controlsVisible, setControlsVisible] = useState(true);
-  const [presentationMode, setPresentationMode] = useState<'cinema' | 'original'>(
+  const [presentationMode, setPresentationMode] = useState<'cinema' | 'original' | 'screen-x'>(
     cinemaMode ? 'cinema' : 'original'
   );
   const [entryComplete, setEntryComplete] = useState(false);
@@ -253,6 +314,10 @@ export function CineMorphTheater() {
   const [hudToast, setHudToast] = useState<string | null>(null);
   
   const bloomRef = useRef<HTMLDivElement>(null);
+  const screenXLeftWingRef = useRef<HTMLDivElement | null>(null);
+  const screenXRightWingRef = useRef<HTMLDivElement | null>(null);
+  const screenXConfig = useCineMorphStore((state) => state.screenXConfig);
+  const setScreenXConfig = useCineMorphStore((state) => state.setScreenXConfig);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -680,6 +745,7 @@ export function CineMorphTheater() {
   // These only depend on store/state values that are already initialized above.
   const isOriginalMode = frameAspectRatio === 'original';
   const isIMAXMode = frameAspectRatio === '1.90:1' || frameAspectRatio === '1.43:1';
+  const isScreenX = frameAspectRatio === 'screen-x';
 
   useEffect(() => {
     if (!screenContainerRef.current || !containerRef.current) return;
@@ -721,8 +787,19 @@ export function CineMorphTheater() {
   const handleDirectLocalUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // Revoke previous active local media blob URL if replacing to prevent memory accumulation
+    const prevMedia = useAppStore.getState().activeLocalMedia;
+    if (prevMedia?.url && prevMedia.url.startsWith('blob:') && createdBlobUrlsRef.current.has(prevMedia.url)) {
+      try {
+        URL.revokeObjectURL(prevMedia.url);
+        createdBlobUrlsRef.current.delete(prevMedia.url);
+      } catch (_) {}
+    }
+
     const localId = `local-${Date.now()}`;
     const fileUrl = URL.createObjectURL(file);
+    createdBlobUrlsRef.current.add(fileUrl);
 
     // Demux local media container
     const containerAnalysis = await mediaParser.parseMediaFile(file, file.name);
@@ -806,6 +883,7 @@ export function CineMorphTheater() {
               if (liveFile) {
                 try {
                   const freshUrl = URL.createObjectURL(liveFile);
+                  createdBlobUrlsRef.current.add(freshUrl);
                   activeUrl = freshUrl;
                   isUrlPlayable = true;
                   useCineMorphStore.getState().updateActiveSession({ sourceUrl: freshUrl });
@@ -826,6 +904,7 @@ export function CineMorphTheater() {
         } else if (activeSession?.file) {
           try {
             const freshUrl = URL.createObjectURL(activeSession.file);
+            createdBlobUrlsRef.current.add(freshUrl);
             activeUrl = freshUrl;
             isUrlPlayable = true;
             useCineMorphStore.getState().updateActiveSession({ sourceUrl: freshUrl });
@@ -1086,6 +1165,28 @@ export function CineMorphTheater() {
     };
   }, [isLocalMedia, localItem?.id, showIntroBumper, hybridDecision.enableDynamicAmbilight, hybridDecision.sampleIntervalMs, glowIntensity]);
 
+  // ── SCREEN X Panoramic Dual-Wing Synchronized Tracking ──────────────────────
+  useEffect(() => {
+    if (frameAspectRatio !== 'screen-x') {
+      screenXAmbientEngine.stopTracking();
+      return;
+    }
+
+    const activeVideoEl = showIntroBumper ? introVideoRef.current : (isLocalMedia ? localVideoRef.current : null);
+    if (activeVideoEl && screenXLeftWingRef.current && screenXRightWingRef.current) {
+      screenXAmbientEngine.startTracking(
+        activeVideoEl,
+        screenXLeftWingRef.current,
+        screenXRightWingRef.current,
+        screenXConfig
+      );
+    }
+
+    return () => {
+      screenXAmbientEngine.stopTracking();
+    };
+  }, [frameAspectRatio, isLocalMedia, showIntroBumper, screenXConfig]);
+
   // ── Auto-hide Controls ──────────────────────────────────────────────────────
   const resetControlsTimer = useCallback(() => {
     setControlsVisible(true);
@@ -1161,6 +1262,10 @@ export function CineMorphTheater() {
       setPresentationMode('original');
       setCinemaMode(false);
       showToast('🎬 Aspect Ratio: Original Native Source (100% Uncropped)');
+    } else if (ratio === 'screen-x') {
+      setPresentationMode('screen-x');
+      setCinemaMode(false);
+      showToast('✨ SCREEN X: Dual-Wing Panoramic Ambient Extension Active');
     } else {
       setPresentationMode('cinema');
       setCinemaMode(true);
@@ -1291,6 +1396,18 @@ export function CineMorphTheater() {
         const next = !theaterSeatingEnabled;
         setTheaterSeatingEnabled(next);
         showToast(next ? '💺 Cinema Seating: Visible' : '💺 Cinema Seating: Hidden');
+      } else if (!e.ctrlKey && !e.metaKey && !e.altKey && (e.key === '[' || e.key === '{')) {
+        e.preventDefault();
+        const cur = audioEngine.getAudioDelay();
+        const next = Math.max(-500, cur - 20);
+        audioEngine.setAudioDelay(next);
+        showToast(`🔊 Audio Delay: ${next > 0 ? `+${next}` : next} ms`);
+      } else if (!e.ctrlKey && !e.metaKey && !e.altKey && (e.key === ']' || e.key === '}')) {
+        e.preventDefault();
+        const cur = audioEngine.getAudioDelay();
+        const next = Math.min(500, cur + 20);
+        audioEngine.setAudioDelay(next);
+        showToast(`🔊 Audio Delay: ${next > 0 ? `+${next}` : next} ms`);
       }
     };
     window.addEventListener('keydown', handleKey);
@@ -1397,7 +1514,7 @@ export function CineMorphTheater() {
 
   // ── Quick Cyclers ───────────────────────────────────────────────────────────
   const cycleAspectRatio = useCallback(() => {
-    const ratios: FrameAspectRatio[] = ['original', '1.90:1', '1.43:1'];
+    const ratios: FrameAspectRatio[] = ['original', '1.90:1', '1.43:1', 'screen-x'];
     const currentIdx = ratios.indexOf(frameAspectRatio);
     const nextRatio = currentIdx === -1 ? 'original' : ratios[(currentIdx + 1) % ratios.length];
     handleSelectAspectRatio(nextRatio);
@@ -1441,11 +1558,37 @@ export function CineMorphTheater() {
   };
 
   const exitTheater = () => {
+    createdBlobUrlsRef.current.forEach((url) => {
+      try {
+        URL.revokeObjectURL(url);
+      } catch (_) {}
+    });
+    createdBlobUrlsRef.current.clear();
+
     if (activeLocalMedia?.url && activeLocalMedia.url.startsWith('blob:')) {
       try {
         URL.revokeObjectURL(activeLocalMedia.url);
       } catch (_) {}
     }
+
+    if (localVideoRef.current) {
+      try {
+        localVideoRef.current.pause();
+        localVideoRef.current.removeAttribute('src');
+        localVideoRef.current.load();
+      } catch (_) {}
+    }
+    if (introVideoRef.current) {
+      try {
+        introVideoRef.current.pause();
+        introVideoRef.current.removeAttribute('src');
+        introVideoRef.current.load();
+      } catch (_) {}
+    }
+    try {
+      captionControllerRef.current.clearSubtitles();
+    } catch (_) {}
+
     useAppStore.getState().setActiveLocalMedia(null);
     useTicketStore.getState().clearActiveTicket();
     useCineMorphStore.getState().clearActiveSession();
@@ -1567,7 +1710,7 @@ export function CineMorphTheater() {
       )}
 
       {/* ── Dynamic Reactive Ambilight Bloom (Auditorium Ambient Glow) ── */}
-      {glowIntensity !== 'off' && (
+      {glowIntensity !== 'off' && frameAspectRatio !== 'screen-x' && (
         <div
           ref={bloomRef}
           className="absolute inset-0 pointer-events-none transition-all duration-700 z-0"
@@ -1584,6 +1727,33 @@ export function CineMorphTheater() {
             transform: 'translate3d(0, 0, 0)',
           }}
         />
+      )}
+
+      {/* ── SCREEN X Panoramic Dual-Wing Ambient Lighting (Left & Right Only) ── */}
+      {frameAspectRatio === 'screen-x' && (
+        <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+          {/* Left Panoramic Ambient Wing */}
+          <div
+            ref={screenXLeftWingRef}
+            className="absolute top-0 bottom-0 left-0 pointer-events-none transition-opacity duration-300"
+            style={{
+              right: `calc(50% + (${projectionLayout.maxWidth} / 2))`,
+              width: 'auto',
+              opacity: theaterState === 'playing' ? (screenXConfig.intensity || 0.75) : 0.35,
+            }}
+          />
+
+          {/* Right Panoramic Ambient Wing */}
+          <div
+            ref={screenXRightWingRef}
+            className="absolute top-0 bottom-0 right-0 pointer-events-none transition-opacity duration-300"
+            style={{
+              left: `calc(50% + (${projectionLayout.maxWidth} / 2))`,
+              width: 'auto',
+              opacity: theaterState === 'playing' ? (screenXConfig.intensity || 0.75) : 0.35,
+            }}
+          />
+        </div>
       )}
 
       {/* ── Top-Right Fullscreen Header Badge ── */}
@@ -2117,6 +2287,17 @@ export function CineMorphTheater() {
                   title="Original Unmodified Aspect Ratio"
                 >
                   Original
+                </button>
+                <button
+                  onClick={() => handleSelectAspectRatio('screen-x')}
+                  className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
+                    frameAspectRatio === 'screen-x'
+                      ? 'bg-amber-500 text-black shadow-sm'
+                      : 'text-amber-200/70 hover:text-amber-100 hover:bg-white/5'
+                  }`}
+                  title="SCREEN X Panoramic Dual-Wing Ambient Extension"
+                >
+                  SCREEN X
                 </button>
               </div>
 

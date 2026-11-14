@@ -4,9 +4,9 @@ import { getChannelDetails, getChannelVideos } from '../services/youtube';
 import { Channel as ChannelType, SearchResult } from '../types';
 import { useAppStore } from '@/src/store';
 import { VideoCard } from '../components/VideoCard';
-import { VideoCardSkeleton, Skeleton } from '@omnistream/shared/ui/Skeleton';
+import { VideoCardSkeleton } from '../components/VideoCardSkeleton';
+import { Skeleton, formatViews } from '@omnistream/shared';
 import { Users, Video as VideoIcon, Tv, AlertCircle } from 'lucide-react';
-import { formatViews } from '@omnistream/shared/utils/utils';
 
 export function ChannelPage() {
   const { id } = useParams<{ id: string }>();

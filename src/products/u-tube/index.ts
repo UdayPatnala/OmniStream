@@ -8,7 +8,7 @@
  *   pages/         — Home, Search, Watch, Subscriptions, Collections, History, Channel
  *   components/    — VideoCard, UTubePlayer
  *   state/         — useUTubeStore
- *   services/      — youtube, youtubeService, recommendations, search, playback, ...
+ *   services/      — youtube, recommendations, search, playback, cache, ...
  *   repositories/  — history, subscriptions, collections
  *   types/         — U-Tube types
  */
@@ -25,10 +25,31 @@ export { ChannelPage } from './pages/Channel';
 // Components
 export { VideoCard } from './components/VideoCard';
 export { UTubePlayer } from './components/UTubePlayer';
+export { VideoCardSkeleton } from './components/VideoCardSkeleton';
 
 // State
 export { useUTubeStore } from './state/useUTubeStore';
 export type { UTubeVideo, ChannelSubscription, UTubeStoreState } from './state/useUTubeStore';
+
+// Services & Orchestration
+export {
+  fetchSearchSuggestions,
+  searchVideos,
+  getRelatedVideos,
+  getPopularVideos,
+  getChannelDetails,
+  getChannelVideos,
+  getVideosByIds,
+  extractYouTubeId,
+} from './services/youtube';
+export { playbackService } from './services/playbackService';
+export { playbackStateMachine } from './services/playbackStateMachine';
+export type { PlaybackState } from './services/playbackStateMachine';
+export { cacheService } from './services/cacheService';
+export { cacheManager } from './services/cacheManager';
+export { utubeAmbientEngine, UTubeAmbientEngine } from './services/utubeAmbientEngine';
+export { getRecommendedVideos, calculateUserStats } from './services/recommendations';
+export { searchAndRankVideos, computeRelevanceScore } from './services/searchService';
 
 // Types (public surface only)
 export type {

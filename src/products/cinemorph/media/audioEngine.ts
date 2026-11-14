@@ -28,6 +28,8 @@ export class CineMorphAudioEngine {
   private highMidFilter: BiquadFilterNode | null = null;
   private trebleFilter: BiquadFilterNode | null = null;
   private compressor: DynamicsCompressorNode | null = null;
+  private delayNode: DelayNode | null = null;
+  private audioDelayMs = 0;
   private isInitialized = false;
   private activeTrackIndex = 0;
   private audioIntelligence = new AudioIntelligenceService();
@@ -90,6 +92,16 @@ export class CineMorphAudioEngine {
             this.compressor.release.value = 0.25;
           } catch (compErr) {
             console.warn('[CineMorphAudioEngine] Compressor creation notice:', compErr);
+          }
+        }
+
+        // Build audio delay compensation node (-500ms to +500ms)
+        if (typeof this.audioCtx.createDelay === 'function') {
+          try {
+            this.delayNode = this.audioCtx.createDelay(1.0);
+            this.delayNode.delayTime.value = Math.max(0, this.audioDelayMs) / 1000;
+          } catch (delayErr) {
+            console.warn('[CineMorphAudioEngine] Delay creation notice:', delayErr);
           }
         }
 
@@ -163,6 +175,9 @@ export class CineMorphAudioEngine {
 
       // Dynamic Range Compressor
       safeConnect(this.compressor);
+
+      // Delay compensation node (-500ms to +500ms)
+      safeConnect(this.delayNode);
 
       // Analyser Node
       if (this.analyser) {
@@ -436,6 +451,18 @@ export class CineMorphAudioEngine {
     return { isPlayable: true };
   }
 
+  public setAudioDelay(delayMs: number): void {
+    this.audioDelayMs = Math.max(-500, Math.min(500, Math.round(delayMs)));
+    if (this.delayNode && this.audioCtx) {
+      const positiveSec = Math.max(0, this.audioDelayMs) / 1000;
+      this.setAudioParam(this.delayNode.delayTime, positiveSec);
+    }
+  }
+
+  public getAudioDelay(): number {
+    return this.audioDelayMs;
+  }
+
   public getSpeechClarityInsight(timestamp?: number): {
     appliedClarityBoost: number;
     dialogueDetected: boolean;
@@ -474,6 +501,10 @@ export class CineMorphAudioEngine {
       if (this.compressor) {
         try { this.compressor.disconnect(); } catch {}
         this.compressor = null;
+      }
+      if (this.delayNode) {
+        try { this.delayNode.disconnect(); } catch {}
+        this.delayNode = null;
       }
       if (this.audioCtx && this.audioCtx.state !== 'closed') {
         this.audioCtx.close().catch(() => {});

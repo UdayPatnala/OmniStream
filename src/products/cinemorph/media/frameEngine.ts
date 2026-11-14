@@ -23,6 +23,7 @@ export function calculateFrameStyle(
 
   switch (aspectRatio) {
     case 'original':
+    case 'screen-x':
       paddingTop = '56.25%';
       aspectRatioStyle = '16 / 9';
       videoScaleTransform = 'scale(1.0) translate(0px, 0px)';

@@ -1,14 +1,17 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Video, Channel, HistoryItem, Collection, QueueItem, SearchHistoryMetaData, BehaviorEvent, CineMorphTheme, VideoClip, RankingProfile, LocalMediaItem, FrameAspectRatio, DevicePerformanceProfile } from './types';
-import { DEFAULT_SHORTCUTS, ShortcutAction } from './core/shortcuts/shortcutManager';
+import { DEFAULT_SHORTCUTS, type ShortcutAction } from '@omnistream/core';
 
 import { useUTubeStore } from './products/u-tube/state/useUTubeStore';
 
+import { useCineMorphStore, type AspectRatioMode, type FramingRuleMode, type CineMorphStoreState, type CineMorphVideoSource } from './products/cinemorph/state/useCineMorphStore';
+import { useTicketStore, type MovieTicket, type TicketStoreState } from './products/cinemorph/ticketing/useTicketStore';
+
 // Re-export modular Milestone 1 state stores
 export { useUTubeStore, type UTubeVideo, type ChannelSubscription, type UTubeStoreState } from './products/u-tube/state/useUTubeStore';
-export { useCineMorphStore, type AspectRatioMode, type FramingRuleMode, type CineMorphStoreState, type CineMorphVideoSource } from './products/cinemorph/state/useCineMorphStore';
-export { useTicketStore, type MovieTicket, type TicketStoreState } from './products/cinemorph/ticketing/useTicketStore';
+export { useCineMorphStore, type AspectRatioMode, type FramingRuleMode, type CineMorphStoreState, type CineMorphVideoSource };
+export { useTicketStore, type MovieTicket, type TicketStoreState };
 
 interface AppState {
   theme: 'dark' | 'light' | 'system';
@@ -552,6 +555,58 @@ export const useAppStore = create<AppState>()(
     }
   )
 );
+
+import { omsTransitionService, errorRecoveryManager, IntentRouter } from '@omnistream/core';
+
+// Wire up OMS Transition delegate to keep Core decoupled from Store
+omsTransitionService.setDelegate({
+  getAppFrameAspectRatio: () => {
+    const ratio = useAppStore.getState().frameAspectRatio;
+    return (ratio === 'original' || ratio === '1.90:1' || ratio === '1.43:1') ? ratio : undefined;
+  },
+  getCineMorphAspectRatio: () => {
+    const ratio = useCineMorphStore.getState().aspectRatio;
+    return (ratio === 'original' || ratio === '1.90:1' || ratio === '1.43:1') ? ratio : undefined;
+  },
+  saveWatchPosition: (videoId, currentTime, duration) => {
+    if (typeof useAppStore.getState().saveWatchPosition === 'function') {
+      useAppStore.getState().saveWatchPosition(videoId, currentTime, duration);
+    }
+  },
+  updateCineMorphPlayback: (timestamp, isPlaying) => {
+    useCineMorphStore.setState({
+      playbackTimestamp: timestamp,
+      isPlaying,
+    });
+  },
+  clearActiveLocalMedia: () => {
+    useAppStore.getState().setActiveLocalMedia(null);
+  },
+  setActiveTicket: (ticket) => {
+    useTicketStore.setState({
+      activeTicket: ticket,
+      isPrintingAnimationActive: false,
+    });
+  },
+});
+
+// Wire up Error Recovery delegate
+errorRecoveryManager.setDelegate({
+  getActiveVideo: () => useAppStore.getState().activeVideo,
+  switchToNextCandidate: () => useAppStore.getState().switchToNextCandidate(),
+  getCurrentCandidateIndex: () => useAppStore.getState().currentCandidateIndex,
+  setRecoveryMessage: (msg) => useAppStore.getState().setRecoveryMessage(msg),
+});
+
+// Wire up Intent Router State Provider
+IntentRouter.setStateProvider({
+  getHistory: () => Object.values(useAppStore.getState().history),
+  getSubscriptions: () => useAppStore.getState().subscriptions,
+  createCollection: (name) => useAppStore.getState().createCollection(name),
+  getRankingProfile: () => useAppStore.getState().rankingProfile,
+  getCineMorphTheme: () => useAppStore.getState().cinemorphTheme,
+  getAudioPreset: () => useAppStore.getState().audioEQ.preset,
+});
 
 
 

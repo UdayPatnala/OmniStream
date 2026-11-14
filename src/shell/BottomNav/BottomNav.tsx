@@ -1,6 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import { Home, Flame, Search, Tv, FolderHeart, History } from 'lucide-react';
-import { cn } from '@omnistream/shared/utils/utils';
+import { cn } from '@omnistream/shared';
 
 const navItems = [
   { to: '/', icon: Home, label: 'Home' },

@@ -6,8 +6,8 @@ import { rankCandidates, RANKING_PROFILE_PRESETS } from './rankingEngine';
 import { checkEmbeddable, resolveBestPlayableVideo } from './videoResolver';
 import { cacheManager } from './cacheManager';
 import { playbackStateMachine } from './playbackStateMachine';
-import { observabilityService } from '@omnistream/core/oms/observabilityService';
-import { extractYouTubeId } from '@omnistream/shared/utils/utils';
+import { observabilityService } from '@omnistream/core';
+import { extractYouTubeId } from './youtube';
 
 /**
  * Playback Service - Advanced Master Orchestrator for Autonomous YouTube Discovery & Playback.

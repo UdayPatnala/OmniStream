@@ -1,6 +1,6 @@
 ﻿import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { formatTimeAgo, formatViews, formatDuration } from '@omnistream/shared/utils/utils';
+import { formatTimeAgo, formatViews, formatDuration } from '@omnistream/shared';
 import { Video, SearchResult } from '../types';
 import { getChannelAvatarUrl } from '../services/youtube';
 import { MoreVertical, Clock, Ban, Flag, Share2, Check } from 'lucide-react';

@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import { AspectRatioMode, FramingRuleMode, useCineMorphStore } from '../state/useCineMorphStore';
-import { resolveExternalMediaMeta } from '@omnistream/core/oms/mediaResolver';
-import { extractYouTubeId } from '@omnistream/shared/utils/utils';
+import { resolveExternalMediaMeta } from '@omnistream/core';
 import { posterService } from '../media/posterService';
 
 export interface MovieTicket {
@@ -166,35 +165,32 @@ export const useTicketStore = create<TicketStoreState>((set, get) => ({
 
     if (!movie.isLocal) {
       try {
-        const ytId = extractYouTubeId(movie.source);
-        if (ytId) {
-          const meta = await resolveExternalMediaMeta(ytId);
-          if (meta) {
-            title = meta.title;
-            if (meta.durationSeconds) {
-              durationSeconds = meta.durationSeconds;
-            }
-            if (!movie.posterUrl && meta.thumbnailUrl) {
-              resolvedPosterUrl = meta.thumbnailUrl;
+        const meta = await resolveExternalMediaMeta(movie.source);
+        if (meta) {
+          title = meta.title;
+          if (meta.durationSeconds) {
+            durationSeconds = meta.durationSeconds;
+          }
+          if (!movie.posterUrl && meta.thumbnailUrl) {
+            resolvedPosterUrl = meta.thumbnailUrl;
           }
           if (get().isPrintingAnimationActive && get().activeTicket?.ticketId === canonicalTicketId) {
-              const updatedTicket: MovieTicket = {
-                ...sessionTicket,
-                movieTitle: title,
-                durationSeconds,
-                thumbnailDataUrl: resolvedPosterUrl,
-              };
-              set({
-                activeTicket: updatedTicket,
-                tickets: [updatedTicket],
-              });
-              useCineMorphStore.getState().updateActiveSession({
-                title,
-                durationSeconds,
-                posterUrl: resolvedPosterUrl,
-                thumbnailUrl: resolvedPosterUrl,
-              });
-            }
+            const updatedTicket: MovieTicket = {
+              ...sessionTicket,
+              movieTitle: title,
+              durationSeconds,
+              thumbnailDataUrl: resolvedPosterUrl,
+            };
+            set({
+              activeTicket: updatedTicket,
+              tickets: [updatedTicket],
+            });
+            useCineMorphStore.getState().updateActiveSession({
+              title,
+              durationSeconds,
+              posterUrl: resolvedPosterUrl,
+              thumbnailUrl: resolvedPosterUrl,
+            });
           }
         }
       } catch (e) {

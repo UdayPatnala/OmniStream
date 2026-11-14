@@ -9,7 +9,27 @@
  */
 
 import { Video } from '../../types';
-import { useTicketStore, useCineMorphStore, useAppStore } from '../../store';
+
+export interface IOMSTransitionDelegate {
+  getAppFrameAspectRatio?: () => 'original' | '1.90:1' | '1.43:1' | undefined;
+  getCineMorphAspectRatio?: () => 'original' | '1.90:1' | '1.43:1' | undefined;
+  saveWatchPosition?: (videoId: string, currentTime: number, duration: number) => void;
+  updateCineMorphPlayback?: (timestamp: number, isPlaying: boolean) => void;
+  clearActiveLocalMedia?: () => void;
+  setActiveTicket?: (ticket: {
+    ticketId: string;
+    movieTitle: string;
+    aspectRatio: 'original' | '1.90:1' | '1.43:1';
+    framingRule: 'rule_of_thirds' | 'leading_lines' | 'frame_in_frame' | 'screen_direction' | 'auto';
+    seatAssignment: string;
+    sourceUrl: string;
+    timestampSeconds: number;
+    durationSeconds: number;
+    thumbnailDataUrl: string;
+    isLocal: boolean;
+    printedAt: number;
+  }) => void;
+}
 
 export interface OMSTransitionContext {
   contentId: string;
@@ -31,6 +51,15 @@ export class OMSTransitionService {
   private activeContext: OMSTransitionContext | null = null;
   private onHandoffListeners: HandoffListener[] = [];
   private onEntryListeners: HandoffListener[] = [];
+  private delegate: IOMSTransitionDelegate | null = null;
+
+  public setDelegate(delegate: IOMSTransitionDelegate | null): void {
+    this.delegate = delegate;
+  }
+
+  public getDelegate(): IOMSTransitionDelegate | null {
+    return this.delegate;
+  }
 
   public registerHandoffListener(fn: HandoffListener): () => void {
     this.onHandoffListeners.push(fn);
@@ -74,8 +103,8 @@ export class OMSTransitionService {
       video.thumbnails?.default ||
       `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
 
-    const activeAppRatio = useAppStore.getState().frameAspectRatio;
-    const activeCineRatio = useCineMorphStore.getState().aspectRatio;
+    const activeAppRatio = this.delegate?.getAppFrameAspectRatio?.();
+    const activeCineRatio = this.delegate?.getCineMorphAspectRatio?.();
     const resolvedRatio: 'original' | '1.90:1' | '1.43:1' =
       (params as any).aspectRatioPreference ||
       (activeAppRatio === 'original' || activeAppRatio === '1.90:1' || activeAppRatio === '1.43:1' ? activeAppRatio : undefined) ||
@@ -98,16 +127,15 @@ export class OMSTransitionService {
     this.activeContext = context;
     this.onHandoffListeners.forEach(fn => fn(context));
 
-    // Save watch position in App Store
-    if (typeof useAppStore.getState().saveWatchPosition === 'function') {
-      useAppStore.getState().saveWatchPosition(videoId, context.currentTimestampSeconds, context.durationSeconds);
+    // Save watch position via delegate
+    if (this.delegate?.saveWatchPosition) {
+      this.delegate.saveWatchPosition(videoId, context.currentTimestampSeconds, context.durationSeconds);
     }
 
-    // Update CineMorph Store
-    useCineMorphStore.setState({
-      playbackTimestamp: context.currentTimestampSeconds,
-      isPlaying: context.playbackState === 'playing',
-    });
+    // Update CineMorph Store via delegate
+    if (this.delegate?.updateCineMorphPlayback) {
+      this.delegate.updateCineMorphPlayback(context.currentTimestampSeconds, context.playbackState === 'playing');
+    }
 
     // Navigate to OmniStream Gateway carrying context
     navigate('/', {
@@ -130,13 +158,16 @@ export class OMSTransitionService {
     this.onEntryListeners.forEach(fn => fn(context));
 
     // Clear any stale local media to prevent media identity collision
-    useAppStore.getState().setActiveLocalMedia(null);
+    if (this.delegate?.clearActiveLocalMedia) {
+      this.delegate.clearActiveLocalMedia();
+    }
 
-    const resolvedRatio = context.aspectRatioPreference || useAppStore.getState().frameAspectRatio || 'original';
+    const appRatio = this.delegate?.getAppFrameAspectRatio?.();
+    const resolvedRatio = context.aspectRatioPreference || appRatio || 'original';
 
     // Populate active session ticket immediately with carried context metadata
-    useTicketStore.setState({
-      activeTicket: {
+    if (this.delegate?.setActiveTicket) {
+      this.delegate.setActiveTicket({
         ticketId: `ticket-${context.contentId}`,
         movieTitle: context.title,
         aspectRatio: resolvedRatio === '1.43:1' ? '1.43:1' : resolvedRatio === '1.90:1' ? '1.90:1' : 'original',
@@ -148,9 +179,8 @@ export class OMSTransitionService {
         thumbnailDataUrl: context.thumbnailUrl,
         isLocal: false,
         printedAt: Date.now(),
-      },
-      isPrintingAnimationActive: false,
-    });
+      });
+    }
 
     navigate(`/theater/${context.contentId}`, {
       state: {

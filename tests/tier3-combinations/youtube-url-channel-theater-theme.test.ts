@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { extractYouTubeId } from '@omnistream/shared/utils/utils';
+import { extractYouTubeId } from '@omnistream/utube';
 import { useAppStore } from '@/src/store';
 import { THEME_CONFIGS } from '@omnistream/cinemorph/media/visualEngine';
 import { MOCK_CHANNELS, MOCK_VIDEOS } from '../helpers/fixtures';

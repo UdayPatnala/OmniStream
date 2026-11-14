@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { omsTransitionService } from '@omnistream/core/oms/omsTransitionService';
-import { useTicketStore } from '@omnistream/cinemorph/ticketing/useTicketStore';
+import { omsTransitionService } from '@omnistream/core';
+import { useTicketStore } from '@omnistream/cinemorph';
 import { useAppStore } from '@/src/store';
 import { Video } from '@/src/types';
 

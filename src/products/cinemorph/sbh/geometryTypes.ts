@@ -3,7 +3,7 @@
  * Mandatory Mathematical, Spatial, Rendering and Validation Types (Points 70–118)
  */
 
-import { IOMSSpatialState, OMSAspectPreset as SharedAspectPreset, OMSEscalationLevel as SharedEscalationLevel } from '../../../shared/contracts/geometryContracts';
+import { IOMSSpatialState, OMSAspectPreset as SharedAspectPreset, OMSEscalationLevel as SharedEscalationLevel } from '@omnistream/shared';
 
 /** Normalized Point in [0, 1] range */
 export interface OMSPoint {

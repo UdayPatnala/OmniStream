@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { searchVideos } from '../services/youtube';
 import { SearchResult, SearchFilterType } from '../types';
 import { VideoCard } from '../components/VideoCard';
-import { VideoCardSkeleton } from '@omnistream/shared/ui/Skeleton';
+import { VideoCardSkeleton } from '../components/VideoCardSkeleton';
 import { Search as SearchIcon, Loader2, Sparkles, Play } from 'lucide-react';
 import { playbackService } from '../services/playbackService';
 

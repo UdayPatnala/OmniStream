@@ -2,7 +2,8 @@
 import { persist } from 'zustand/middleware';
 import { searchVideos, FALLBACK_VIDEOS } from '../services/youtube';
 import { getRecommendedVideos } from '../services/recommendations';
-import { storageService } from '@omnistream/core/storage/storageService';
+import { storageService } from '@omnistream/core';
+import { UTubeAmbientConfig, DEFAULT_UTUBE_AMBIENT_CONFIG } from '@omnistream/shared';
 
 export interface UTubeVideo {
   id: string;
@@ -33,6 +34,8 @@ export interface UTubeStoreState {
   subscribedFeed: UTubeVideo[];
   lastFeedRefresh: number; // timestamp ms (4-hour refresh threshold)
   currentVideo: UTubeVideo | null;
+  ambientConfig: UTubeAmbientConfig;
+  setAmbientConfig: (config: Partial<UTubeAmbientConfig>) => void;
   search: (query: string, pageToken?: string) => Promise<UTubeVideo[]>;
   loadMoreSearch: () => Promise<UTubeVideo[]>;
   subscribe: (channel: ChannelSubscription) => void;
@@ -59,6 +62,11 @@ export const useUTubeStore = create<UTubeStoreState>()(
       subscribedFeed: [],
       lastFeedRefresh: 0,
       currentVideo: null,
+      ambientConfig: { ...DEFAULT_UTUBE_AMBIENT_CONFIG },
+      setAmbientConfig: (updates: Partial<UTubeAmbientConfig>) =>
+        set((state) => ({
+          ambientConfig: { ...state.ambientConfig, ...updates },
+        })),
 
       search: async (query: string, pageToken?: string): Promise<UTubeVideo[]> => {
         const trimmed = query.trim();

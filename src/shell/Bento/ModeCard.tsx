@@ -15,7 +15,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { useCineMorphStore } from '@omnistream/cinemorph';
-import { useAppStore } from '../../store';
+import { useAppStore } from '@/src/store';
 
 interface ModeCardProps {
   mode: 'utube' | 'cinemorph';

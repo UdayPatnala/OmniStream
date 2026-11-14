@@ -1,5 +1,5 @@
 ﻿import { OMS_FrameSample, OMS_VisionAnalysisResult, OMS_SubjectDetection } from './types';
-import { IVisualPerceptionEvidence } from '@omnistream/core/oms/interfaces';
+import { IVisualPerceptionEvidence } from '@omnistream/core';
 
 /**
  * visionAnalyzer.ts - Stage 4: Multi-Subject & Saliency Vision Analyzer

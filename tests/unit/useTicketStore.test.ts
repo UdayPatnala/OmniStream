@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { useTicketStore } from '@omnistream/cinemorph/ticketing/useTicketStore';
-import { useCineMorphStore } from '@omnistream/cinemorph/state/useCineMorphStore';
+import { useTicketStore, useCineMorphStore } from '@omnistream/cinemorph';
 
 describe('useTicketStore — In-Memory Session Ticket', () => {
   beforeEach(() => {

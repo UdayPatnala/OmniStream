@@ -40,9 +40,13 @@ interface CineMorphPlayerControlsProps {
   onUploadSubtitleFile?: (file: File) => void;
   subtitleStyleConfig?: import('../../media/subtitleStyleModel').SubtitleStyleConfig;
   onChangeSubtitleFontSize?: (size: import('../../media/subtitleStyleModel').SubtitleFontSize) => void;
+  audioDelayMs?: number;
+  onAudioDelayChange?: (delayMs: number) => void;
   // CineMorph theater presentation
   aspectRatio: AspectRatioMode;
   onSelectAspectRatio: (ratio: AspectRatioMode) => void;
+  screenXConfig?: import('@omnistream/shared').ScreenXConfig;
+  onUpdateScreenXConfig?: (config: Partial<import('@omnistream/shared').ScreenXConfig>) => void;
   seatingEnabled: boolean;
   onToggleSeating: () => void;
   isStudioOpen: boolean;
@@ -83,8 +87,12 @@ export const CineMorphPlayerControls: React.FC<CineMorphPlayerControlsProps> = (
   onUploadSubtitleFile,
   subtitleStyleConfig,
   onChangeSubtitleFontSize,
+  audioDelayMs,
+  onAudioDelayChange,
   aspectRatio,
   onSelectAspectRatio,
+  screenXConfig,
+  onUpdateScreenXConfig,
   seatingEnabled,
   onToggleSeating,
   isStudioOpen,
@@ -94,6 +102,7 @@ export const CineMorphPlayerControls: React.FC<CineMorphPlayerControlsProps> = (
   className = '',
 }) => {
   const [isTrackMenuOpen, setIsTrackMenuOpen] = useState(false);
+  const [isScreenXMenuOpen, setIsScreenXMenuOpen] = useState(false);
   const [isVolumeHovered, setIsVolumeHovered] = useState(false);
   const timelineRef = useRef<HTMLDivElement | null>(null);
 
@@ -227,6 +236,8 @@ export const CineMorphPlayerControls: React.FC<CineMorphPlayerControlsProps> = (
               onUploadSubtitleFile={onUploadSubtitleFile}
               subtitleStyleConfig={subtitleStyleConfig}
               onChangeSubtitleFontSize={onChangeSubtitleFontSize}
+              audioDelayMs={audioDelayMs}
+              onAudioDelayChange={onAudioDelayChange}
             />
           </div>
 
@@ -258,21 +269,130 @@ export const CineMorphPlayerControls: React.FC<CineMorphPlayerControlsProps> = (
             <Armchair className="w-4 h-4" />
           </button>
 
-          {/* Aspect Ratio 3-Tier Selector (Original, 1.90:1, 1.43:1) */}
-          <div className="flex items-center rounded-xl bg-black/40 border border-white/10 p-0.5 text-[10px]">
-            {(['original', '1.90:1', '1.43:1'] as AspectRatioMode[]).map((mode) => (
+          {/* Aspect Ratio 4-Tier Selector (Original, 1.90:1, 1.43:1, SCREEN X) */}
+          <div className="relative flex items-center rounded-xl bg-black/40 border border-white/10 p-0.5 text-[10px]">
+            {(['original', '1.90:1', '1.43:1', 'screen-x'] as AspectRatioMode[]).map((mode) => (
               <button
                 key={mode}
                 onClick={() => onSelectAspectRatio(mode)}
-                className={`px-1.5 sm:px-2 py-0.5 rounded-lg transition-colors ${
+                className={`px-1.5 sm:px-2 py-0.5 rounded-lg transition-colors cursor-pointer ${
                   aspectRatio === mode
                     ? 'bg-amber-500/25 text-amber-300 font-semibold shadow-sm'
                     : 'text-stone-400 hover:text-stone-200'
                 }`}
+                title={mode === 'screen-x' ? 'SCREEN X Panoramic Ambient Extension' : `Aspect ratio: ${mode}`}
               >
-                {mode === 'original' ? 'ORIG' : mode}
+                {mode === 'original' ? 'ORIG' : mode === 'screen-x' ? 'SCR-X' : mode}
               </button>
             ))}
+
+            {/* SCREEN X Quick Settings Trigger */}
+            {aspectRatio === 'screen-x' && (
+              <button
+                onClick={() => setIsScreenXMenuOpen(!isScreenXMenuOpen)}
+                aria-label="SCREEN X Ambient Settings"
+                title="SCREEN X Ambient Settings"
+                className={`ml-0.5 p-1 rounded-md transition-colors ${
+                  isScreenXMenuOpen ? 'bg-amber-500/30 text-amber-300' : 'text-stone-400 hover:text-amber-200'
+                }`}
+              >
+                <Settings className="w-3 h-3" />
+              </button>
+            )}
+
+            {/* SCREEN X Settings Popover */}
+            {isScreenXMenuOpen && screenXConfig && onUpdateScreenXConfig && (
+              <div
+                className="absolute right-0 bottom-8 w-64 bg-zinc-950/95 backdrop-blur-xl border border-amber-500/30 rounded-xl p-3 shadow-2xl z-50 text-stone-200 space-y-2.5 text-xs animate-in fade-in zoom-in-95"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between border-b border-white/10 pb-1.5">
+                  <span className="font-semibold text-amber-300 tracking-wider text-[11px] uppercase">SCREEN X Ambient</span>
+                  <button
+                    onClick={() => setIsScreenXMenuOpen(false)}
+                    className="p-0.5 rounded hover:bg-white/10 text-stone-400"
+                  >
+                    ×
+                  </button>
+                </div>
+
+                {/* Intensity Slider */}
+                <div className="space-y-1">
+                  <div className="flex justify-between text-[10px] text-stone-400">
+                    <span>Intensity</span>
+                    <span>{Math.round(screenXConfig.intensity * 100)}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.05"
+                    value={screenXConfig.intensity}
+                    onChange={(e) => onUpdateScreenXConfig({ intensity: parseFloat(e.target.value) })}
+                    className="w-full h-1 bg-white/20 accent-amber-500 rounded cursor-pointer"
+                  />
+                </div>
+
+                {/* Blur Strength */}
+                <div className="space-y-1">
+                  <div className="flex justify-between text-[10px] text-stone-400">
+                    <span>Blur Diffusion</span>
+                    <span>{screenXConfig.blurStrength}px</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="10"
+                    max="100"
+                    step="5"
+                    value={screenXConfig.blurStrength}
+                    onChange={(e) => onUpdateScreenXConfig({ blurStrength: parseInt(e.target.value, 10) })}
+                    className="w-full h-1 bg-white/20 accent-amber-500 rounded cursor-pointer"
+                  />
+                </div>
+
+                {/* Quality Mode */}
+                <div className="space-y-1">
+                  <span className="text-[10px] text-stone-400">Quality Preset</span>
+                  <div className="grid grid-cols-4 gap-1 text-[10px]">
+                    {(['performance', 'balanced', 'high', 'ultra'] as const).map((q) => (
+                      <button
+                        key={q}
+                        onClick={() => onUpdateScreenXConfig({ quality: q })}
+                        className={`py-0.5 rounded capitalize ${
+                          screenXConfig.quality === q
+                            ? 'bg-amber-500/30 text-amber-300 font-bold border border-amber-500/40'
+                            : 'bg-white/5 text-stone-400 hover:bg-white/10'
+                        }`}
+                      >
+                        {q.slice(0, 4)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Wing Toggles */}
+                <div className="flex items-center justify-between pt-1 border-t border-white/10 text-[10px]">
+                  <label className="flex items-center gap-1.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={screenXConfig.leftEnabled}
+                      onChange={(e) => onUpdateScreenXConfig({ leftEnabled: e.target.checked })}
+                      className="accent-amber-500 rounded"
+                    />
+                    <span>Left Wing</span>
+                  </label>
+                  <label className="flex items-center gap-1.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={screenXConfig.rightEnabled}
+                      onChange={(e) => onUpdateScreenXConfig({ rightEnabled: e.target.checked })}
+                      className="accent-amber-500 rounded"
+                    />
+                    <span>Right Wing</span>
+                  </label>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Studio Audio EQ / Mastering Console Toggle */}

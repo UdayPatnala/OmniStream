@@ -23,7 +23,10 @@ import {
 } from 'lucide-react';
 import { Video } from '../types';
 import { useAppStore } from '@/src/store';
-import { omsTransitionService, matchesShortcut, errorRecoveryManager } from '@omnistream/core';
+import { useUTubeStore } from '../state/useUTubeStore';
+import { utubeAmbientEngine } from '../services/utubeAmbientEngine';
+import { omsTransitionService, matchesShortcut, errorRecoveryManager, spatialAudioEngine } from '@omnistream/core';
+import type { SpatialAudioMode } from '@omnistream/shared';
 
 export interface UTubePlayerProps {
   video: Video;
@@ -68,13 +71,26 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
   const [controlsVisible, setControlsVisible] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
-  const [settingsSubmenu, setSettingsSubmenu] = useState<'main' | 'speed' | 'quality'>('main');
+  const [settingsSubmenu, setSettingsSubmenu] = useState<'main' | 'speed' | 'quality' | 'ambient' | 'audio'>('main');
   const [selectedQuality, setSelectedQuality] = useState('Auto (1080p)');
   const [hoverTime, setHoverTime] = useState<number | null>(null);
   const [hoverPositionX, setHoverPositionX] = useState<number>(0);
   const [isScrubbing, setIsScrubbing] = useState(false);
   const [scrubTime, setScrubTime] = useState(0);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // U-Tube Four-Sided Ambient Lighting State & Refs
+  const ambientContainerRef = useRef<HTMLDivElement>(null);
+  const ambientTopRef = useRef<HTMLDivElement>(null);
+  const ambientBottomRef = useRef<HTMLDivElement>(null);
+  const ambientLeftRef = useRef<HTMLDivElement>(null);
+  const ambientRightRef = useRef<HTMLDivElement>(null);
+
+  // Advanced Audio & Spatial Audio State
+  const [spatialMode, setSpatialMode] = useState<SpatialAudioMode>('auto');
+  const [audioDelayMs, setAudioDelayMs] = useState<number>(0);
+  const ambientConfig = useUTubeStore((state) => state.ambientConfig);
+  const setAmbientConfig = useUTubeStore((state) => state.setAmbientConfig);
 
   const controlsTimerRef = useRef<NodeJS.Timeout | null>(null);
   const pollTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -132,6 +148,32 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
       return () => clearTimeout(timer);
     }
   }, [video.id, initialTime, sendIframeCommand]);
+
+  // U-Tube Four-Sided Ambient Lighting Synchronization
+  useEffect(() => {
+    utubeAmbientEngine.bindElements({
+      video: null,
+      container: ambientContainerRef.current,
+      top: ambientTopRef.current,
+      bottom: ambientBottomRef.current,
+      left: ambientLeftRef.current,
+      right: ambientRightRef.current,
+    });
+    utubeAmbientEngine.updateConfig(ambientConfig);
+
+    const thumb = video.thumbnails?.high || video.thumbnails?.medium || `https://i.ytimg.com/vi/${video.id}/hqdefault.jpg`;
+    utubeAmbientEngine.setThumbnail(thumb);
+
+    if (isPlaying && ambientConfig.enabled) {
+      utubeAmbientEngine.start();
+    } else {
+      utubeAmbientEngine.stop();
+    }
+
+    return () => {
+      utubeAmbientEngine.dispose();
+    };
+  }, [video.id, ambientConfig, isPlaying]);
 
   // Periodic polling for progress & state from iframe
   useEffect(() => {
@@ -241,6 +283,7 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
       const target = Math.max(0, Math.min(duration || Infinity, currentTime + offsetSecs));
       setCurrentTime(target);
       sendIframeCommand('seekTo', [target, true]);
+      utubeAmbientEngine.syncImmediate();
       showToast(offsetSecs > 0 ? `â© +${offsetSecs}s` : `âª ${offsetSecs}s`);
     },
     [currentTime, duration, sendIframeCommand, showToast]
@@ -353,6 +396,20 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
       } else if (matchesShortcut(e, 'toggleTheater', customShortcuts)) {
         e.preventDefault();
         onToggleTheaterMode?.();
+      } else if (!e.ctrlKey && !e.metaKey && !e.altKey && (e.key === '[' || e.key === '{')) {
+        e.preventDefault();
+        const cur = spatialAudioEngine.getAudioDelay();
+        const next = Math.max(-500, cur - 20);
+        spatialAudioEngine.setAudioDelay(next);
+        setAudioDelayMs(next);
+        showToast(`🔊 Audio Delay: ${next > 0 ? `+${next}` : next} ms`);
+      } else if (!e.ctrlKey && !e.metaKey && !e.altKey && (e.key === ']' || e.key === '}')) {
+        e.preventDefault();
+        const cur = spatialAudioEngine.getAudioDelay();
+        const next = Math.min(500, cur + 20);
+        spatialAudioEngine.setAudioDelay(next);
+        setAudioDelayMs(next);
+        showToast(`🔊 Audio Delay: ${next > 0 ? `+${next}` : next} ms`);
       }
     };
 
@@ -568,7 +625,64 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
         </>
       )}
 
-      {/* â”€â”€ True Full-Screen Immersive Video Viewport Container with Calibrated Cinema Horizontal Curvature â”€â”€ */}
+      {/* ── U-Tube Four-Sided Ambient Peripheral Glow (Left, Right, Top, Bottom) ── */}
+      {ambientConfig.enabled && (
+        <div
+          ref={ambientContainerRef}
+          aria-hidden="true"
+          className="absolute inset-0 pointer-events-none z-10 transition-opacity duration-500 overflow-visible"
+        >
+          {/* Top Ambient Light */}
+          {ambientConfig.topEnabled && (
+            <div
+              ref={ambientTopRef}
+              className="absolute -top-10 sm:-top-16 inset-x-0 h-20 sm:h-32 pointer-events-none transition-opacity duration-300"
+              style={{
+                filter: `blur(${ambientConfig.blur}px)`,
+                opacity: isPlaying ? ambientConfig.intensity : ambientConfig.intensity * 0.4,
+              }}
+            />
+          )}
+
+          {/* Bottom Ambient Light */}
+          {ambientConfig.bottomEnabled && (
+            <div
+              ref={ambientBottomRef}
+              className="absolute -bottom-10 sm:-bottom-16 inset-x-0 h-20 sm:h-32 pointer-events-none transition-opacity duration-300"
+              style={{
+                filter: `blur(${ambientConfig.blur}px)`,
+                opacity: isPlaying ? ambientConfig.intensity : ambientConfig.intensity * 0.4,
+              }}
+            />
+          )}
+
+          {/* Left Ambient Light */}
+          {ambientConfig.leftEnabled && (
+            <div
+              ref={ambientLeftRef}
+              className="absolute -left-10 sm:-left-20 inset-y-0 w-20 sm:w-40 pointer-events-none transition-opacity duration-300"
+              style={{
+                filter: `blur(${ambientConfig.blur}px)`,
+                opacity: isPlaying ? ambientConfig.intensity : ambientConfig.intensity * 0.4,
+              }}
+            />
+          )}
+
+          {/* Right Ambient Light */}
+          {ambientConfig.rightEnabled && (
+            <div
+              ref={ambientRightRef}
+              className="absolute -right-10 sm:-right-20 inset-y-0 w-20 sm:w-40 pointer-events-none transition-opacity duration-300"
+              style={{
+                filter: `blur(${ambientConfig.blur}px)`,
+                opacity: isPlaying ? ambientConfig.intensity : ambientConfig.intensity * 0.4,
+              }}
+            />
+          )}
+        </div>
+      )}
+
+      {/* ── True Full-Screen Immersive Video Viewport Container with Calibrated Cinema Horizontal Curvature ── */}
       <div
         ref={containerRef}
         onMouseMove={resetControlsTimer}
@@ -822,7 +936,252 @@ export const UTubePlayer: React.FC<UTubePlayerProps> = ({
                               {selectedQuality} <ChevronRight className="w-3 h-3" />
                             </span>
                           </button>
+
+                          <button
+                            onClick={() => setSettingsSubmenu('ambient')}
+                            className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-white/10 text-left transition-colors cursor-pointer"
+                          >
+                            <span className="flex items-center gap-2">
+                              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                              <span>Ambient Lighting</span>
+                            </span>
+                            <span className="text-gray-400 flex items-center gap-1 font-mono">
+                              {ambientConfig.enabled ? 'ON' : 'OFF'} <ChevronRight className="w-3 h-3" />
+                            </span>
+                          </button>
+
+                          <button
+                            onClick={() => setSettingsSubmenu('audio')}
+                            className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-white/10 text-left transition-colors cursor-pointer"
+                          >
+                            <span className="flex items-center gap-2">
+                              <Volume2 className="w-3.5 h-3.5 text-sky-400" />
+                              <span>Audio & Spatial</span>
+                            </span>
+                            <span className="text-gray-400 flex items-center gap-1 font-mono uppercase text-[10px]">
+                              {spatialMode} <ChevronRight className="w-3 h-3" />
+                            </span>
+                          </button>
                         </>
+                      ) : settingsSubmenu === 'ambient' ? (
+                        <div className="space-y-2 p-1">
+                          <div className="text-[10px] font-bold text-gray-400 uppercase px-1 py-1 border-b border-white/10 flex items-center justify-between">
+                            <span className="flex items-center gap-1.5 text-amber-400">
+                              <Sparkles className="w-3 h-3" />
+                              <span>Ambient Lighting</span>
+                            </span>
+                            <button
+                              onClick={() => setSettingsSubmenu('main')}
+                              className="text-red-400 hover:underline cursor-pointer"
+                            >
+                              Back
+                            </button>
+                          </div>
+
+                          {/* Enable Toggle */}
+                          <div className="flex items-center justify-between px-1 py-1">
+                            <span className="text-[11px]">4-Sided Glow</span>
+                            <button
+                              onClick={() => {
+                                const next = !ambientConfig.enabled;
+                                setAmbientConfig({ enabled: next });
+                                showToast(next ? 'Ambient Lighting ON' : 'Ambient Lighting OFF');
+                              }}
+                              className={`px-2 py-0.5 rounded text-[10px] font-bold transition-colors cursor-pointer ${
+                                ambientConfig.enabled ? 'bg-amber-500 text-black' : 'bg-white/10 text-gray-400'
+                              }`}
+                            >
+                              {ambientConfig.enabled ? 'ENABLED' : 'DISABLED'}
+                            </button>
+                          </div>
+
+                          {/* Intensity */}
+                          <div className="space-y-0.5 px-1">
+                            <div className="flex justify-between text-[10px] text-gray-400">
+                              <span>Intensity</span>
+                              <span>{Math.round(ambientConfig.intensity * 100)}%</span>
+                            </div>
+                            <input
+                              type="range"
+                              min="0.1"
+                              max="1.0"
+                              step="0.05"
+                              value={ambientConfig.intensity}
+                              onChange={(e) => setAmbientConfig({ intensity: parseFloat(e.target.value) })}
+                              className="w-full h-1 bg-white/20 accent-amber-500 rounded cursor-pointer"
+                            />
+                          </div>
+
+                          {/* Blur */}
+                          <div className="space-y-0.5 px-1">
+                            <div className="flex justify-between text-[10px] text-gray-400">
+                              <span>Blur Radius</span>
+                              <span>{ambientConfig.blur}px</span>
+                            </div>
+                            <input
+                              type="range"
+                              min="10"
+                              max="100"
+                              step="5"
+                              value={ambientConfig.blur}
+                              onChange={(e) => setAmbientConfig({ blur: parseInt(e.target.value, 10) })}
+                              className="w-full h-1 bg-white/20 accent-amber-500 rounded cursor-pointer"
+                            />
+                          </div>
+
+                          {/* Direction Toggles */}
+                          <div className="pt-1 border-t border-white/10 space-y-1 px-1">
+                            <span className="text-[10px] text-gray-400 block">Active Directions</span>
+                            <div className="grid grid-cols-2 gap-1 text-[10px]">
+                              <label className="flex items-center gap-1.5 cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={ambientConfig.topEnabled}
+                                  onChange={(e) => setAmbientConfig({ topEnabled: e.target.checked })}
+                                  className="accent-amber-500 rounded"
+                                />
+                                <span>Top</span>
+                              </label>
+                              <label className="flex items-center gap-1.5 cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={ambientConfig.bottomEnabled}
+                                  onChange={(e) => setAmbientConfig({ bottomEnabled: e.target.checked })}
+                                  className="accent-amber-500 rounded"
+                                />
+                                <span>Bottom</span>
+                              </label>
+                              <label className="flex items-center gap-1.5 cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={ambientConfig.leftEnabled}
+                                  onChange={(e) => setAmbientConfig({ leftEnabled: e.target.checked })}
+                                  className="accent-amber-500 rounded"
+                                />
+                                <span>Left</span>
+                              </label>
+                              <label className="flex items-center gap-1.5 cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={ambientConfig.rightEnabled}
+                                  onChange={(e) => setAmbientConfig({ rightEnabled: e.target.checked })}
+                                  className="accent-amber-500 rounded"
+                                />
+                                <span>Right</span>
+                              </label>
+                            </div>
+                          </div>
+
+                          {/* Quality Preset */}
+                          <div className="pt-1 border-t border-white/10 px-1">
+                            <span className="text-[10px] text-gray-400 block mb-1">Quality</span>
+                            <div className="grid grid-cols-4 gap-1 text-[9px]">
+                              {(['performance', 'balanced', 'high', 'ultra'] as const).map((q) => (
+                                <button
+                                  key={q}
+                                  onClick={() => setAmbientConfig({ quality: q })}
+                                  className={`py-0.5 rounded capitalize cursor-pointer ${
+                                    ambientConfig.quality === q
+                                      ? 'bg-amber-500/30 text-amber-300 font-bold border border-amber-500/40'
+                                      : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                                  }`}
+                                >
+                                  {q.slice(0, 4)}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      ) : settingsSubmenu === 'audio' ? (
+                        <div className="space-y-2 p-1">
+                          <div className="text-[10px] font-bold text-gray-400 uppercase px-1 py-1 border-b border-white/10 flex items-center justify-between">
+                            <span className="flex items-center gap-1.5 text-sky-400">
+                              <Volume2 className="w-3 h-3" />
+                              <span>Audio & Spatial</span>
+                            </span>
+                            <button
+                              onClick={() => setSettingsSubmenu('main')}
+                              className="text-red-400 hover:underline cursor-pointer"
+                            >
+                              Back
+                            </button>
+                          </div>
+
+                          <div className="p-1.5 rounded-lg bg-sky-950/30 border border-sky-500/20 text-[10px] space-y-0.5">
+                            <div className="text-sky-300 font-semibold flex items-center justify-between">
+                              <span>Output Format</span>
+                              <span className="px-1 py-0.2 bg-sky-500/20 text-sky-300 rounded text-[9px] uppercase">
+                                {spatialAudioEngine.isAutoEngaged() ? 'Auto Engaged' : spatialMode}
+                              </span>
+                            </div>
+                            <div className="text-gray-400">Stereo 2.0 • Web Audio HRTF Virtualizer</div>
+                          </div>
+
+                          {/* Mode Selection */}
+                          <div className="space-y-1">
+                            <label className="text-[10px] text-gray-400 uppercase">Spatial Mode</label>
+                            <div className="grid grid-cols-2 gap-1 text-[10px]">
+                              {(['auto', 'spatial-3d', 'binaural-cinema', 'off'] as const).map((m) => (
+                                <button
+                                  key={m}
+                                  onClick={() => {
+                                    setSpatialMode(m);
+                                    spatialAudioEngine.setMode(m);
+                                    showToast(`Spatial Audio: ${m.toUpperCase()}`);
+                                  }}
+                                  className={`py-1 px-1.5 rounded capitalize text-left cursor-pointer transition-colors ${
+                                    spatialMode === m
+                                      ? 'bg-sky-500/30 text-sky-300 font-bold border border-sky-500/40'
+                                      : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                                  }`}
+                                >
+                                  {m.replace('-', ' ')}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Lip-sync Delay Adjustment */}
+                          <div className="space-y-1 pt-1 border-t border-white/5">
+                            <div className="flex items-center justify-between text-[10px]">
+                              <span className="text-gray-400">Lip-Sync Delay</span>
+                              <div className="flex items-center gap-1">
+                                <span className="font-mono text-sky-300">
+                                  {audioDelayMs > 0 ? `+${audioDelayMs}` : audioDelayMs} ms
+                                </span>
+                                {audioDelayMs !== 0 && (
+                                  <button
+                                    onClick={() => {
+                                      setAudioDelayMs(0);
+                                      spatialAudioEngine.setAudioDelay(0);
+                                    }}
+                                    className="text-[9px] text-gray-500 hover:text-white underline cursor-pointer ml-1"
+                                  >
+                                    0ms
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                            <input
+                              type="range"
+                              min="-500"
+                              max="500"
+                              step="10"
+                              value={audioDelayMs}
+                              onChange={(e) => {
+                                const val = Number(e.target.value);
+                                setAudioDelayMs(val);
+                                spatialAudioEngine.setAudioDelay(val);
+                              }}
+                              className="w-full accent-sky-500 h-1 bg-white/10 rounded cursor-pointer"
+                            />
+                            <div className="flex justify-between text-[9px] text-gray-500 font-mono">
+                              <span>-500ms</span>
+                              <span>0ms</span>
+                              <span>+500ms</span>
+                            </div>
+                          </div>
+                        </div>
                       ) : settingsSubmenu === 'speed' ? (
                         <div className="space-y-1">
                           <div className="text-[10px] font-bold text-gray-400 uppercase px-2 py-1 border-b border-white/10 flex items-center justify-between">

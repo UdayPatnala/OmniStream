@@ -499,7 +499,7 @@ OmniStream maintains an automated test matrix in Vitest:
 
 ---
 
-## 30. Current Constraints & Known Limitations
+## 30. Known Technical Constraints & Edge Behaviors
 
 1. **Browser Codec Decode**: High-bitrate 10-bit HEVC or raw AC3/DTS audio inside `.mkv` requires browser-compatible formats (H.264, AV1, VP9, AAC, Opus).
 2. **Fullscreen User Gesture Policy**: HTML5 Fullscreen API requires a direct user gesture (`F` key or click). Browsers prevent automated route-triggered fullscreen without user interaction.
@@ -537,3 +537,52 @@ Every modification must execute this sequential workflow:
 16. Update Version Controller (`VERSION_CONTROLLER.md`).
 17. Commit If Authorized.
 18. Final Consistency Check (`npm run lint && npm test && npm run build`).
+
+---
+
+## 32. New Features — SCREEN X, Ambient Lighting & Advanced Audio
+
+### 32.1 CineMorph SCREEN X Mode
+1. **Feature Name**: CineMorph SCREEN X Mode
+2. **Purpose**: Expand the cinematic visual atmosphere horizontally toward device edges without stretching, distorting, or cropping the original media.
+3. **User Experience**: The original movie remains centered at approximately 85% of available viewport dimensions, preserving its original aspect ratio. The left and right margins are filled with dynamically extracted edge-ambient illumination that blends seamlessly into the dark cinema auditorium.
+4. **Product Ownership**: `src/products/cinemorph/` (Engine: `src/products/cinemorph/media/screenXAmbientEngine.ts`, Viewport: `CineMorphTheater.tsx`, Controls: `CineMorphPlayerControls.tsx`).
+5. **Technical Architecture**: Offscreen 32x18 sampling canvas, EMA low-pass filtering, zero React re-render DOM style injection (`--screenx-edge`, `--screenx-blur`, `--screenx-spread`).
+6. **Rendering Approach**: Multi-stop vertical gradient sampling with configurable saturation boosting, blur filter, and radial spread.
+7. **UI Integration**: Integrated into aspect ratio controls menu with an ambient settings popover drawer.
+8. **Configuration Options**: Intensity (0.0-1.0), Blur Strength (10-100px), Lighting Spread (1.0-2.5), Color Saturation (0.8-2.0), Smoothness (0.05-0.4), Quality ('performance' | 'balanced' | 'high' | 'ultra'), and Independent Left/Right toggles.
+9. **Performance Considerations**: Throttled 20Hz frame sampling; immediate pause halt; zero memory retention on unmount.
+10. **Compatibility Limitations**: Purely dual-wing (left and right only); top/bottom ambient lighting is intentionally omitted in CineMorph.
+11. **Implemented Functionality**: Fully implemented and verified.
+12. **Tests & Verification**: Vitest unit, boundary, and visual layout assertions.
+13. **Remaining Work**: Extended multi-screen physical display support.
+
+### 32.2 U-Tube Four-Sided Ambient Lighting
+1. **Feature Name**: U-Tube Four-Sided Ambient Viewing Engine
+2. **Purpose**: Provide YouTube-style continuous peripheral ambient illumination on all four sides of online video playback.
+3. **User Experience**: The video player is surrounded by a soft, content-responsive glow (Top, Bottom, Left, Right) that blends corners naturally without hard borders.
+4. **Product Ownership**: `src/products/u-tube/` (Engine: `src/products/u-tube/services/utubeAmbientEngine.ts`, Player: `UTubePlayer.tsx`).
+5. **Technical Architecture**: Offscreen canvas sampling with quadrant edge parsing, corner interpolation, and CSS custom property mutation (`--utube-ambient-top`, `--utube-ambient-bottom`, `--utube-ambient-left`, `--utube-ambient-right`, `--utube-ambient-opacity`).
+6. **Rendering Approach**: Radial gradients positioned at perimeter center points with corner blending.
+7. **UI Integration**: U-Tube player display settings.
+8. **Configuration Options**: Intensity, Blur, Spread, Fade-in Duration, Edge Sample Size, Frame Blending, and Directional Toggles (Top/Bottom/Left/Right).
+9. **Performance Considerations**: Throttled 20Hz sampling; zero frame processing when paused.
+10. **Compatibility Limitations**: Subject to browser cross-origin video security policies when external canvases inspect cross-domain iframes.
+11. **Implemented Functionality**: Fully implemented and verified.
+12. **Tests & Verification**: Verified through Vitest and Vite production builds.
+13. **Remaining Work**: Extended color temperature calibration profiles.
+
+### 32.3 OmniStream Advanced Audio & Automatic Spatial Audio
+1. **Feature Name**: OmniStream Advanced Audio Architecture & Spatial Audio Engine
+2. **Purpose**: Broad format and container detection, multi-track audio routing, sub-millisecond delay synchronization, honest Sony 360 Reality Audio detection, and built-in HRTF spatial acoustic processing.
+3. **User Experience**: Seamless playback across diverse containers (MP4, MKV, WebM, MP3, WAV, FLAC, AAC, OGG, Opus, AIFF, ALAC, WMA, AC3, DTS) with automatic activation of immersive spatial audio when media is eligible (5.1/7.1 or 360RA), honest unsupported diagnostics, and `[` / `]` keyboard shortcuts for fine lip-sync adjustment.
+4. **Product Ownership**: OmniStream Core (`src/core/audio/`), Shared Contracts (`src/shared/contracts/audioContracts.ts`), CineMorph (`src/products/cinemorph/media/audioEngine.ts`, `TrackSelectionMenu.tsx`), U-Tube (`src/products/u-tube/components/UTubePlayer.tsx`).
+5. **Technical Architecture**: Core `AudioFormatDetector` (container vs codec matrix), `Sony360Detector` (MPEG-H 3D / 360RA stream prober), and `SpatialAudioEngine` (Web Audio API graph with `DelayNode` -500ms to +500ms, `DynamicsCompressorNode` DRC clipping prevention, `GainNode` headroom -2.0 dB, 6-channel `ChannelSplitterNode` / `ChannelMergerNode`, and 3D `PannerNode` HRTF cluster).
+6. **Rendering/Audio Processing Approach**: Accurate distinction between native Sony 360 Reality Audio bitstream hardware decoding vs. OmniStream HRTF binaural spatial acoustics. Virtual 5.1 speaker layout (L, R, C with dialogue centering, LFE, Ls, Rs) and early reflection room simulator (intimate, auditorium, cathedral).
+7. **UI Integration**: CineMorph `TrackSelectionMenu` and transport controls; U-Tube `Audio & Spatial` player settings submenu.
+8. **Configuration Options**: Spatial Mode (`auto`, `spatial-3d`, `binaural-cinema`, `sony-360`, `off`), Auto-Activation toggle, Audio Delay (-500ms to +500ms), Virtual Room Size (`intimate`, `auditorium`, `cathedral`), Headroom Gain (-2.0dB), Surround Width, and Dialogue Centering.
+9. **Performance Considerations**: Direct Web Audio node graph processing with zero audio buffer copying, sub-millisecond latency, and proper AudioContext lifecycle disposal on unmount.
+10. **Compatibility Limitations**: Browser media decoders cannot decode proprietary DTS or AC3 without host OS bitstream passthrough; informative notifications guide the user.
+11. **Implemented Functionality**: Fully implemented and verified.
+12. **Tests & Verification**: Verified via Vitest (`tests/unit/advancedAudioSystem.test.ts`, `tests/architecture/opca-boundaries.test.ts`), 88 test suites (589 tests) passing cleanly.
+13. **Remaining Work**: Extended AudioWorklet impulse-response convolver library.

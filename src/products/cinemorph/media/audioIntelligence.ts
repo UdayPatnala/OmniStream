@@ -4,8 +4,12 @@
  * Zero marketing gimmicks, zero fake 3D effects, 100% deterministic DSP safety.
  */
 
-import { IAudioPerceptionProvider, IAudioPerceptionEvidence } from '@omnistream/core/oms/interfaces';
-import { PerceptionNormalizer, NullAudioPerceptionProvider } from '@omnistream/core/oms/perceptionNormalizer';
+import {
+  IAudioPerceptionProvider,
+  IAudioPerceptionEvidence,
+  PerceptionNormalizer,
+  NullAudioPerceptionProvider,
+} from '@omnistream/core';
 
 export class AudioIntelligenceService {
   private provider: IAudioPerceptionProvider;

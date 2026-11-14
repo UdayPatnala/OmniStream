@@ -1,8 +1,10 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { storageService } from '@omnistream/core/storage/storageService';
+import { storageService } from '@omnistream/core';
 
-export type AspectRatioMode = 'original' | '1.90:1' | '1.43:1' | '4:3';
+import { ScreenXConfig, DEFAULT_SCREENX_CONFIG } from '@omnistream/shared';
+
+export type AspectRatioMode = 'original' | '1.90:1' | '1.43:1' | '4:3' | 'screen-x';
 export type FramingRuleMode = 'rule_of_thirds' | 'leading_lines' | 'frame_in_frame' | 'screen_direction' | 'auto';
 
 export interface CineMorphVideoSource {
@@ -18,6 +20,7 @@ import { CineMorphScreeningSession } from '../types';
 
 export interface CineMorphStoreState {
   aspectRatio: AspectRatioMode;
+  screenXConfig: ScreenXConfig;
   isOffline: boolean;
   videoSource: CineMorphVideoSource | null;
   activeSession: CineMorphScreeningSession | null;
@@ -28,6 +31,7 @@ export interface CineMorphStoreState {
   isPlaying: boolean;
 
   setAspectRatio: (ratio: AspectRatioMode) => void;
+  setScreenXConfig: (config: Partial<ScreenXConfig>) => void;
   setOfflineStatus: (offline: boolean) => void;
   setVideoSource: (source: CineMorphVideoSource | null) => void;
   setActiveSession: (session: CineMorphScreeningSession | null) => void;
@@ -46,6 +50,7 @@ export const useCineMorphStore = create<CineMorphStoreState>()(
   persist(
     (set) => ({
       aspectRatio: 'original',
+      screenXConfig: { ...DEFAULT_SCREENX_CONFIG },
       isOffline: false,
       videoSource: null,
       activeSession: null,
@@ -56,13 +61,18 @@ export const useCineMorphStore = create<CineMorphStoreState>()(
       isPlaying: false,
 
       setAspectRatio: (ratio: AspectRatioMode) => {
-        const validRatios: AspectRatioMode[] = ['original', '1.90:1', '1.43:1', '4:3'];
+        const validRatios: AspectRatioMode[] = ['original', '1.90:1', '1.43:1', '4:3', 'screen-x'];
         const validated = validRatios.includes(ratio) ? ratio : 'original';
         set((state) => ({
           aspectRatio: validated,
           activeSession: state.activeSession ? { ...state.activeSession, aspectRatio: validated } : null,
         }));
       },
+
+      setScreenXConfig: (updates: Partial<ScreenXConfig>) =>
+        set((state) => ({
+          screenXConfig: { ...state.screenXConfig, ...updates },
+        })),
 
       setOfflineStatus: (offline: boolean) =>
         set((state) => ({

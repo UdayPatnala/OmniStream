@@ -4,13 +4,13 @@
 > **Repository**: `https://github.com/UdayPatnala/OmniStream.git`  
 > **Workspace**: `UdayPatnala/OmniStream`  
 > **Author & Architect**: Patnala Uday Kumar (UdayPatnala)  
-> **Authoritative Current Version**: `1.09.13.1` (Format: `A.BC.DE.F`)  
-> **Current Status**: `VERIFIED` (84 test suites, 526/526 tests passing, 0 TypeScript errors, clean production bundle)  
+> **Authoritative Current Version**: `1.09.15.0` (Format: `A.BC.DE.F`)
+> **Current Status**: `VERIFIED` (88 test suites, 589/589 tests passing, 0 TypeScript errors, clean production bundle)
 > **Operating Directive**: This document is the single authoritative source of truth for **what changed, when it changed, and how OmniStream is governed over time**. It records all releases, milestones, bug fixes, test benchmarks, and the A.BC.DE.F governance standard.
 
 ## Current Version
 
-`1.09.13.1`
+`1.09.15.0`
 
 ## Current Status
 
@@ -52,16 +52,16 @@ The version string must be synchronized across four authoritative touchpoints si
 ## 2. Current Version & Release Status
 
 ### Current Version
-`1.09.13.1`
+`1.09.14.0`
 
 ### Current Status
 `VERIFIED`
 
 ### Verification Summary
-- **Unit & Integration Tests**: 84 test suites, 526 tests passing (100% pass rate in Vitest).
+- **Unit & Integration Tests**: 84 test suites, 533 tests passing (100% pass rate in Vitest).
 - **TypeScript Static Analysis**: `npm run lint` (`tsc --noEmit`) passes with 0 errors.
 - **Production Build**: `npm run build` (Vite 6.4.3 + esbuild server bundle) passes cleanly.
-- **Architecture Boundaries**: OPCA boundary tests pass with 0 cross-capsule import violations.
+- **Architecture Boundaries**: OPCA boundary tests pass with 0 cross-capsule import violations across 13 automated boundary rules.
 - **Spatial Benchmark**: GeometrySolver mean `2.1 µs`, Full Pipeline mean `6.5 µs` (0.039% of 16.67ms 60fps budget), 0 invariant violations across 10,000 iterations.
 
 
@@ -71,6 +71,8 @@ The version string must be synchronized across four authoritative touchpoints si
 
 | Version | Previous | Level | Commit | Summary & Impact | Status |
 |---|---|---|---|---|:---:|
+| **1.09.15.0** | 1.09.14.0 | FUNCTIONAL | `PENDING` | CineMorph SCREEN X Dual-Wing Ambient Mode, U-Tube Four-Sided Ambient Lighting & OmniStream Advanced Audio Architecture: (1) CineMorph SCREEN X: 85% viewport dimension constraint, dual left and right ambient wings extending continuously to display edges with zero gaps, uncropped centered video, DOM variable render isolation; (2) U-Tube Four-Sided Ambient Lighting: YouTube-style perimeter glow across all four edges + 4 corner blends, iframe thumbnail sampling, DOM property injection, settings UI, and store persistence; (3) OmniStream Advanced Audio & Automatic Spatial Audio: broad container/codec identification matrix (MP3, WAV, FLAC, AAC, Opus, WebM, MP4, MKV, OGG, AIFF, WMA, AC3, EAC3, DTS, ALAC), multi-track audio switching, millisecond delay compensation (-500ms to +500ms) with `[`/`]` keyboard shortcuts, native Sony 360 Reality Audio prober (MPEG-H 3D, 360RA) vs general spatial audio, 6-channel Web Audio HRTF binaural virtualizer (5.1 surround), DRC clipping protection, and auto-activation on eligible media. 88 test suites (589 tests) passing cleanly (100%), 0 TypeScript errors. | `VERIFIED` |
+| **1.09.14.0** | 1.09.13.1 | FUNCTIONAL | `PENDING` | Comprehensive Architectural Forensic Remediation & OPCA Boundary Enforcement: decoupled Core from Store via `IOMSTransitionDelegate`, `IErrorRecoveryDelegate`, and `IIntentRouterStateProvider` (zero Core->Store imports); completed public barrels (`@omnistream/core`, `@omnistream/shared`, `@omnistream/utube`); purged deep cross-product imports across `src/shell/` and `src/products/cinemorph/pages/CineMorphTheater.tsx`; eliminated media memory leak via unmount `URL.revokeObjectURL` cleanup in `CineMorphTheater.tsx`; purged product-specific CSS (`bg-utube-surface`) and relocated `VideoCardSkeleton` and `extractYouTubeId` to U-Tube; purged duplicate binary asset `public/cinemorph.png` (-428KB) and dead `youtubeService.ts` and `state/useTicketStore.ts`; upgraded architecture suite to 12 automated OPCA boundary rules. | `VERIFIED` |
 | **1.09.13.1** | 1.09.13.0 | PATCH | `PENDING` | Fullscreen Seat Clearance, Flush Proscenium Border Polygon & Deep MP4/MKV Track Sanitization: added fullscreen bottom clearance (`mb-6 sm:mb-8`) and compacted auditorium seat strip (`<26px`) so seats never overlap the screen in fullscreen or windowed modes; replaced top/bottom border-clipping polygon offsets and trapezoidal `rotateX` tilt with flush full-bounds polygon (`0%..100%`) so screen borders remain intact on all 4 sides; passed `cleanMediaName` into `parseMoovBox`/`parseTrakBox`/`parseMatroskaTrackEntry`, filtered muxer handler boilerplate, fixed UTF-8 separator encoding, and reactive-bound `loadedVideoDims` on `<video>` metadata load. | `VERIFIED` |
 | **1.09.13.0** | 1.09.12.0 | FUNCTIONAL | `02628bd` | CineMorph Proscenium Subtle Curve, Sightline Clearance Guarantee (Zero Seat Overlap), Real Media Track Extraction & Universal Audio/Video Ingest: softened screen proscenium corner rounding to subtle 2px (`rounded-sm`), refined aperture edge curve (<0.15%), guaranteed sightline buffer ($y_{\text{screen\_bottom}} \le y_{\text{seat\_top}} - \text{buffer}$), maximized screen viewport to 98vh/99vw when seating is toggled off, derived real media titles from filenames and codecs (eliminating fake demo stream strings), expanded media ingestion to accept all high-fidelity audio formats (FLAC, MP3, WAV, AAC, M4A, OGG, OPUS, ALAC, AIFF) and video containers, executed OMS-SBH empirical benchmark (10,000 iterations, 0 violations, 2.1 µs solver), 84 test suites (526 tests) passing cleanly. | `VERIFIED` |
 | **1.09.12.0** | 1.09.11.0 | FUNCTIONAL | `PENDING` | CineMorph Ambient Mode Phase V1 (CSS Variable Edge Glow & 16-point Canvas Downsampler): standalone `AmbientLightEngine` with 4-quadrant edge downsampling (top, bottom, left, right, dominant), photic safety EMA low-pass filtering, scene cut detection, direct DOM CSS variable injection (`--ambient-top`, `--ambient-bottom`, `--ambient-left`, `--ambient-right`, `--ambient-dominant`, `--ambient-luma`, `--ambient-opacity`), zero React re-renders, 84 test suites (526 tests) passing, clean production bundle, zero client video uploads. | `VERIFIED` |
@@ -85,7 +87,29 @@ The version string must be synchronized across four authoritative touchpoints si
 
 ## 4. Detailed Release History & Milestone Logs
 
-### Release v1.09.13.1 (Current)
+### Release v1.09.15.0 (Current)
+- **Date**: 2026-11-14
+- **Type**: `FUNCTIONAL` (CineMorph SCREEN X Mode, U-Tube Four-Sided Ambient Lighting & OmniStream Advanced Audio Architecture)
+- **Summary**:
+  - **Prompt 1 — CineMorph SCREEN X Dual-Wing Ambient Mode**: Introduced dedicated SCREEN X screen mode constraining native video to approximately 85% of available viewport dimensions without stretching, cropping, or shrinking. Rendered dual left and right ambient wings extending to physical display edges with zero visible gaps. Integrated standalone `screenXAmbientEngine` with independent vertical zone sampling, color saturation enhancement, photic safety EMA low-pass filtering, and DOM style injection (`--screenx-edge`, `--screenx-blur`, `--screenx-spread`) with zero React re-renders. Bound lifecycle to playback, seeking, pausing, and theater exit.
+  - **Prompt 2 — U-Tube Four-Sided Ambient Lighting**: Introduced dedicated 4-sided ambient lighting across Left, Right, Top, and Bottom perimeter with 4 smooth corner blends. Created `utubeAmbientEngine` supporting both direct HTML5 video frame sampling and YouTube iframe thumbnail sampling. Wired direct DOM variable injection, directional checkboxes, quality presets, and store persistence in `useUTubeStore`.
+  - **Prompt 3 — OmniStream Advanced Audio System & Automatic Spatial Audio**: Implemented comprehensive container and codec matrix prober (`audioFormatDetector.ts`) supporting MP3, WAV, FLAC, AAC, Opus, WebM, MP4, MKV, OGG, AIFF, WMA, AC3, EAC3, DTS, and ALAC with accurate playability diagnostics. Added Sony 360 Reality Audio prober (`sony360Detector.ts`) distinguishing native MPEG-H hardware decoding from virtualized downmixes. Built Core `SpatialAudioEngine` (`spatialAudioEngine.ts`) with 6-channel HRTF virtual speaker placement (5.1 surround), stereo 3D widening, room acoustics simulation, dynamics range compression (DRC), and millisecond delay compensation (-500ms to +500ms) with `[` / `]` keyboard shortcuts.
+  - **Verification**: 88 test suites (589 tests) passing cleanly (100%), 0 TypeScript compiler errors (`tsc --noEmit`), Vite production bundle + esbuild server bundle passing cleanly.
+
+### Release v1.09.14.0
+- **Date**: 2026-11-13
+- **Type**: `FUNCTIONAL` (Comprehensive Architectural Forensic Remediation, OPCA Boundary Enforcement, Barrel Encapsulation & Media Memory Deallocation)
+- **Summary**:
+  - **Decoupled OmniStream Core from `store.ts` via Delegates (GAP-01)**: Extracted `IOMSTransitionDelegate` in `src/core/oms/omsTransitionService.ts`, `IErrorRecoveryDelegate` in `src/core/oms/errorRecoveryManager.ts`, and `IIntentRouterStateProvider` in `src/core/oms/intentRouter.ts`. Wired implementations via dependency injection at application startup in `src/store.ts`, achieving 0 direct Core -> Store imports.
+  - **Completed Canonical Public Barrels (GAP-04, GAP-18, GAP-20)**: Fully exported all authorized public utilities in `@omnistream/shared`, Core services and shortcut managers in `@omnistream/core`, orchestration services and components in `@omnistream/utube`, and orientation helpers in `@omnistream/cinemorph`.
+  - **Eliminated All Cross-Boundary Deep Imports (GAP-02)**: Replaced internal subpath imports across Shell (`Header.tsx`, `BentoGrid.tsx`, `BottomNav.tsx`, `Sidebar.tsx`, `ThresholdPortal.tsx`, `GlobalSettingsDrawer.tsx`, `Settings.tsx`, `ModeCard.tsx`), CineMorph (`CineMorphTheater.tsx`, `CineMorphNav.tsx`, `audioIntelligence.ts`, `posterIntelligence.ts`, `omsPipeline.ts`, `visionAnalyzer.ts`, `useCineMorphStore.ts`, `geometryTypes.ts`, `sbhHarmonizer.ts`), and U-Tube (`VideoCard.tsx`, `Watch.tsx`, `playbackService.ts`, `useUTubeStore.ts`).
+  - **Remediated Media Memory Retention (GAP-08)**: Bound `createdBlobUrlsRef` and an unmount `useEffect` in `CineMorphTheater.tsx` ensuring `URL.revokeObjectURL` executes immediately upon theater exit and component unmount for all generated blob URLs and `activeLocalMedia.url`.
+  - **Purged Product-Specific CSS & Relocated Utilities from Shared (GAP-03, GAP-21)**: Relocated `VideoCardSkeleton` to `@omnistream/utube`, sanitized `Skeleton.tsx` from `bg-utube-surface` to neutral styling, relocated `extractYouTubeId` to U-Tube services, and used Core's `resolveExternalMediaMeta` in `useTicketStore.ts`.
+  - **Cleaned Duplicate Binary Asset & Dead Files (GAP-14, GAP-15, GAP-16)**: Deleted duplicate `public/cinemorph.png` (saving 428KB), removed dead legacy forwarder `src/products/u-tube/services/youtubeService.ts` and dead `src/products/cinemorph/state/useTicketStore.ts`.
+  - **Expanded Automated OPCA Architecture Boundary Suite (GAP-11)**: Upgraded `tests/architecture/opca-boundaries.test.ts` to 13 automated rules verifying isolation across Shell, CineMorph, U-Tube, Core, Shared, and Store boundaries, including static, dynamic (`import(...)`), re-export, and path-resolved relative import traversal.
+  - **Verification**: 84 test suites (533 tests) passing cleanly (100%), 0 TypeScript errors (`tsc --noEmit`), Vite production bundle + esbuild server bundle passing cleanly.
+
+### Release v1.09.13.1
 - **Date**: 2026-10-12
 - **Type**: `PATCH` (Fullscreen Seat Clearance, Flush Proscenium Border Polygon & Deep MP4/MKV Track Sanitization)
 - **Summary**:

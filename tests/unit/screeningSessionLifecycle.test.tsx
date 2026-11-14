@@ -128,4 +128,68 @@ describe('CineMorph Screening Session Lifecycle & Zero False Error State', () =>
 
     global.fetch = originalFetch;
   });
+
+  it('T-LIFE-04: CineMorphTheater revokes active blob URLs and releases video resources upon unmount', async () => {
+    const mockRevoke = vi.fn();
+    const originalRevoke = URL.revokeObjectURL;
+    URL.revokeObjectURL = mockRevoke;
+
+    const sessionId = 'local-unmount-session-123';
+    const mockBlobUrl = 'blob:http://localhost/unmount-blob-url-test';
+
+    const originalFetch = global.fetch;
+    global.fetch = vi.fn().mockImplementation((url: string) => {
+      if (url === mockBlobUrl) {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          type: 'basic',
+          body: { cancel: vi.fn() },
+        });
+      }
+      return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve([]) });
+    });
+
+    await useTicketStore.getState().trigger10sPrintAnimation({
+      sessionId,
+      title: 'Blade Runner',
+      source: mockBlobUrl,
+      isLocal: true,
+      posterUrl: '/cinemorph_artwork.png',
+    });
+
+    useAppStore.getState().setActiveLocalMedia({
+      id: sessionId,
+      name: 'Blade Runner',
+      size: 1048576,
+      type: 'video/mp4',
+      url: mockBlobUrl,
+      duration: 120,
+      progress: 0,
+      lastWatchedAt: Date.now(),
+      aspectRatio: '16:9',
+      thumbnail: '/cinemorph_artwork.png',
+    });
+
+    const { unmount } = render(
+      <MemoryRouter initialEntries={[`/theater/${sessionId}`]}>
+        <Routes>
+          <Route path="/theater/:id" element={<CineMorphTheater />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.queryByText(/NO ACTIVE SCREENING SESSION/i)).toBeNull();
+    });
+
+    // Unmount theater component (simulates browser back, header navigation, or routing change)
+    unmount();
+
+    // Invariant: URL.revokeObjectURL MUST have been called to free multi-GB media memory
+    expect(mockRevoke).toHaveBeenCalledWith(mockBlobUrl);
+
+    global.fetch = originalFetch;
+    URL.revokeObjectURL = originalRevoke;
+  });
 });

@@ -55,3 +55,11 @@ export type {
 // Media Validation
 export { validateCineMorphMedia, SUPPORTED_VIDEO_EXTENSIONS, SUPPORTED_AUDIO_EXTENSIONS, SUPPORTED_MEDIA_EXTENSIONS, NON_VIDEO_ERROR_MESSAGE, VERTICAL_VIDEO_ERROR_MESSAGE } from './media/mediaValidator';
 export type { MediaValidationResult } from './media/mediaValidator';
+
+// Device Orientation Services
+export {
+  isMobileTouchDevice,
+  isPortraitOrientation,
+  requestLandscapeOrientation,
+  unlockOrientation,
+} from './services/orientationService';

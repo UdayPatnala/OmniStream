@@ -23,7 +23,7 @@ import { OMSGeometryTransitionEngine } from './transitionEngine';
 import { OMSDOMRendererAdapter, OMSDOMRenderOutput } from './domRendererAdapter';
 import { omsFailureRecoveryManager, OMSEscalationLevel } from './failureRules';
 import { omsGenerationManager } from './generationContract';
-import { IOMSSpatialState, OMSEscalationLevel as SharedEscalationLevel } from '../../../shared/contracts/geometryContracts';
+import { IOMSSpatialState, OMSEscalationLevel as SharedEscalationLevel } from '@omnistream/shared';
 
 /**
  * Atomic Harmonized Output consumed by the CineMorph Renderer

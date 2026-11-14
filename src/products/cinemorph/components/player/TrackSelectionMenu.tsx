@@ -26,6 +26,8 @@ interface TrackSelectionMenuProps {
   onUploadSubtitleFile?: (file: File) => void;
   subtitleStyleConfig?: SubtitleStyleConfig;
   onChangeSubtitleFontSize?: (size: SubtitleFontSize) => void;
+  audioDelayMs?: number;
+  onAudioDelayChange?: (delayMs: number) => void;
 }
 
 export const TrackSelectionMenu: React.FC<TrackSelectionMenuProps> = ({
@@ -39,6 +41,8 @@ export const TrackSelectionMenu: React.FC<TrackSelectionMenuProps> = ({
   onUploadSubtitleFile,
   subtitleStyleConfig,
   onChangeSubtitleFontSize,
+  audioDelayMs = 0,
+  onAudioDelayChange,
 }) => {
   const [activeTab, setActiveTab] = useState<'audio' | 'subtitles' | 'video'>('audio');
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -192,6 +196,43 @@ export const TrackSelectionMenu: React.FC<TrackSelectionMenuProps> = ({
                   </button>
                 );
               })
+            )}
+
+            {/* Audio Delay / Lip-Sync Compensation */}
+            {onAudioDelayChange && (
+              <div className="pt-2.5 mt-2.5 border-t border-white/10 space-y-1.5">
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="text-stone-400 font-sans">Lip-Sync Audio Delay</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-mono text-amber-300">
+                      {typeof audioDelayMs === 'number' && audioDelayMs > 0 ? `+${audioDelayMs}` : audioDelayMs || 0} ms
+                    </span>
+                    {audioDelayMs !== 0 && (
+                      <button
+                        type="button"
+                        onClick={() => onAudioDelayChange(0)}
+                        className="text-[10px] text-stone-500 hover:text-white underline cursor-pointer"
+                      >
+                        Reset 0ms
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <input
+                  type="range"
+                  min="-500"
+                  max="500"
+                  step="10"
+                  value={audioDelayMs || 0}
+                  onChange={(e) => onAudioDelayChange(Number(e.target.value))}
+                  className="w-full accent-amber-500 h-1 bg-white/10 rounded cursor-pointer"
+                />
+                <div className="flex justify-between text-[9px] text-stone-500 font-mono">
+                  <span>-500ms</span>
+                  <span>0ms</span>
+                  <span>+500ms</span>
+                </div>
+              </div>
             )}
           </div>
         )}

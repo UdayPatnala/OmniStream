@@ -3,7 +3,7 @@ import { useAppStore } from '@/src/store';
 import { getChannelVideos } from '../services/youtube';
 import { SearchResult } from '../types';
 import { VideoCard } from '../components/VideoCard';
-import { VideoCardSkeleton } from '@omnistream/shared/ui/Skeleton';
+import { VideoCardSkeleton } from '../components/VideoCardSkeleton';
 import { Tv, AlertCircle, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 

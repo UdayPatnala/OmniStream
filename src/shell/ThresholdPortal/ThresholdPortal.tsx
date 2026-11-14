@@ -36,10 +36,9 @@ import {
 } from 'lucide-react';
 import { GlobalSettingsDrawer } from '../Settings/GlobalSettingsDrawer';
 import { useAppStore } from '@/src/store';
-import { useCineMorphStore } from '@omnistream/cinemorph/state/useCineMorphStore';
-import { omsTransitionService, OMSTransitionContext } from '@omnistream/core/oms/omsTransitionService';
-import { OMSLogo } from '@omnistream/shared/ui/OMSLogo';
-import { requestLandscapeOrientation } from '@omnistream/cinemorph/services/orientationService';
+import { useCineMorphStore, requestLandscapeOrientation } from '@omnistream/cinemorph';
+import { omsTransitionService, OMSTransitionContext } from '@omnistream/core';
+import { OMSLogo } from '@omnistream/shared';
 
 const SESSION_KEY = 'oms_threshold_v3_seen';
 

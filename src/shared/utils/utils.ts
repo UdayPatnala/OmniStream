@@ -91,33 +91,3 @@ export function formatTimeAgo(dateString?: string): string {
     return dateString;
   }
 }
-
-export function extractYouTubeId(input: string): string | null {
-  if (!input) return null;
-  const str = input.trim();
-
-  // Reject strings containing dangerous XSS characters
-  if (/[<>"'`\\{}]/.test(str)) {
-    return null;
-  }
-  
-  // 1. Direct YouTube 11-char Video ID or internal test fixture ID (vid_...)
-  if ((/^[a-zA-Z0-9_-]{11}$/.test(str) || /^vid_[a-zA-Z0-9_-]+$/.test(str)) && !str.includes('/') && !str.includes('.') && !str.includes('?')) {
-    return str;
-  }
-  
-  // 2. YouTube Shorts
-  const shortsMatch = str.match(/(?:youtube\.com\/shorts\/)([a-zA-Z0-9_-]{5,32})/);
-  if (shortsMatch && shortsMatch[1]) {
-    return shortsMatch[1];
-  }
-  
-  // 3. YouTube standard watch, youtu.be, embed, v
-  const regExp = /(?:youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([a-zA-Z0-9_-]{5,32})/;
-  const match = str.match(regExp);
-  if (match && match[1]) {
-    return match[1];
-  }
-  
-  return null;
-}

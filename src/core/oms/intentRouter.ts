@@ -1,5 +1,13 @@
-import { useAppStore } from '../../store';
 import { Video, HistoryItem, Collection, Channel } from '../../types';
+
+export interface IIntentRouterStateProvider {
+  getHistory?: () => HistoryItem[];
+  getSubscriptions?: () => Channel[];
+  createCollection?: (name: string) => void;
+  getRankingProfile?: () => string;
+  getCineMorphTheme?: () => string;
+  getAudioPreset?: () => string;
+}
 
 export type IntentType = 
   | 'STANDARD_SEARCH'
@@ -77,16 +85,26 @@ export class IntentRouter {
     return { type: 'STANDARD_SEARCH', params: { query: input.trim() } };
   }
 
+  private static stateProvider: IIntentRouterStateProvider | null = null;
+
+  public static setStateProvider(provider: IIntentRouterStateProvider | null): void {
+    this.stateProvider = provider;
+  }
+
+  public static getStateProvider(): IIntentRouterStateProvider | null {
+    return this.stateProvider;
+  }
+
   /**
-   * Executes the classified intent against local store state
+   * Executes the classified intent against state provider
    */
-  public static async executeIntent(input: string): Promise<IntentResult> {
+  public static async executeIntent(input: string, customProvider?: IIntentRouterStateProvider): Promise<IntentResult> {
     const { type, params } = this.classifyIntent(input);
-    const store = useAppStore.getState();
+    const provider = customProvider || this.stateProvider;
 
     switch (type) {
       case 'FIND_UNFINISHED': {
-        const historyList = Object.values(store.history);
+        const historyList = provider?.getHistory?.() || [];
         const unfinished = historyList
           .filter(h => h.progress > 10 && h.duration > 0 && h.progress < h.duration * 0.9)
           .sort((a, b) => b.watchedAt - a.watchedAt)
@@ -103,8 +121,9 @@ export class IntentRouter {
       }
 
       case 'FIND_SUBSCRIPTION_CONTENT': {
-        const subIds = new Set(store.subscriptions.map(s => s.id));
-        const historyList = Object.values(store.history);
+        const subscriptions = provider?.getSubscriptions?.() || [];
+        const subIds = new Set(subscriptions.map(s => s.id));
+        const historyList = provider?.getHistory?.() || [];
         const topic = (params.topic || '').toLowerCase();
 
         const fromSubs = historyList
@@ -124,7 +143,7 @@ export class IntentRouter {
 
       case 'FIND_HISTORY_TOPIC': {
         const topic = (params.topic || '').toLowerCase();
-        const historyList = Object.values(store.history);
+        const historyList = provider?.getHistory?.() || [];
         const matched = historyList
           .filter(h => h.video.title.toLowerCase().includes(topic) || h.video.description.toLowerCase().includes(topic))
           .sort((a, b) => b.watchedAt - a.watchedAt)
@@ -145,7 +164,7 @@ export class IntentRouter {
         if (!name) {
           return { type, query: input, message: 'Please specify a name for the collection.' };
         }
-        store.createCollection(name);
+        provider?.createCollection?.(name);
         return {
           type,
           query: input,
@@ -164,9 +183,9 @@ export class IntentRouter {
       }
 
       case 'GET_DIAGNOSTICS': {
-        const ranking = store.rankingProfile;
-        const theme = store.cinemorphTheme;
-        const audioPreset = store.audioEQ.preset;
+        const ranking = provider?.getRankingProfile?.() || 'balanced';
+        const theme = provider?.getCineMorphTheme?.() || 'classic-dark';
+        const audioPreset = provider?.getAudioPreset?.() || 'flat';
         return {
           type,
           query: input,

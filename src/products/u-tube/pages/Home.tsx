@@ -4,7 +4,7 @@ import { getPopularVideos, searchVideos, getVideosByIds } from '../services/yout
 import { getRecommendedVideos } from '../services/recommendations';
 import { Video } from '../types';
 import { VideoCard } from '../components/VideoCard';
-import { VideoCardSkeleton } from '@omnistream/shared/ui/Skeleton';
+import { VideoCardSkeleton } from '../components/VideoCardSkeleton';
 import { Flame, PlayCircle, Sparkles, History as HistoryIcon, Layers } from 'lucide-react';
 
 const CATEGORIES = [

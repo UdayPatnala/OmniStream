@@ -1,5 +1,5 @@
 ﻿import { Video } from '../types';
-import { extractYouTubeId } from '@omnistream/shared/utils/utils';
+import { extractYouTubeId } from './youtube';
 import { fetchOEmbed, getVideosByIds } from './youtube';
 
 /**

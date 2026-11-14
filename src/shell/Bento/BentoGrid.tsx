@@ -19,9 +19,9 @@ import {
 } from 'lucide-react';
 import { ModeCard } from './ModeCard';
 import { GlobalSettingsDrawer } from '../Settings/GlobalSettingsDrawer';
-import { OMSLogo } from '@omnistream/shared/ui/OMSLogo';
-import { useCineMorphStore } from '@omnistream/cinemorph/state/useCineMorphStore';
-import { useUTubeStore } from '@omnistream/utube/state/useUTubeStore';
+import { OMSLogo } from '@omnistream/shared';
+import { useCineMorphStore } from '@omnistream/cinemorph';
+import { useUTubeStore } from '@omnistream/utube';
 import { useAppStore } from '@/src/store';
 
 export const BentoGrid: React.FC = () => {

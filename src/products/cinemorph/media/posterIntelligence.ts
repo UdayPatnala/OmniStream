@@ -4,8 +4,11 @@
  */
 
 import { FrameQualityAnalyzer } from '../perception/qualityAnalyzer';
-import { IVisualPerceptionProvider, IVisualPerceptionEvidence } from '@omnistream/core/oms/interfaces';
-import { NullVisualPerceptionProvider } from '@omnistream/core/oms/perceptionNormalizer';
+import {
+  IVisualPerceptionProvider,
+  IVisualPerceptionEvidence,
+  NullVisualPerceptionProvider,
+} from '@omnistream/core';
 
 export interface FrameCandidate {
   timestamp: number;

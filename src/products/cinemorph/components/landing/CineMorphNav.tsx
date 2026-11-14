@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { OMSLogo } from '@omnistream/shared/ui/OMSLogo';
+import { OMSLogo } from '@omnistream/shared';
 
 interface CineMorphNavProps {
   environmentalTime?: 'morning' | 'night';
@@ -30,7 +30,7 @@ export const CineMorphNav: React.FC<CineMorphNavProps> = ({ environmentalTime = 
           className="pointer-events-auto opacity-80 hover:opacity-100 transition-opacity duration-300 outline-none flex items-center"
         >
           <img
-            src="/cinemorph.png"
+            src="/cinemorph_artwork.png"
             alt="CineMorph"
             className="w-8 h-8 sm:w-9 sm:h-9 object-contain filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]"
           />
